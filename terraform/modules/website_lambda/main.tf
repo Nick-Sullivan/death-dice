@@ -27,13 +27,34 @@ data "aws_iam_policy_document" "assume_role" {
   }
 }
 
+data "aws_iam_policy_document" "inline_policy" {
+  # Allow Lambda to interact with the dynamo database
+  statement {
+    actions   = [
+      "dynamodb:GetItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:PutItem",
+      "dynamodb:Scan",
+      "dynamodb:UpdateItem",
+    ]
+    effect    = "Allow"
+    resources = [var.dynamo_db_arn]
+  }
+}
+
 resource "aws_iam_role" "role" {
   # Permissions for the Lambda
   name                = "${var.name}LamdbaRole"
   description         = "Allows Lambda to write to Cloudwatch"
   assume_role_policy  = data.aws_iam_policy_document.assume_role.json
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  inline_policy {
+    name   = "DynamoDBWriteAccess"
+    policy = data.aws_iam_policy_document.inline_policy.json
+  }
 }
+
+
 
 resource "aws_lambda_function" "function" {
   # Create the function using the source code in the zip

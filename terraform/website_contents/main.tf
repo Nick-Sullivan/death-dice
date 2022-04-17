@@ -16,7 +16,7 @@ locals {
   url     = var.domain
   url_www = "www.${local.url}"
   tags = {
-    Project = "Uncomfortable Questions"
+    Project = "Hidden Opinions"
   }
 }
 
@@ -27,61 +27,29 @@ provider "aws" {
   }
 }
 
-provider "aws" {
-  region = "us-east-1"
-  alias  = "us-east-1"
-  default_tags {
-    tags = local.tags
-  }
-}
-
-# Create a public S3 bucket to host the files.
-
-module "s3_bucket" {
-  source        = "./../modules/website_s3_bucket"
-  name          = local.url
-  source_folder = "${path.root}/../../src"
-}
-
-# Create the lambda that will interact with the database
-
-module "website_lambda" {
-  source = "./../modules/website_lambda"
-  name = "UncomfortableQuestions"
-  lambda_folder = "${path.root}/../../lambda"
-  dynamo_db_arn = aws_dynamodb_table.basic-dynamodb-table.arn
-}
-
-# Create an API for the website to talk to, that will trigger the lambdas (version 2)
-
-module "website_api_gateway" {
-  source = "./../modules/website_api_gateway"
-  name = "UncomfortableQuestions"
-  integration_uri = module.website_lambda.uri
-  lambda_function_name = module.website_lambda.function_name
-}
-
 # Create a database to store lobbies
 
 resource "aws_dynamodb_table" "basic-dynamodb-table" {
   # note - doesn't have autoscaling
   name           = "UncomfortableQuestionsLobbies"
-  hash_key       = "LobbyId"
+  hash_key       = "ConnectionId"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
-  ttl {
-    attribute_name = "TimeToLive"
-    enabled = true
-  }
-
+  # ttl {
+  #   attribute_name = "TimeToLive"
+  #   enabled = true
+  # }
   attribute {
-    name = "LobbyId"
+    name = "ConnectionId"
     type = "S"
   }
+  # attribute {
+  #   name = "LobbyId"
+  #   type = "S"
+  # }
 }
-
 
 data "aws_iam_policy_document" "inline_policy" {
   statement {
@@ -91,3 +59,24 @@ data "aws_iam_policy_document" "inline_policy" {
   }
 }
 
+# Create the lambdas that will interact with the database
+
+module "website_lambda" {
+  source        = "./../modules/website_lambda"
+  prefix        = "UncomfortableQuestions"
+  lambda_folder = "${path.root}/../../lambda"
+  dynamo_db_arn = aws_dynamodb_table.basic-dynamodb-table.arn
+}
+
+# Create an API for the website to talk to, that will trigger the lambdas (version 2)
+
+module "website_api_gateway" {
+  source                     = "./../modules/website_api_gateway"
+  name                       = "UncomfortableQuestions"
+  connect_uri                = module.website_lambda.connect_uri
+  connect_function_name      = module.website_lambda.connect_function_name
+  disconnect_uri             = module.website_lambda.disconnect_uri
+  disconnect_function_name   = module.website_lambda.disconnect_function_name
+  send_message_uri           = module.website_lambda.send_message_uri
+  send_message_function_name = module.website_lambda.send_message_function_name
+}

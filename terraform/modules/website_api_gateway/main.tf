@@ -1,4 +1,4 @@
-# Creates an API gateway that takes HTTP requests, and executes the appropriate lambda function
+# Creates an API gateway that takes Websocket requests, and executes the appropriate lambda function
 
 terraform {
   required_providers {
@@ -8,67 +8,100 @@ terraform {
   }
 }
 
-resource "aws_cloudwatch_log_group" "http_api" {
-  # Log groups store streams of logging information
-  name              = "/aws/api_gw/${aws_apigatewayv2_api.http_api.name}"
-  retention_in_days = 30
+resource "aws_apigatewayv2_api" "websocket" {
+  name                       = var.name
+  protocol_type              = "WEBSOCKET"
+  route_selection_expression = "$request.body.action"
 }
 
-resource "aws_lambda_permission" "http_api" {
-  # Permission for the API to invoke the lambda
+# Routes are different entry points for the websocket
+
+resource "aws_apigatewayv2_route" "connect" {
+  api_id    = aws_apigatewayv2_api.websocket.id
+  route_key = "$connect"
+  target    = "integrations/${aws_apigatewayv2_integration.connect.id}"
+}
+
+resource "aws_apigatewayv2_route" "disconnect" {
+  api_id    = aws_apigatewayv2_api.websocket.id
+  route_key = "$disconnect"
+  target    = "integrations/${aws_apigatewayv2_integration.disconnect.id}"
+}
+
+resource "aws_apigatewayv2_route" "send_message" {
+  api_id    = aws_apigatewayv2_api.websocket.id
+  route_key = "sendMessage"
+  target    = "integrations/${aws_apigatewayv2_integration.send_message.id}"
+}
+
+# Integrations connect routes to our lambdas
+
+resource "aws_apigatewayv2_integration" "connect" {
+  api_id                    = aws_apigatewayv2_api.websocket.id
+  integration_type          = "AWS_PROXY"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Lambda connection"
+  integration_method        = "POST"
+  integration_uri           = var.connect_uri
+}
+
+resource "aws_apigatewayv2_integration" "disconnect" {
+  api_id                    = aws_apigatewayv2_api.websocket.id
+  integration_type          = "AWS_PROXY"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Lambda disconnection"
+  integration_method        = "POST"
+  integration_uri           = var.disconnect_uri
+}
+
+resource "aws_apigatewayv2_integration" "send_message" {
+  api_id                    = aws_apigatewayv2_api.websocket.id
+  integration_type          = "AWS_PROXY"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Lambda message"
+  integration_method        = "POST"
+  integration_uri           = var.send_message_uri
+}
+
+# Permissions to invoke lambdas
+
+resource "aws_lambda_permission" "connect" {
   statement_id  = "AllowExecutionFromAPIGateway"
   action        = "lambda:InvokeFunction"
-  function_name = var.lambda_function_name
+  function_name = var.connect_function_name
   principal     = "apigateway.amazonaws.com"
-  source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
+  source_arn    = "${aws_apigatewayv2_api.websocket.execution_arn}/*/${aws_apigatewayv2_route.connect.route_key}"
 }
 
-resource "aws_apigatewayv2_api" "http_api" {
-  # An API that takes HTTP requests
-  name          = var.name
-  protocol_type = "HTTP"
-  cors_configuration {
-    allow_origins = ["*"]
-    allow_methods = ["POST", "GET", "OPTIONS"]
-    allow_headers = ["content-type"]
-    max_age       = 300
+resource "aws_lambda_permission" "disconnect" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.disconnect_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.websocket.execution_arn}/*/${aws_apigatewayv2_route.disconnect.route_key}"
+}
+
+resource "aws_lambda_permission" "send_message" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.send_message_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.websocket.execution_arn}/*/${aws_apigatewayv2_route.send_message.route_key}"
+}
+
+# Websocket versions are part of a stage, which must be deployed for it to be used
+
+resource "aws_apigatewayv2_stage" "production" {
+  api_id        = aws_apigatewayv2_api.websocket.id
+  deployment_id = aws_apigatewayv2_deployment.websocket.id
+  name          = "production"
+}
+
+resource "aws_apigatewayv2_deployment" "websocket" {
+  depends_on  = [aws_apigatewayv2_route.connect, aws_apigatewayv2_route.disconnect, aws_apigatewayv2_route.send_message]
+  api_id      = aws_apigatewayv2_api.websocket.id
+  description = "Terraform deployment"
+  lifecycle {
+    create_before_destroy = true
   }
-}
-
-resource "aws_apigatewayv2_stage" "http_api" {
-  # A deployment of the API
-  api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "prod"
-  auto_deploy = true
-  access_log_settings {
-    destination_arn = aws_cloudwatch_log_group.http_api.arn
-    format = jsonencode({
-      requestId               = "$context.requestId"
-      sourceIp                = "$context.identity.sourceIp"
-      requestTime             = "$context.requestTime"
-      protocol                = "$context.protocol"
-      httpMethod              = "$context.httpMethod"
-      resourcePath            = "$context.resourcePath"
-      routeKey                = "$context.routeKey"
-      status                  = "$context.status"
-      responseLength          = "$context.responseLength"
-      integrationErrorMessage = "$context.integrationErrorMessage"
-      }
-    )
-  }
-}
-
-resource "aws_apigatewayv2_integration" "http_api" {
-  # What the API will call behind-the-scenes
-  api_id             = aws_apigatewayv2_api.http_api.id
-  integration_uri    = var.integration_uri
-  integration_type   = "AWS_PROXY"
-  integration_method = "POST"
-}
-
-resource "aws_apigatewayv2_route" "http_api" {
-  # A particular endpoint
-  api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = "GET /hello"
-  target    = "integrations/${aws_apigatewayv2_integration.http_api.id}"
 }

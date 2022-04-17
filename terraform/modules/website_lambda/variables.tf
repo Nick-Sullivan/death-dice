@@ -1,6 +1,6 @@
 
-variable "name" {
-  description = "Name of the Lambda"
+variable "prefix" {
+  description = "Prefix of the Lambdas"
   type        = string
 }
 

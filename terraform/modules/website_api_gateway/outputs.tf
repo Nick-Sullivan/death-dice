@@ -1,5 +1,4 @@
-output "base_url" {
-  description = "Base URL for API Gateway stage."
-
-  value = aws_apigatewayv2_stage.http_api.invoke_url
+output "production_url" {
+  description = "Production URL for API Gateway."
+  value       = aws_apigatewayv2_stage.production.invoke_url
 }

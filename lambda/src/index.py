@@ -1,79 +1,51 @@
+"""All functions in are lambda entry points"""
+
 import boto3
-import datetime
 import json
-import string
-import random
 
-def lambda_handler(event, context):
-
-    dynamodb = boto3.resource('dynamodb', endpoint_url="https://dynamodb.ap-southeast-2.amazonaws.com")
-
-    table = dynamodb.Table('UncomfortableQuestionsLobbies')
+from lobby_interactor import LobbyInteractor
 
 
-    key = generate_lobby_code(table)
-
-    create_lobby(table, key)
-
-    # response = delete_item(table)
-
-    response = scan_table(table)
-
-    print(response)
-
-    return {
-        'statusCode': 200,
-        'headers': {
-            'Access-Control-Allow-Headers': 'Content-Type',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
-        },
-        'body': json.dumps(response)
-    }
-
-def generate_lobby_code(table):
-    key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-    while lobby_exists(table, key):
-        key = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-
-    return key
+interactor = LobbyInteractor('UncomfortableQuestionsLobbies')
 
 
-def scan_table(table):
-    return table.scan()
+def connect(event, context):
+    """Called by the WebSocketAPI when a new connection is established"""
+
+    id = event['requestContext']['connectionId']
+
+    interactor.create(id)
+
+    return {'statusCode': 200}
 
 
-def get_lobby(table, key):
-    response = table.get_item(
-        Key={"LobbyId": key}
+def disconnect(event, context):
+    """Called by the WebSocketAPI when a connection is to be destroyed"""
+
+    id = event['requestContext']['connectionId']
+
+    interactor.delete(id)
+
+    return {'statusCode': 200}
+
+
+def send_message(event, context):
+
+    print(event)
+
+    id = event['requestContext']['connectionId']
+
+    data = json.loads(event['body'])['message']
+
+    endpoint_url = f'https://{event["requestContext"]["domainName"]}/{event["requestContext"]["stage"]}'
+
+    gatewayapi = boto3.client(
+      "apigatewaymanagementapi",
+      endpoint_url = endpoint_url
     )
-    return response
-
-def lobby_exists(table, key):
-    return "Item" in get_lobby(table, key)
-
-
-def delete_lobby(table, key):
-    response = table.delete_item(
-        Key={"LobbyId": key}
+    gatewayapi.post_to_connection(
+        ConnectionId=id,
+        Data=data
     )
-    return response 
 
-
-def create_lobby(table, key):
-    ttl = (int)((datetime.datetime.now() + datetime.timedelta(days=1)).timestamp())
-
-    response = table.put_item(
-       Item={
-            "LobbyId": key,
-            "TimeToLive": ttl,
-            "Info": {
-                "ColumnA": "bleh",
-            },
-        }
-    )
-    return response
-
-if __name__ == '__main__':
-    lambda_handler(None, None)
+    return {'statusCode': 200}

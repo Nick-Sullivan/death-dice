@@ -1,4 +1,4 @@
-output "base_url" {
-  description = "Base URL for API Gateway stage."
-  value = module.website_api_gateway.base_url
+output "production_url" {
+  description = "Production URL for API Gateway."
+  value       = module.website_api_gateway.production_url
 }

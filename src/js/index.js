@@ -1,5 +1,5 @@
 
-const url ="https://55mn4p4buh.execute-api.ap-southeast-2.amazonaws.com/prod/hello";
+const url = "https://r7tmmdvxr0.execute-api.ap-southeast-2.amazonaws.com/prod/hello";
 
 function myFunction() {
   document.getElementById("output").style.color = "red";

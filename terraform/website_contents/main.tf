@@ -15,8 +15,35 @@ terraform {
 locals {
   url     = var.domain
   url_www = "www.${local.url}"
+  prefix = "UncomfortableQuestions"
   tags = {
     Project = "Hidden Opinions"
+  }
+  lambdas = {
+    "Connect" = {
+      name  = module.lambdas.connect_function_name
+      handler = "index.connect"
+      route = "$connect"
+      uri   = module.lambdas.connect_uri
+    },
+    "Disconnect" = {
+      name  = module.lambdas.disconnect_function_name
+      handler = "index.disconnect"
+      route = "$disconnect"
+      uri   = module.lambdas.disconnect_uri
+    },
+    "JoinGame" = {
+      name  = module.lambdas.join_game_function_name
+      handler = "index.join_game"
+      route = "joinGame"
+      uri   = module.lambdas.join_game_uri
+    },
+    "SendMessage" = {
+      name  = module.lambdas.send_message_function_name
+      handler = "index.send_message"
+      route = "sendMessage"
+      uri   = module.lambdas.send_message_uri
+    }
   }
 }
 
@@ -30,29 +57,23 @@ provider "aws" {
 # Create a database to store lobbies
 
 module "database" {
-  source        = "./../modules/database"
+  source = "./../modules/database"
+  prefix = local.prefix
 }
 
 # Create the lambdas that will interact with the database
 
 module "lambdas" {
   source        = "./../modules/lambdas"
-  prefix        = "UncomfortableQuestions"
+  prefix        = local.prefix
   lambda_folder = "${path.root}/../../lambda"
-  dynamo_db_arn = module.database.database_arn
+  table_arns    = module.database.table_arns
 }
 
-# Create an API for the website to talk to, that will trigger the lambdas (version 2)
+# Create an API for the website to talk to, that will trigger the lambdas
 
 module "api_gateway" {
-  source                     = "./../modules/api_gateway"
-  name                       = "UncomfortableQuestions"
-  connect_uri                = module.lambdas.connect_uri
-  connect_function_name      = module.lambdas.connect_function_name
-  disconnect_uri             = module.lambdas.disconnect_uri
-  disconnect_function_name   = module.lambdas.disconnect_function_name
-  join_lobby_uri             = module.lambdas.join_lobby_uri
-  join_lobby_function_name   = module.lambdas.join_lobby_function_name
-  send_message_uri           = module.lambdas.send_message_uri
-  send_message_function_name = module.lambdas.send_message_function_name
+  source  = "./../modules/api_gateway"
+  name    = local.prefix
+  lambdas = local.lambdas
 }

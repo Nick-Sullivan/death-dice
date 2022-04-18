@@ -18,14 +18,14 @@ output "disconnect_function_name" {
   value       = aws_lambda_function.disconnect.function_name
 }
 
-output "join_lobby_uri" {
-  description = "ARN to invoke the lobby join lambda function"
-  value       = aws_lambda_function.join_lobby.invoke_arn
+output "join_game_uri" {
+  description = "ARN to invoke the game join lambda function"
+  value       = aws_lambda_function.join_game.invoke_arn
 }
 
-output "join_lobby_function_name" {
-  description = "Name of the lobby join lambda function"
-  value       = aws_lambda_function.join_lobby.function_name
+output "join_game_function_name" {
+  description = "Name of the game join lambda function"
+  value       = aws_lambda_function.join_game.function_name
 }
 
 output "send_message_uri" {

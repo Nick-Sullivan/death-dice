@@ -1,32 +1,33 @@
 
 
-const url = "wss://jenr0t4tm4.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://13o2omji39.execute-api.ap-southeast-2.amazonaws.com/production";
 var isConnected = false;
 var socket;
 
 function toggleConnection() {
   
   if (isConnected) {
-    document.getElementById("btnJoinLobby").disabled = true;
+    document.getElementById("btnJoinGame").disabled = true;
     document.getElementById("btnSendMessage").disabled = true;
     disconnect();
     document.getElementById("output").textContent = "Connection closed";
   } else {
     connect();
-    document.getElementById("btnJoinLobby").disabled = false;
+    document.getElementById("btnJoinGame").disabled = false;
     document.getElementById("output").textContent = "Connection open";
   }
   isConnected = !isConnected;
 }
 
-function joinLobby() {
-  console.log('Joining lobby');
+function joinGame() {
+  console.log('Joining game');
   var message = {
-    action: "joinLobby",
+    action: "joinGame",
+    game_id: document.getElementById("textJoinGame").value,
   }
   socket.send(JSON.stringify(message));
 
-  document.getElementById("btnJoinLobby").disabled = true;
+  document.getElementById("btnJoinGame").disabled = true;
   document.getElementById("btnSendMessage").disabled = false;
 }
 
@@ -34,7 +35,7 @@ function sendMessage() {
   console.log('Sending message');
   var message = {
     action: "sendMessage",
-    message: "hi there",
+    message: document.getElementById("textSendMessage").value,
   }
   socket.send(JSON.stringify(message));
 }

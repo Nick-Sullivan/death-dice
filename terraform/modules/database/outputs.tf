@@ -1,4 +1,9 @@
-output "database_arn" {
-  description = "ARN to of the database"
-  value       = aws_dynamodb_table.lobbies.arn
+output "table_arns" {
+  description = "ARN tables"
+  value = [
+    aws_dynamodb_table.connections.arn,
+    aws_dynamodb_table.games.arn,
+    "${aws_dynamodb_table.connections.arn}/index/*",
+    "${aws_dynamodb_table.games.arn}/index/*",
+  ]
 }

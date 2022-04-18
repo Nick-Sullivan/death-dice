@@ -11,7 +11,7 @@ terraform {
 locals {
   connect_name      = "${var.prefix}Connect"
   disconnect_name   = "${var.prefix}Disconnect"
-  join_lobby_name   = "${var.prefix}JoinLobby"
+  join_game_name    = "${var.prefix}JoinGame"
   send_message_name = "${var.prefix}SendMessage"
 }
 
@@ -41,10 +41,7 @@ data "aws_iam_policy_document" "access_dynamodb" {
       "dynamodb:UpdateItem",
     ]
     effect    = "Allow"
-    resources = [
-      var.dynamo_db_arn,
-      "${var.dynamo_db_arn}/index/*",  # global secondary index
-    ]
+    resources = var.table_arns
   }
 }
 
@@ -105,14 +102,14 @@ resource "aws_lambda_function" "disconnect" {
   depends_on       = [aws_cloudwatch_log_group.disconnect]
 }
 
-resource "aws_lambda_function" "join_lobby" {
+resource "aws_lambda_function" "join_game" {
   filename         = "${var.lambda_folder}/lambda.zip"
-  function_name    = local.join_lobby_name
+  function_name    = local.join_game_name
   role             = aws_iam_role.role.arn
-  handler          = "index.join_lobby"
+  handler          = "index.join_game"
   runtime          = "python3.9"
   source_code_hash = data.archive_file.zip.output_base64sha256
-  depends_on       = [aws_cloudwatch_log_group.join_lobby]
+  depends_on       = [aws_cloudwatch_log_group.join_game]
 }
 
 resource "aws_lambda_function" "send_message" {
@@ -137,8 +134,8 @@ resource "aws_cloudwatch_log_group" "disconnect" {
   retention_in_days = 3
 }
 
-resource "aws_cloudwatch_log_group" "join_lobby" {
-  name              = "/aws/lambda/${local.join_lobby_name}"
+resource "aws_cloudwatch_log_group" "join_game" {
+  name              = "/aws/lambda/${local.join_game_name}"
   retention_in_days = 3
 }
 

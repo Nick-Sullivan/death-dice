@@ -3,10 +3,10 @@
 import boto3
 import json
 
-from lobby_interactor import LobbyInteractor
+from db_interactor import DatabaseInteractor
 
 
-interactor = LobbyInteractor('UncomfortableQuestionsLobbies')
+interactor = DatabaseInteractor()
 
 
 def connect(event, context):
@@ -14,7 +14,7 @@ def connect(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    interactor.create(connection_id)
+    interactor.create_connection(connection_id)
 
     return {'statusCode': 200}
 
@@ -24,16 +24,19 @@ def disconnect(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    interactor.delete(connection_id)
+    interactor.delete_connection(connection_id)
 
     return {'statusCode': 200}
 
 
-def join_lobby(event, context):
+def join_game(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    interactor.join_lobby(connection_id, "lobbynew")
+    game_id = json.loads(event['body'])['game_id']
+
+    interactor.create_game(connection_id)
+    # interactor.join_game(connection_id, game_id)
 
     return {'statusCode': 200}
 
@@ -48,10 +51,10 @@ def send_message(event, context):
 
     endpoint_url = f'https://{event["requestContext"]["domainName"]}/{event["requestContext"]["stage"]}'
 
-    lobby_id = interactor.get_lobby_id(connection_id)
-    print(f'lobby_id: {lobby_id}')
+    game_id = interactor.get_game_id(connection_id)
+    print(f'game_id: {game_id}')
 
-    connection_ids = interactor.get_connection_ids_in_lobby(lobby_id)
+    connection_ids = interactor.get_connection_ids_in_game(game_id)
     print(f'connection_ids: {connection_ids}')
 
     gatewayapi = boto3.client(

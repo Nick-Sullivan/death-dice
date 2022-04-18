@@ -1,4 +1,4 @@
-# Creates the a Lambda function, serverless execution that can be invoked by other components
+# Creates the database
 
 terraform {
   required_providers {
@@ -8,45 +8,61 @@ terraform {
   }
 }
 
-resource "aws_dynamodb_table" "lobbies" {
+resource "aws_dynamodb_table" "connections" {
   # note - doesn't have autoscaling
-  name           = "UncomfortableQuestionsLobbies"
-  hash_key       = "ConnectionId"
-  # range_key      = "LobbyId"
+  name           = "${var.prefix}Connections"
+  hash_key       = "Id"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
-  # To efficiently search for lobbies, we need to set it as a key.
   global_secondary_index {
-    name = "LobbyIndex"
-    hash_key = "LobbyId"
-    write_capacity = 5
-    read_capacity = 5
+    name            = "GameIndex"
+    hash_key        = "GameId"
+    write_capacity  = 5
+    read_capacity   = 5
     projection_type = "KEYS_ONLY"
     # non_key_attributes = ["description"]
   }
 
-  # ttl {
-  #   attribute_name = "TimeToLive"
-  #   enabled = true
-  # }
   attribute {
-    name = "ConnectionId"
+    name = "Id"
     type = "S"
   }
 
   attribute {
-    name = "LobbyId"
+    name = "GameId"
     type = "S"
   }
-
 }
 
-data "aws_iam_policy_document" "inline_policy" {
+resource "aws_dynamodb_table" "games" {
+  name           = "${var.prefix}Games"
+  hash_key       = "Id"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+
+  attribute {
+    name = "Id"
+    type = "S"
+  }
+}
+
+# Permissions
+
+data "aws_iam_policy_document" "connections" {
   statement {
     actions   = ["dynamodb:PutItem"]
     effect    = "Allow"
-    resources = [aws_dynamodb_table.lobbies.arn]
+    resources = [aws_dynamodb_table.connections.arn]
+  }
+}
+
+data "aws_iam_policy_document" "games" {
+  statement {
+    actions   = ["dynamodb:PutItem"]
+    effect    = "Allow"
+    resources = [aws_dynamodb_table.games.arn]
   }
 }

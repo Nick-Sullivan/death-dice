@@ -1,6 +1,6 @@
 
 
-const url = "wss://lkr73t9lih.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://jenr0t4tm4.execute-api.ap-southeast-2.amazonaws.com/production";
 var isConnected = false;
 var socket;
 

@@ -11,6 +11,7 @@ terraform {
 locals {
   connect_name      = "${var.prefix}Connect"
   disconnect_name   = "${var.prefix}Disconnect"
+  join_lobby_name   = "${var.prefix}JoinLobby"
   send_message_name = "${var.prefix}SendMessage"
 }
 
@@ -32,14 +33,18 @@ data "aws_iam_policy_document" "access_dynamodb" {
   # Allow Lambda to interact with the dynamo database
   statement {
     actions = [
-      "dynamodb:GetItem",
       "dynamodb:DeleteItem",
+      "dynamodb:GetItem",
       "dynamodb:PutItem",
+      "dynamodb:Query",
       "dynamodb:Scan",
       "dynamodb:UpdateItem",
     ]
     effect    = "Allow"
-    resources = [var.dynamo_db_arn]
+    resources = [
+      var.dynamo_db_arn,
+      "${var.dynamo_db_arn}/index/*",  # global secondary index
+    ]
   }
 }
 
@@ -100,6 +105,16 @@ resource "aws_lambda_function" "disconnect" {
   depends_on       = [aws_cloudwatch_log_group.disconnect]
 }
 
+resource "aws_lambda_function" "join_lobby" {
+  filename         = "${var.lambda_folder}/lambda.zip"
+  function_name    = local.join_lobby_name
+  role             = aws_iam_role.role.arn
+  handler          = "index.join_lobby"
+  runtime          = "python3.9"
+  source_code_hash = data.archive_file.zip.output_base64sha256
+  depends_on       = [aws_cloudwatch_log_group.join_lobby]
+}
+
 resource "aws_lambda_function" "send_message" {
   filename         = "${var.lambda_folder}/lambda.zip"
   function_name    = local.send_message_name
@@ -119,6 +134,11 @@ resource "aws_cloudwatch_log_group" "connect" {
 
 resource "aws_cloudwatch_log_group" "disconnect" {
   name              = "/aws/lambda/${local.disconnect_name}"
+  retention_in_days = 3
+}
+
+resource "aws_cloudwatch_log_group" "join_lobby" {
+  name              = "/aws/lambda/${local.join_lobby_name}"
   retention_in_days = 3
 }
 

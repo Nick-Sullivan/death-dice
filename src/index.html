@@ -6,11 +6,17 @@
 </head>
 
 <body>
-    <p>Work in progress</p>
+    <p id="output">Connection closed</p>
 
-    <button onclick="myFunction()">Run javascript</button>
+    <button onclick="toggleConnection()">Connect/Disconnect</button>
+    <br/>
+    <br/>
+    <button id="btnJoinLobby" onclick="joinLobby()" disabled>Join Lobby</button>
+    <br/>
+    <br/>
+    <button id="btnSendMessage" onclick="sendMessage()" disabled>Send message</button>
 
-    <p id="output">hello</p>
+    
 
 </body>
 

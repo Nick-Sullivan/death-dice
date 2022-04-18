@@ -24,6 +24,16 @@ variable "disconnect_uri" {
   type        = string
 }
 
+variable "join_lobby_function_name" {
+  description = "Name of the lambda function to join a lobby"
+  type        = string
+}
+
+variable "join_lobby_uri" {
+  description = "URI to call from this gateway to join a lobby"
+  type        = string
+}
+
 variable "send_message_function_name" {
   description = "Name of the lambda function to send messages"
   type        = string

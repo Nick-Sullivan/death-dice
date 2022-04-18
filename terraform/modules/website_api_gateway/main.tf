@@ -28,6 +28,12 @@ resource "aws_apigatewayv2_route" "disconnect" {
   target    = "integrations/${aws_apigatewayv2_integration.disconnect.id}"
 }
 
+resource "aws_apigatewayv2_route" "join_lobby" {
+  api_id    = aws_apigatewayv2_api.websocket.id
+  route_key = "joinLobby"
+  target    = "integrations/${aws_apigatewayv2_integration.join_lobby.id}"
+}
+
 resource "aws_apigatewayv2_route" "send_message" {
   api_id    = aws_apigatewayv2_api.websocket.id
   route_key = "sendMessage"
@@ -52,6 +58,15 @@ resource "aws_apigatewayv2_integration" "disconnect" {
   description               = "Lambda disconnection"
   integration_method        = "POST"
   integration_uri           = var.disconnect_uri
+}
+
+resource "aws_apigatewayv2_integration" "join_lobby" {
+  api_id                    = aws_apigatewayv2_api.websocket.id
+  integration_type          = "AWS_PROXY"
+  content_handling_strategy = "CONVERT_TO_TEXT"
+  description               = "Lambda message"
+  integration_method        = "POST"
+  integration_uri           = var.join_lobby_uri
 }
 
 resource "aws_apigatewayv2_integration" "send_message" {
@@ -79,6 +94,14 @@ resource "aws_lambda_permission" "disconnect" {
   function_name = var.disconnect_function_name
   principal     = "apigateway.amazonaws.com"
   source_arn    = "${aws_apigatewayv2_api.websocket.execution_arn}/*/${aws_apigatewayv2_route.disconnect.route_key}"
+}
+
+resource "aws_lambda_permission" "join_lobby" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = var.join_lobby_function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_apigatewayv2_api.websocket.execution_arn}/*/${aws_apigatewayv2_route.join_lobby.route_key}"
 }
 
 resource "aws_lambda_permission" "send_message" {

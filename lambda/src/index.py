@@ -33,7 +33,7 @@ def join_game(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    game_id = json.loads(event['body'])['game_id']
+    game_id = json.loads(event['body'])['data']
 
     interactor.create_game(connection_id)
     # interactor.join_game(connection_id, game_id)
@@ -47,7 +47,7 @@ def send_message(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    message = json.loads(event['body'])['message']
+    message = json.loads(event['body'])['data']
 
     endpoint_url = f'https://{event["requestContext"]["domainName"]}/{event["requestContext"]["stage"]}'
 
@@ -67,5 +67,18 @@ def send_message(event, context):
             ConnectionId=connection_id,
             Data=message
         )
+
+    return {'statusCode': 200}
+
+
+def set_nickname(event, context):
+
+    print(event)
+
+    connection_id = event['requestContext']['connectionId']
+
+    nickname = json.loads(event['body'])['data']
+
+    interactor.set_nickname(connection_id, nickname)
 
     return {'statusCode': 200}

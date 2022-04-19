@@ -32,6 +32,15 @@ class DatabaseInteractor:
     )
     return response.get('Item')
 
+  # Nickname
+
+  def set_nickname(self, connection_id, nickname):
+    return self.connections.update_item(
+      Key={"Id": connection_id},
+      UpdateExpression='set Nickname = :s',
+      ExpressionAttributeValues={':s': nickname},
+    )
+
   # Games
 
   def create_game(self, connection_id):

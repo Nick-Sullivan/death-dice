@@ -6,17 +6,20 @@
 </head>
 
 <body>
-    <p id="output">Connection closed</p>
+    <p id="output">Connecting...</p>
 
-    <button onclick="toggleConnection()">Connect/Disconnect</button>
+    <p>
+        <input id="textSetNickname" type="text" value="Nick"/>
+        <button id="btnSetNickname" onclick="setNickname()" disabled>Set Name</button>
+    </p>
+    <p>
+        <input id="textJoinGame" type="text"/>
+        <button id="btnJoinGame" onclick="joinGame()" disabled>Join Game</button>
+    </p>
     <br/>
     <br/>
-    <button id="btnJoinGame" onclick="joinGame()" disabled>Join Game</button>
-    <input type="text" id="textJoinGame"/>
-    <br/>
-    <br/>
+    <input id="textSendMessage" type="text"/>
     <button id="btnSendMessage" onclick="sendMessage()" disabled>Send message</button>
-    <input type="text" id="textSendMessage"/>
     
 
 </body>

@@ -19,32 +19,6 @@ locals {
   tags = {
     Project = "Hidden Opinions"
   }
-  lambdas = {
-    "Connect" = {
-      name  = module.lambdas.connect_function_name
-      handler = "index.connect"
-      route = "$connect"
-      uri   = module.lambdas.connect_uri
-    },
-    "Disconnect" = {
-      name  = module.lambdas.disconnect_function_name
-      handler = "index.disconnect"
-      route = "$disconnect"
-      uri   = module.lambdas.disconnect_uri
-    },
-    "JoinGame" = {
-      name  = module.lambdas.join_game_function_name
-      handler = "index.join_game"
-      route = "joinGame"
-      uri   = module.lambdas.join_game_uri
-    },
-    "SendMessage" = {
-      name  = module.lambdas.send_message_function_name
-      handler = "index.send_message"
-      route = "sendMessage"
-      uri   = module.lambdas.send_message_uri
-    }
-  }
 }
 
 provider "aws" {
@@ -75,5 +49,5 @@ module "lambdas" {
 module "api_gateway" {
   source  = "./../modules/api_gateway"
   name    = local.prefix
-  lambdas = local.lambdas
+  lambdas = module.lambdas.lambdas
 }

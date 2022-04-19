@@ -12,15 +12,24 @@
         <input id="textSetNickname" type="text" value="Nick"/>
         <button id="btnSetNickname" onclick="setNickname()" disabled>Set Name</button>
     </p>
+    <div class="row">
+        <div class="column">
+            <button id="btnCreateGame" onclick="createGame()" disabled>Create Game</button>
+        </div>
+        <div class="column">
+            <input id="textJoinGame" type="text"/>
+            <button id="btnJoinGame" onclick="joinGame()" disabled>Join Game</button>
+        </div>
+    </div>
+
     <p>
-        <input id="textJoinGame" type="text"/>
-        <button id="btnJoinGame" onclick="joinGame()" disabled>Join Game</button>
+        <p id="textGameId">...</p>
+        <input id="textSendMessage" type="text" value="hello"/>
+        <button id="btnSendMessage" onclick="sendMessage()" disabled>Send message</button>
     </p>
-    <br/>
-    <br/>
-    <input id="textSendMessage" type="text"/>
-    <button id="btnSendMessage" onclick="sendMessage()" disabled>Send message</button>
-    
+    <div id="textareaWrapper" style="width:'60%'">
+        <textarea id="textReceivedMessages" cols="100" rows="50"></textarea>
+    </div>
 
 </body>
 

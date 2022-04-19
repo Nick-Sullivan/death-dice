@@ -29,16 +29,34 @@ def disconnect(event, context):
     return {'statusCode': 200}
 
 
-def join_game(event, context):
+def create_game(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    game_id = json.loads(event['body'])['data']
+    game_id = interactor.create_game(connection_id)
 
-    interactor.create_game(connection_id)
-    # interactor.join_game(connection_id, game_id)
+    response_body = json.loads(event['body'])
+    response_body['gameId'] = game_id
+    _send_response(event['requestContext'], response_body)
 
-    _send_response(event)
+    return {'statusCode': 200}
+
+
+def join_game(event, context):
+    print(event)
+
+    connection_id = event['requestContext']['connectionId']
+
+    body = json.loads(event['body'])
+
+    response_body = body
+
+    try:
+        interactor.join_game(connection_id, body['data'])
+    except ValueError as e:
+        response_body['error'] = str(e)
+    
+    _send_response(event['requestContext'], response_body)
 
     return {'statusCode': 200}
 
@@ -52,22 +70,19 @@ def send_message(event, context):
     game_id = interactor.get_game_id(connection_id)
     print(f'game_id: {game_id}')
 
+    nickname = interactor.get_nickname(connection_id)
+    print(f'nickname: {nickname}')
+
     connection_ids = interactor.get_connection_ids_in_game(game_id)
     print(f'connection_ids: {connection_ids}')
 
     endpoint_url = f'https://{event["requestContext"]["domainName"]}/{event["requestContext"]["stage"]}'
-    gatewayapi = boto3.client(
-      "apigatewaymanagementapi",
-      endpoint_url = endpoint_url
-    )
     
-    # message = json.loads(event['body'])['data']
+    response_body = json.loads(event['body'])
+    response_body['author'] = nickname
 
     for connection_id in connection_ids:
-        gatewayapi.post_to_connection(
-            ConnectionId=connection_id,
-            Data=event['body']
-        )
+        _post_to_connection(connection_id, endpoint_url, response_body)
 
     return {'statusCode': 200}
 
@@ -78,22 +93,29 @@ def set_nickname(event, context):
 
     connection_id = event['requestContext']['connectionId']
 
-    nickname = json.loads(event['body'])['data']
+    body = json.loads(event['body'])
 
-    interactor.set_nickname(connection_id, nickname)
+    interactor.set_nickname(connection_id, body['data'])
 
-    _send_response(event)
+    _send_response(event['requestContext'], body)
 
     return {'statusCode': 200}
 
 
-def _send_response(event):
-    connection_id = event['requestContext']['connectionId']
+def _send_response(request_context, response_body):
+    print(request_context)
+    print(response_body)
 
-    endpoint_url = f'https://{event["requestContext"]["domainName"]}/{event["requestContext"]["stage"]}'
+    connection_id = request_context['connectionId']
 
+    endpoint_url = f'https://{request_context["domainName"]}/{request_context["stage"]}'
+
+    _post_to_connection(connection_id, endpoint_url, response_body)
+
+
+def _post_to_connection(connection_id, endpoint_url, response_body):
     gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=endpoint_url)
     gatewayapi.post_to_connection(
         ConnectionId=connection_id,
-        Data=event['body']
+        Data=json.dumps(response_body)
     )

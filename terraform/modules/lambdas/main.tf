@@ -20,6 +20,11 @@ locals {
       handler = "index.disconnect"
       route   = "$disconnect"
     },
+    "CreateGame" = {
+      name    = "${var.prefix}CreateGame"
+      handler = "index.create_game"
+      route   = "createGame"
+    },
     "JoinGame" = {
       name    = "${var.prefix}JoinGame"
       handler = "index.join_game"

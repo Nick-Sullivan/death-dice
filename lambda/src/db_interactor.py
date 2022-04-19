@@ -41,6 +41,10 @@ class DatabaseInteractor:
       ExpressionAttributeValues={':s': nickname},
     )
 
+  def get_nickname(self, connection_id):
+    item = self._get_connection(connection_id)
+    return item['Nickname']
+
   # Games
 
   def create_game(self, connection_id):
@@ -53,6 +57,8 @@ class DatabaseInteractor:
     )
 
     self.join_game(connection_id, game_id)
+
+    return game_id
 
   def delete_game(self, game_id):
     return self.games.delete_item(

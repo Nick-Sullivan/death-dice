@@ -1,4 +1,4 @@
-const url = "wss://v3dz951xrl.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://if3eb3r7di.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var callbackCounter = 0;
 var callbacks = {};
@@ -29,12 +29,22 @@ function setupWebsocket() {
 
 // Send messages to the websocket
 
-function callWebsocket(message, callback_function) {
+function callWebsocket(message, success_callback, error_callback) {
   // Registers the callback function, and sends the message to the server
-  message["callbackId"] = callbackCounter;
-  callbacks[callbackCounter] = callback_function;
-  callbackCounter++;
+  if (arguments.length > 1){
+    message["callbackId"] = callbackCounter;
+    callbacks[callbackCounter] = {};
+    callbacks[callbackCounter]["success"] = success_callback;
+    callbacks[callbackCounter]["error"] = error_callback;
+    callbackCounter++;
+  }
+
   socket.send(JSON.stringify(message));
+}
+
+function defaultErrorCallback(error){
+  console.log("defaultErrorCallback()");
+  alert(error);
 }
 
 function setNickname() {
@@ -45,16 +55,39 @@ function setNickname() {
       action: "setNickname",
       data: document.getElementById("textSetNickname").value,
     },
-    setNicknameCallback
+    setNicknameCallback,
+    defaultErrorCallback,
   );
 
   document.getElementById("btnSetNickname").disabled = true;
   document.getElementById("textSetNickname").disabled = true;
 }
 
-function setNicknameCallback(){
+function setNicknameCallback(response){
   console.log("setNicknameCallback()")
+  document.getElementById("btnCreateGame").disabled = false;
   document.getElementById("btnJoinGame").disabled = false;
+}
+
+function createGame() {
+  console.log('createGame');
+
+  callWebsocket(
+    {
+      action: "createGame",
+    },
+    createGameCallback,
+    defaultErrorCallback,
+  );
+  document.getElementById("btnCreateGame").disabled = true;
+  document.getElementById("btnJoinGame").disabled = true;
+  document.getElementById("textJoinGame").disabled = true;
+}
+
+function createGameCallback(response){
+  console.log("createGameCallback()");
+  document.getElementById("btnSendMessage").disabled = false;
+  document.getElementById("textGameId").textContent = response.gameId;
 }
 
 function joinGame() {
@@ -65,24 +98,44 @@ function joinGame() {
       action: "joinGame",
       data: document.getElementById("textJoinGame").value,
     },
-    joinGameCallback
+    joinGameCallback,
+    joinGameErrorCallback,
   );
+  document.getElementById("btnCreateGame").disabled = true;
   document.getElementById("btnJoinGame").disabled = true;
   document.getElementById("textJoinGame").disabled = true;
 }
 
-function joinGameCallback(){
+function joinGameCallback(response){
   console.log("joinGameCallback()")
   document.getElementById("btnSendMessage").disabled = false;
+  document.getElementById("textGameId").textContent = response.data;
+}
+
+function joinGameErrorCallback(error){
+  console.log("joinGameErrorCallback()");
+  document.getElementById("btnCreateGame").disabled = false;
+  document.getElementById("btnJoinGame").disabled = false;
+  document.getElementById("textJoinGame").disabled = false;
+  alert(error);
 }
 
 function sendMessage() {
-  console.log('Sending message');
-  var message = {
-    action: "sendMessage",
-    data: document.getElementById("textSendMessage").value,
-  }
-  socket.send(JSON.stringify(message));
+  // Messages don't have a 1-1 callback, because they're sent to all players in the game
+  console.log('sendMessage');
+
+  callWebsocket(
+    {
+      action: "sendMessage",
+      data: document.getElementById("textSendMessage").value,
+    }
+  );
+}
+
+function sendMessageCallback(response){
+  console.log("sendMessageCallback()")
+  var text = `${response.author}: ${response.data}\n` + document.getElementById("textReceivedMessages").textContent
+  document.getElementById("textReceivedMessages").textContent = text;
 }
 
 // Server events
@@ -107,10 +160,24 @@ function onError(event) {
 function onMessage(event) {
   response = JSON.parse(event.data);
   console.log(response);
+
+  // If this is a response, call the registered callback
   if ("callbackId" in response) {
-    callbacks[response.callbackId]();
+    if ("error" in response) {
+      callbacks[response.callbackId]["error"](response.error);
+    } else {
+      callbacks[response.callbackId]["success"](response);
+    }
     delete callbacks[response.callbackId];
-  } else {
+
+  } 
+  // If this is a group message, update
+  else if (response.action = "sendMessage"){
+    sendMessageCallback(response);
+  } 
+
+  // Otherwise, something's gone wrong
+  else {
     alert(`[message] Data received from server: ${event.data}`);
   }
 }

@@ -9,8 +9,8 @@ class DatabaseInteractor:
   
   def __init__(self):
     dynamodb = boto3.resource('dynamodb', endpoint_url="https://dynamodb.ap-southeast-2.amazonaws.com")
-    self.connections = dynamodb.Table('UncomfortableQuestionsConnections')
-    self.games = dynamodb.Table('UncomfortableQuestionsGames')
+    self.connections = dynamodb.Table('DeathDiceConnections')
+    self.games = dynamodb.Table('DeathDiceGames')
 
   # Players
 

@@ -7,7 +7,7 @@ terraform {
   }
   backend "s3" {
     bucket = "nicks-terraform-states"
-    key    = "uncomfortable_questions_website/website_contents/terraform.tfstate"
+    key    = "death_dice/website_contents/terraform.tfstate"
     region = "ap-southeast-2"
   }
 }
@@ -15,7 +15,7 @@ terraform {
 locals {
   url     = var.domain
   url_www = "www.${local.url}"
-  prefix = "DeathDice"
+  prefix  = "DeathDice"
   tags = {
     Project = "Death Dice"
   }
@@ -28,7 +28,7 @@ provider "aws" {
   }
 }
 
-# Create a database to store lobbies
+# Create a database to store game state
 
 module "database" {
   source = "./../modules/database"

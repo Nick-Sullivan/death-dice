@@ -1,4 +1,4 @@
-const url = "wss://mma03h3909.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://fpjlg1zske.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var callback_lookup = {
   "setNickname": setNicknameCallback,
@@ -144,7 +144,6 @@ function gameStateCallback(response){
 
   document.getElementById("textPlayers").textContent = nicknames.join("\n")
 }
-
 
 function addChatLog(message){
   var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent

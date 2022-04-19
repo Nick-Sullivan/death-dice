@@ -8,6 +8,6 @@ variable "delegation_set_id" {
 variable "domain" {
   description = "The domain to create a website for."
   type        = string
-  default     = "uncomfortablequestions.com"
+  default     = "deathdice.com"
 }
 

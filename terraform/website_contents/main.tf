@@ -15,9 +15,9 @@ terraform {
 locals {
   url     = var.domain
   url_www = "www.${local.url}"
-  prefix = "UncomfortableQuestions"
+  prefix = "DeathDice"
   tags = {
-    Project = "Hidden Opinions"
+    Project = "Death Dice"
   }
 }
 

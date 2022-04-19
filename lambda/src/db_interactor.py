@@ -12,51 +12,72 @@ class DatabaseInteractor:
     self.connections = dynamodb.Table('UncomfortableQuestionsConnections')
     self.games = dynamodb.Table('UncomfortableQuestionsGames')
 
-  # Connections
+  # Players
 
-  def create_connection(self, connection_id):
-    return self.connections.put_item(
-      Item={
-        "Id": connection_id,
-      }
+  def get_player_id(self, connection_id):
+    return connection_id
+  
+  def get_connection_id(self, player_id):
+    return player_id
+  
+  def _create_player_id(self, connection_id):
+    return connection_id
+
+  def create_player(self, connection_id):
+    player_id = self._create_player_id(connection_id)
+    self.connections.put_item(
+      Item={"Id": player_id}
     )
+    return player_id
       
-  def delete_connection(self, connection_id):
+  def delete_player(self, player_id):
     return self.connections.delete_item(
-      Key={"Id": connection_id}
+      Key={"Id": player_id}
     )
 
-  def _get_connection(self, connection_id):
-    response = self.connections.get_item(
-      Key={"Id": connection_id}
-    )
-    return response.get('Item')
-
-  # Nickname
-
-  def set_nickname(self, connection_id, nickname):
+  def set_nickname(self, player_id, nickname):
     return self.connections.update_item(
-      Key={"Id": connection_id},
+      Key={"Id": player_id},
       UpdateExpression='set Nickname = :s',
       ExpressionAttributeValues={':s': nickname},
     )
 
-  def get_nickname(self, connection_id):
-    item = self._get_connection(connection_id)
+  def get_nickname(self, player_id):
+    item = self._get_player(player_id)
     return item['Nickname']
+
+  def get_game_id(self, player_id):
+    item = self._get_player(player_id)
+    return item['GameId']
+
+  def _get_player(self, player_id):
+    response = self.connections.get_item(
+      Key={"Id": player_id}
+    )
+    return response.get('Item')
 
   # Games
 
-  def create_game(self, connection_id):
-    game_id = 'new game'
+  def create_game(self, player_id):
+    """A game must have at least 1 player in it"""
+    game_id = self._create_unique_game_id()
 
     self.games.put_item(
-      Item={
-        'Id': game_id,
-      }
+      Item={'Id': game_id}
     )
 
-    self.join_game(connection_id, game_id)
+    self.join_game(player_id, game_id)
+
+    return game_id
+
+  def _create_unique_game_id(self):
+    """Creates a unique lobby code that doesn't yet exist in the database"""
+    gen = lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+
+    game_id = gen()
+
+    while self.game_exists(game_id):
+      game_id = gen()
 
     return game_id
 
@@ -65,20 +86,16 @@ class DatabaseInteractor:
       Key={"Id": game_id}
     )
 
-  def get_game_id(self, connection_id):
-    item = self._get_connection(connection_id)
-    return item['GameId']
-
-  def get_connection_ids_in_game(self, game_id):
-    items = self._get_connections_in_game(game_id)
+  def get_player_ids_in_game(self, game_id):
+    items = self._get_players_in_game(game_id)
     return [item['Id'] for item in items]
 
-  def join_game(self, connection_id, game_id):
+  def join_game(self, player_id, game_id):
     if not self.game_exists(game_id):
       raise ValueError(f'Game ID does not exist: {game_id}')
 
     return self.connections.update_item(
-      Key={"Id": connection_id},
+      Key={"Id": player_id},
       UpdateExpression='set GameId = :s',
       ExpressionAttributeValues={':s': game_id},
     )
@@ -92,27 +109,29 @@ class DatabaseInteractor:
     )
     return response.get('Item')
 
-  def _get_connections_in_game(self, lobby_id):
+  def _get_players_in_game(self, game_id):
     response = self.connections.query(
       IndexName='GameIndex',
-      KeyConditionExpression=Key('GameId').eq(lobby_id),
+      KeyConditionExpression=Key('GameId').eq(game_id),
     )
     return response['Items']
 
+  # Rounds
 
-  # def scan(self):
-  #   """Returns a JSON of table contents"""
-  #   return self.table.scan()
-  # def generate_lobby_id(self):
-  #   """Creates a unique lobby code that doesn't yet exist in the database"""
-  #   lobby_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+  # def get_game_state(self, game_id):
+    # connections = self._get_connections_in_game(game_id)
+    # print(connections)
 
-  #   while self.lobby_exists(lobby_id):
-  #     lobby_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    # player_states = {
+    #   c['Id']: {'nickname': c['Nickname']}
+    #   for c in connections
+    # }
 
-  #   return lobby_id
+    # state = {
+    #   "players": {
+    #     player_states
+    #   }
+    # }
 
-  # def lobby_exists(self, lobby_id):
-  #   """Returns true if the lobby ID already exists in the database"""
-  #   return "Item" in self.get_lobby(lobby_id)
+    # return state
 

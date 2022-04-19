@@ -1,4 +1,4 @@
-const url = "wss://rexthj726h.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://mma03h3909.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var callback_lookup = {
   "setNickname": setNicknameCallback,
@@ -6,6 +6,7 @@ var callback_lookup = {
   "joinGame": joinGameCallback,
   "rollDice": rollDiceCallback,
   "sendMessage": sendMessageCallback,
+  "gameState": gameStateCallback,
 };
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -97,7 +98,6 @@ function joinGameCallback(response){
     document.getElementById("textGameId").textContent = response.data;
     document.getElementById("btnRollDice").disabled = false;
   }
-
 }
 
 function rollDice() {
@@ -133,6 +133,18 @@ function sendMessageCallback(response){
   console.log("sendMessageCallback()");
   addChatLog(`${response.author}: ${response.data}`);
 }
+
+function gameStateCallback(response){
+  console.log("gameStateCallback()");
+
+  var nicknames = [];
+  for (var playerId in response.players){
+    nicknames.push(response.players[playerId].nickname)
+  }
+
+  document.getElementById("textPlayers").textContent = nicknames.join("\n")
+}
+
 
 function addChatLog(message){
   var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent

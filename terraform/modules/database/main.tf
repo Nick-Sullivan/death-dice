@@ -22,7 +22,7 @@ resource "aws_dynamodb_table" "players" {
     hash_key        = "GameId"
     write_capacity  = 5
     read_capacity   = 5
-    projection_type = "ALL"  # allows all other columns to be accessed using this index - but uses more data
+    projection_type = "ALL" # allows all other columns to be accessed using this index - but uses more data
   }
 
   attribute {
@@ -50,8 +50,8 @@ resource "aws_dynamodb_table" "games" {
 }
 
 resource "aws_dynamodb_table" "rolls" {
-  name           = "${var.prefix}Rolls"
-  hash_key       = "Id"
+  name     = "${var.prefix}Rolls"
+  hash_key = "Id"
   # sort_key       = "PlayerId"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
@@ -63,7 +63,7 @@ resource "aws_dynamodb_table" "rolls" {
     hash_key        = "GameId"
     write_capacity  = 5
     read_capacity   = 5
-    projection_type = "ALL"  # allows all other columns to be accessed using this index - but uses more data
+    projection_type = "ALL" # allows all other columns to be accessed using this index - but uses more data
   }
 
   attribute {

@@ -63,21 +63,35 @@ resource "aws_cloudwatch_log_group" "all" {
 
 # Create the functions using the source code zips
 
-data "archive_file" "zip" {
-  # Zips all source code in the src folder
+data "archive_file" "layer" {
   type        = "zip"
   source_dir  = "${var.lambda_folder}/src"
-  output_path = "${var.lambda_folder}/lambda.zip"
+  excludes    = ["index.py"]
+  output_path = "${var.lambda_folder}/layer.zip"
+}
+
+data "archive_file" "index" {
+  type        = "zip"
+  source_file = "${var.lambda_folder}/src/index.py"
+  output_path = "${var.lambda_folder}/index.zip"
+}
+
+resource "aws_lambda_layer_version" "layer" {
+  filename            = "${var.lambda_folder}/layer.zip"
+  layer_name          = "game_logic"
+  compatible_runtimes = ["python3.9"]
+  source_code_hash    = data.archive_file.layer.output_base64sha256
 }
 
 resource "aws_lambda_function" "all" {
   for_each         = local.lambdas
-  filename         = "${var.lambda_folder}/lambda.zip"
+  filename         = "${var.lambda_folder}/index.zip"
   function_name    = each.value.name
   handler          = each.value.handler
+  layers           = [aws_lambda_layer_version.layer.arn]
   role             = aws_iam_role.role.arn
   runtime          = "python3.9"
-  source_code_hash = data.archive_file.zip.output_base64sha256
+  source_code_hash = data.archive_file.index.output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
 }
 

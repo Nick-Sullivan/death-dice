@@ -9,7 +9,12 @@ curl "$(terraform output -raw base_url)/hello"
 // use the websocket URL
 // wscat -c wss://4l76elb8w0.execute-api.ap-southeast-2.amazonaws.com/production
 
+Copy the websocket URL to both player_interactor.py and index.js
+
 # Notes
+
+Lambda layer needs to be in the python folder to work properly
+
 
 wscat -c "$(terraform output -raw production_url)"
 

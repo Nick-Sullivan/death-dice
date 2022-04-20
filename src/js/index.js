@@ -1,4 +1,4 @@
-const url = "wss://g93c56qxgi.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://lg6225ebsi.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var callback_lookup = {
   "setNickname": setNicknameCallback,

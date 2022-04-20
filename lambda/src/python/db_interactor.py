@@ -45,6 +45,17 @@ class DatabaseInteractor:
     )
     return item.get('Item')
 
+  def get_player_ids_in_game(self, game_id):
+    items = self._get_players_in_game(game_id)
+    return [item['Id'] for item in items]
+
+  def _get_players_in_game(self, game_id):
+    response = self.players.query(
+      IndexName='GameIndex',
+      KeyConditionExpression=Key('GameId').eq(game_id),
+    )
+    return response['Items']
+
   # Games
 
   def create_game(self, game_id):
@@ -69,17 +80,6 @@ class DatabaseInteractor:
     )
     return response.get('Item')
 
-  def get_player_ids_in_game(self, game_id):
-    items = self._get_players_in_game(game_id)
-    return [item['Id'] for item in items]
-
-  def _get_players_in_game(self, game_id):
-    response = self.players.query(
-      IndexName='GameIndex',
-      KeyConditionExpression=Key('GameId').eq(game_id),
-    )
-    return response['Items']
-
   def update_game_attribute(self, game_id, attribute, value):
     self.games.update_item(
       Key={"Id": game_id},
@@ -102,7 +102,7 @@ class DatabaseInteractor:
   def create_roll(self, game_id, player_id, dice_value):
     self.rolls.put_item(
       Item={
-        'Id': player_id,
+        'Id': player_id, # TODO: generate a random ID
         'GameId': game_id,
         'PlayerId': player_id,
         'DiceValue': dice_value,

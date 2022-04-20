@@ -30,6 +30,11 @@ locals {
       handler = "index.join_game"
       route   = "joinGame"
     },
+    "NewRound" = {
+      name    = "${var.prefix}NewRound"
+      handler = "index.new_round"
+      route   = "newRound"
+    },
     "RollDice" = {
       name    = "${var.prefix}RollDice"
       handler = "index.roll_dice"

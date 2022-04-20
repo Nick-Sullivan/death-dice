@@ -93,26 +93,35 @@ class GameController:
   def get_player_ids_in_game(self, game_id):
     return self.db.get_player_ids_in_game(game_id)
 
+  # Rolls
+
+  def new_round(self, game_id):
+    self.db.delete_rolls_in_game(game_id)
+
+    self.db.update_game_attribute(game_id, 'IsRoundComplete', False)
+
+    self.send_game_state_update(game_id)
+
+  def get_dice_value(self, roll_id):
+    return self.db.get_roll_attribute(roll_id, 'DiceValue')
+
+  def get_player_id(self, roll_id):
+    return self.db.get_roll_attribute(roll_id, 'PlayerId')
+
+  def roll_dice(self, player_id):
+    dice_value = random.randint(1, 6)
+    game_id = self.get_game_id(player_id)
+
+    self.db.create_roll(game_id, player_id, dice_value)
+
+
+    # if round complete
+
+      # set is round complete
+    # send notification
+    self.send_game_state_update(game_id)
+
   # Notifications
-
-  def send_game_state_update(self, game_id):
-    player_ids = self.get_player_ids_in_game(game_id)
-
-    player_states = [
-      {
-        'id': player_id,
-        'nickname': self.get_nickname(player_id),
-      }
-      for player_id in player_ids
-    ]
-
-    message = {
-      'action': 'gameState',
-      'data': {
-        'players': player_states
-      },
-    }
-    self.player_interactor.send_notification(player_ids, message)
 
   def send_chat(self, player_id, game_id, message):
     self.player_interactor.send_notification(
@@ -123,4 +132,42 @@ class GameController:
         'data': message,
       }
     )
-  # Rounds
+  
+  def send_game_state_update(self, game_id):
+    # Player info
+    player_ids = self.get_player_ids_in_game(game_id)
+
+    player_states = {
+      player_id: {
+        'id': player_id,
+        'nickname': self.get_nickname(player_id),
+        'hasRolled': False,
+        'diceValue': '',
+      }
+      for player_id in player_ids
+    }
+
+    # Roll info
+    roll_ids = self.db.get_roll_ids_in_game(game_id)
+
+    for roll_id in roll_ids:
+      player_id = self.get_player_id(roll_id)
+      dice_value = self.get_dice_value(roll_id)
+      player_states[player_id]['hasRolled'] = True
+      player_states[player_id]['diceValue'] = str(dice_value)
+
+    # Round info
+
+    round_state = {
+      'complete': self.db.get_game_attribute(game_id, 'IsRoundComplete')
+    }
+
+    # Send it
+    message = {
+      'action': 'gameState',
+      'data': {
+        'players': list(player_states.values()),
+        'round': round_state,
+      },
+    }
+    self.player_interactor.send_notification(player_ids, message)

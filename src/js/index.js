@@ -1,10 +1,9 @@
-const url = "wss://v2p7p69isj.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://g93c56qxgi.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var callback_lookup = {
   "setNickname": setNicknameCallback,
   "createGame": joinGameCallback,
   "joinGame": joinGameCallback,
-  // "rollDice": rollDiceCallback,
   "sendMessage": sendMessageCallback,
   "gameState": gameStateCallback,
 };
@@ -96,8 +95,19 @@ function joinGameCallback(response){
   else {
     document.getElementById("btnSendMessage").disabled = false;
     document.getElementById("textGameId").textContent = response.data;
-    document.getElementById("btnRollDice").disabled = false;
   }
+}
+
+function newRound() {
+  console.log('newRound');
+
+  var message = {
+    action: "newRound",
+  };
+
+  socket.send(JSON.stringify(message));
+
+  document.getElementById("btnNewRound").disabled = true;
 }
 
 function rollDice() {
@@ -111,12 +121,6 @@ function rollDice() {
 
   document.getElementById("btnRollDice").disabled = true;
 }
-
-// function rollDiceCallback(response){
-//   console.log("rollDiceCallback()");
-//   addChatLog(`${response.author} rolled ${response.roll}`)
-//   document.getElementById("btnRollDice").disabled = false;
-// }
 
 function sendMessage() {
   console.log('sendMessage');
@@ -137,12 +141,20 @@ function sendMessageCallback(response){
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
-  var nicknames = [];
+  var playerText = [];
   for (var player of response.data.players){
-    nicknames.push(player.nickname);
+    var msg = `${player.nickname}: ${player.diceValue}`
+    playerText.push(msg);
   }
+  document.getElementById("textPlayers").textContent = playerText.join("\n")
 
-  document.getElementById("textPlayers").textContent = nicknames.join("\n")
+  if (response.data.round.complete){
+    document.getElementById("btnNewRound").disabled = false;
+    document.getElementById("btnRollDice").disabled = true;
+  } else {
+    document.getElementById("btnNewRound").disabled = true;
+    document.getElementById("btnRollDice").disabled = false;
+  }
 }
 
 function addChatLog(message){

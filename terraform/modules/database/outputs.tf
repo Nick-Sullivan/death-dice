@@ -3,7 +3,9 @@ output "table_arns" {
   value = [
     aws_dynamodb_table.players.arn,
     aws_dynamodb_table.games.arn,
+    aws_dynamodb_table.rolls.arn,
     "${aws_dynamodb_table.players.arn}/index/*",
     "${aws_dynamodb_table.games.arn}/index/*",
+    "${aws_dynamodb_table.rolls.arn}/index/*",
   ]
 }

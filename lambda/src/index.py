@@ -1,6 +1,5 @@
 """All functions in are lambda entry points"""
 import json
-import random
 
 from game_controller import GameController
 
@@ -8,7 +7,7 @@ controller = GameController()
 
 
 def lambda_handler(func):
-    """Decorator, captures AWS lambda input and provides interactors"""
+    """Decorator, parses AWS lambda input"""
 
     def inner(event, context):
         print(f'event: {event}')
@@ -58,15 +57,21 @@ def join_game(player_id, request):
 
 
 @lambda_handler
+def new_round(player_id, request):
+    """Called by the WebSocketAPI when a player wants to start the next round"""
+
+    game_id = controller.get_game_id(player_id)
+
+    controller.new_round(game_id)
+
+    return {'statusCode': 200}
+
+
+@lambda_handler
 def roll_dice(player_id, request):
+    """Called by the WebSocketAPI when a player wants to roll dice in the current round"""
 
-    # response = request
-    # response['author'] = controller.get_nickname(player_id)
-    # response['roll'] = random.randint(1, 6)
-
-    # game_id = controller.get_game_id(player_id)
-    # player_ids = controller.get_player_ids_in_game(game_id)
-    # player_interactor.send_notification(player_ids, response)
+    controller.roll_dice(player_id)
 
     return {'statusCode': 200}
 
@@ -85,6 +90,7 @@ def send_message(player_id, request):
 
 @lambda_handler
 def set_nickname(player_id, request):
+    """Called by the WebSocketAPI when a player wants set their display name"""
 
     nickname = request['data']
 

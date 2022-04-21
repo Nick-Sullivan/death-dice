@@ -1,5 +1,7 @@
-const url = "wss://lg6225ebsi.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://i58kfz35gc.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
+var playerId;
+
 var callback_lookup = {
   "setNickname": setNicknameCallback,
   "createGame": joinGameCallback,
@@ -50,6 +52,7 @@ function setNickname() {
 
 function setNicknameCallback(response){
   console.log("setNicknameCallback()")
+  playerId = response.data.playerId;
   document.getElementById("btnCreateGame").disabled = false;
   document.getElementById("btnJoinGame").disabled = false;
 }
@@ -141,20 +144,40 @@ function sendMessageCallback(response){
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
+  var thisPlayer = response.data.players.find(p => {return p.id == playerId});
+
+  // Player text
   var playerText = [];
   for (var player of response.data.players){
-    var msg = `${player.nickname}: ${player.diceValue}`
+    var msg = `${player.nickname}:`;
+    if ('diceValue' in player){
+      msg += `   ${player.diceValue}`;
+    }
+    if ('rollResult' in player){
+      msg += `   ${player.rollResult}`;
+    }
     playerText.push(msg);
   }
   document.getElementById("textPlayers").textContent = playerText.join("\n")
 
+  // New round button
   if (response.data.round.complete){
     document.getElementById("btnNewRound").disabled = false;
-    document.getElementById("btnRollDice").disabled = true;
   } else {
     document.getElementById("btnNewRound").disabled = true;
-    document.getElementById("btnRollDice").disabled = false;
   }
+
+  // Roll dice button
+  if (!response.data.round.complete){
+    if (thisPlayer.hasRolled){
+      document.getElementById("btnRollDice").disabled = true;
+    } else {
+      document.getElementById("btnRollDice").disabled = false;
+    }
+  }
+
+  
+
 }
 
 function addChatLog(message){

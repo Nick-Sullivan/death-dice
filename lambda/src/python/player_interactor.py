@@ -1,7 +1,7 @@
 import boto3
 import json
 
-domain_name = 'lg6225ebsi.execute-api.ap-southeast-2.amazonaws.com'
+domain_name = 'i58kfz35gc.execute-api.ap-southeast-2.amazonaws.com'
 stage = 'production'
 url = f'https://{domain_name}/{stage}'
 gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)

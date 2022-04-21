@@ -1,28 +1,31 @@
 import random
 import string
 
-from db_interactor import DatabaseInteractor
-from player_interactor import PlayerInteractor
+from client_notifier import ClientNotifier
+from game_dao import GameDao, GameAttribute
+from player_dao import PlayerDao, PlayerAttribute
+from roll_dao import RollDao, RollAttribute
 import game_logic
 
 
 class GameController:
   """Responsible for game logic and state change"""
   
-  def __init__(self):
-    self.db = DatabaseInteractor()
-    self.player_interactor = PlayerInteractor()
+  client_notifier = ClientNotifier()
+  player_dao = PlayerDao()
+  game_dao = GameDao()
+  roll_dao = RollDao()
 
   # Players
 
   def create_player(self, player_id):
-    self.db.create_player(player_id)
+    self.player_dao.create_player(player_id)
 
   def delete_player(self, player_id):
     """Remove the player from the database, and any games they are part of"""
     game_id = self.get_game_id(player_id)
 
-    self.db.delete_player(player_id)
+    self.player_dao.delete_player(player_id)
 
     if not game_id:
       return
@@ -33,7 +36,7 @@ class GameController:
       self._delete_game(game_id)
 
   def set_nickname(self, player_id, nickname):
-    self.db.update_player_attribute(player_id, 'Nickname', nickname)
+    self.player_dao.update_player_attribute(player_id, PlayerAttribute.NICKNAME, nickname)
 
     message = {
       'action': 'setNickname',
@@ -42,13 +45,14 @@ class GameController:
         'playerId': player_id,
       },
     }
-    self.player_interactor.send_notification([player_id], message)
+    self.client_notifier.send_notification([player_id], message)
 
   def get_nickname(self, player_id):
-    return self.db.get_player_attribute(player_id, 'Nickname')
+    print('get_nickname()')
+    return self.player_dao.get_player_attribute(player_id, PlayerAttribute.NICKNAME)
 
   def get_game_id(self, player_id):
-    return self.db.get_player_attribute(player_id, 'GameId')
+    return self.player_dao.get_player_attribute(player_id, PlayerAttribute.GAME_ID)
 
   # Games
 
@@ -56,7 +60,7 @@ class GameController:
     """Creates a new game, and adds this player to it"""
     game_id = self._create_unique_game_id()
 
-    self.db.create_game(game_id)
+    self.game_dao.create_game(game_id)
 
     self.join_game(player_id, game_id)
 
@@ -68,60 +72,58 @@ class GameController:
     gen = lambda: ''.join(random.choices(string.ascii_uppercase, k=4))
 
     game_id = gen()
-    while self.db.game_exists(game_id):
+    while self.game_dao.game_exists(game_id):
       game_id = gen()
 
     return game_id
   
   def _delete_game(self, game_id):
-    self.db.delete_rolls_in_game(game_id)
-    self.db.delete_game(game_id)
+    self.roll_dao.delete_rolls_in_game(game_id)
+    self.game_dao.delete_game(game_id)
 
   def join_game(self, player_id, game_id):
-    if not self.db.game_exists(game_id):
+    if not self.game_dao.game_exists(game_id):
       message = {
         'action': 'joinGame',
         'error': f'Game ID does not exist: {game_id}',
       }
-      self.player_interactor.send_notification([player_id], message)
+      self.client_notifier.send_notification([player_id], message)
       return
 
-    self.db.update_player_attribute(player_id, 'GameId', game_id)
+    self.player_dao.update_player_attribute(player_id, PlayerAttribute.GAME_ID, game_id)
 
     message = {
       'action': 'joinGame',
       'data': game_id,
     }
-    self.player_interactor.send_notification([player_id], message)
+    self.client_notifier.send_notification([player_id], message)
 
     self.send_game_state_update(game_id)
 
   def get_player_ids_in_game(self, game_id):
-    return self.db.get_player_ids_in_game(game_id)
+    return self.player_dao.get_player_ids_in_game(game_id)
 
   # Rolls
 
   def new_round(self, game_id):
-    self.db.delete_rolls_in_game(game_id)
-
-    self.db.update_game_attribute(game_id, 'IsRoundComplete', False)
+    self.roll_dao.delete_rolls_in_game(game_id)
 
     self.send_game_state_update(game_id)
 
   def get_dice_value(self, roll_id):
-    return self.db.get_roll_attribute(roll_id, 'DiceValue')
+    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.DICE_VALUES)
 
   def get_roll_result(self, roll_id):
-    return self.db.get_roll_attribute(roll_id, 'RollResult')
+    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.ROLL_RESULT)
 
   def get_player_id(self, roll_id):
-    return self.db.get_roll_attribute(roll_id, 'PlayerId')
+    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.PLAYER_ID)
 
   def roll_dice(self, player_id):
     dice_value = random.randint(1, 6)
     game_id = self.get_game_id(player_id)
 
-    self.db.create_roll(game_id, player_id, dice_value)
+    self.roll_dao.create_roll(game_id, player_id, dice_value)
 
     if self._is_round_complete(game_id):
       self.calculate_roll_results(game_id)
@@ -129,18 +131,17 @@ class GameController:
     self.send_game_state_update(game_id)
 
   def calculate_roll_results(self, game_id):
-    roll_ids = self.db.get_roll_ids_in_game(game_id)
+    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
     values = {r: self.get_dice_value(r) for r in roll_ids}
     results = game_logic.calculate_roll_results(values)
 
     for roll_id, result in results.items():
-      self.db.update_roll_attribute(roll_id, 'RollResult', result.value)
-
+      self.roll_dao.update_roll_attribute(roll_id, RollAttribute.ROLL_RESULT, result.value)
 
   def _is_round_complete(self, game_id):
     """Round is complete if all players have rolled"""
     print('_is_round_complete()')
-    roll_ids = self.db.get_roll_ids_in_game(game_id)
+    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
     player_ids = self.get_player_ids_in_game(game_id)
 
     if len(roll_ids) == len(player_ids):
@@ -151,7 +152,7 @@ class GameController:
   # Notifications
 
   def send_chat(self, player_id, game_id, message):
-    self.player_interactor.send_notification(
+    self.client_notifier.send_notification(
       self.get_player_ids_in_game(game_id),
       {
         'action': 'sendMessage',
@@ -180,11 +181,14 @@ class GameController:
     }
 
     # Roll info
-    roll_ids = self.db.get_roll_ids_in_game(game_id)
+    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
 
     for roll_id in roll_ids:
+      print(f'roll_id: {roll_id}')
       player_id = self.get_player_id(roll_id)
+      print(f'player_id: {player_id}')
       dice_value = self.get_dice_value(roll_id)
+      print(f'dice_value: {dice_value}')
       player_states[player_id]['hasRolled'] = True
       player_states[player_id]['diceValue'] = str(dice_value)
       if is_round_complete:
@@ -198,4 +202,4 @@ class GameController:
         'round': round_state,
       },
     }
-    self.player_interactor.send_notification(player_ids, message)
+    self.client_notifier.send_notification(player_ids, message)

@@ -1,17 +1,12 @@
 import boto3
 import json
 
-domain_name = 'i58kfz35gc.execute-api.ap-southeast-2.amazonaws.com'
-stage = 'production'
-url = f'https://{domain_name}/{stage}'
-gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
-
-class PlayerInteractor:
+class ClientNotifier:
   """Responsible for sending messages to players"""
 
-  def __init__(self):
-    self.gatewayapi = gatewayapi
+  url = f'https://hx45les9f5.execute-api.ap-southeast-2.amazonaws.com/production'
+  gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
   @staticmethod
   def get_connection_id(player_id):

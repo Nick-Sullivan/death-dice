@@ -120,10 +120,11 @@ class GameController:
     return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.PLAYER_ID)
 
   def roll_dice(self, player_id):
-    dice_value = random.randint(1, 6)
+    dice_values = game_logic.roll_dice()
+
     game_id = self.get_game_id(player_id)
 
-    self.roll_dao.create_roll(game_id, player_id, dice_value)
+    self.roll_dao.create_roll(game_id, player_id, dice_values)
 
     if self._is_round_complete(game_id):
       self.calculate_roll_results(game_id)

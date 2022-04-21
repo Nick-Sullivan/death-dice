@@ -17,13 +17,13 @@ class RollDao:
   dynamodb = boto3.resource('dynamodb', endpoint_url="https://dynamodb.ap-southeast-2.amazonaws.com")
   table = dynamodb.Table('DeathDiceRolls')
 
-  def create_roll(self, game_id, player_id, dice_value):
+  def create_roll(self, game_id, player_id, dice_values):
     self.table.put_item(
       Item={
         RollAttribute.ID.value: player_id, # TODO: generate a random ID
         RollAttribute.GAME_ID.value: game_id,
         RollAttribute.PLAYER_ID.value: player_id,
-        RollAttribute.DICE_VALUES.value: dice_value,
+        RollAttribute.DICE_VALUES.value: dice_values,
       }
     )
 
@@ -45,7 +45,13 @@ class RollDao:
     assert isinstance(attribute, RollAttribute)
 
     item = self._get_roll(id)
-    return item.get(attribute.value)
+
+    value = item.get(attribute.value)
+
+    if attribute == RollAttribute.DICE_VALUES and value is not None:
+      return [int(v) for v in value]
+      
+    return value
 
   def _get_roll(self, id):
     item = self.table.get_item(
@@ -68,5 +74,3 @@ class RollDao:
       KeyConditionExpression=Key(RollAttribute.GAME_ID.value).eq(game_id),
     )
     return response['Items']
-
-

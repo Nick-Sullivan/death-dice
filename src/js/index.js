@@ -1,4 +1,4 @@
-const url = "wss://i58kfz35gc.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://hx45les9f5.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 
@@ -6,7 +6,7 @@ var callback_lookup = {
   "setNickname": setNicknameCallback,
   "createGame": joinGameCallback,
   "joinGame": joinGameCallback,
-  "sendMessage": sendMessageCallback,
+  // "sendMessage": sendMessageCallback,
   "gameState": gameStateCallback,
 };
 
@@ -96,7 +96,7 @@ function joinGameCallback(response){
     alert(response.error);
   }
   else {
-    document.getElementById("btnSendMessage").disabled = false;
+    // document.getElementById("btnSendMessage").disabled = false;
     document.getElementById("textGameId").textContent = response.data;
   }
 }
@@ -123,22 +123,6 @@ function rollDice() {
   socket.send(JSON.stringify(message));
 
   document.getElementById("btnRollDice").disabled = true;
-}
-
-function sendMessage() {
-  console.log('sendMessage');
-
-  var message = {
-    action: "sendMessage",
-    data: document.getElementById("textSendMessage").value,
-  };
-
-  socket.send(JSON.stringify(message));
-}
-
-function sendMessageCallback(response){
-  console.log("sendMessageCallback()");
-  addChatLog(`${response.author}: ${response.data}`);
 }
 
 function gameStateCallback(response){
@@ -179,6 +163,24 @@ function gameStateCallback(response){
   
 
 }
+
+// function sendMessage() {
+//   console.log('sendMessage');
+
+//   var message = {
+//     action: "sendMessage",
+//     data: document.getElementById("textSendMessage").value,
+//   };
+
+//   socket.send(JSON.stringify(message));
+// }
+
+// function sendMessageCallback(response){
+//   console.log("sendMessageCallback()");
+//   addChatLog(`${response.author}: ${response.data}`);
+// }
+
+
 
 function addChatLog(message){
   var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent

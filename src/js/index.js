@@ -1,4 +1,4 @@
-const url = "wss://hx45les9f5.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://721ay0ep18.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 
@@ -13,6 +13,7 @@ var callback_lookup = {
 document.addEventListener("DOMContentLoaded", function() {
   connect();
 });
+
 
 // Set up / tear down websocket connections
 
@@ -34,6 +35,7 @@ function setupWebsocket() {
   socket.onerror = onError;
 }
 
+
 // Send messages to the websocket
 
 function setNickname() {
@@ -53,8 +55,8 @@ function setNickname() {
 function setNicknameCallback(response){
   console.log("setNicknameCallback()")
   playerId = response.data.playerId;
-  document.getElementById("btnCreateGame").disabled = false;
-  document.getElementById("btnJoinGame").disabled = false;
+  $("#containerNickname").hide()
+  $("#containerJoinGame").show()
 }
 
 function createGame() {
@@ -96,8 +98,9 @@ function joinGameCallback(response){
     alert(response.error);
   }
   else {
-    // document.getElementById("btnSendMessage").disabled = false;
+    $("#containerJoinGame").hide()
     document.getElementById("textGameId").textContent = response.data;
+    $("#containerGame").show()
   }
 }
 
@@ -130,19 +133,34 @@ function gameStateCallback(response){
 
   var thisPlayer = response.data.players.find(p => {return p.id == playerId});
 
-  // Player text
-  var playerText = [];
+  // Game table
+  var table = document.getElementById('tableGameDisplay');
+
+  var rowCount = table.rows.length;
+  while(--rowCount){
+    table.deleteRow(rowCount);
+  } 
+
   for (var player of response.data.players){
-    var msg = `${player.nickname}:`;
+    var row = table.insertRow();
+    row.insertCell(0).innerHTML = player.nickname;
+
     if ('diceValue' in player){
-      msg += `   ${player.diceValue}`;
+      row.insertCell(1).innerHTML = player.diceValue;
+    } else {
+      row.insertCell(1).innerHTML = "-";
     }
+
     if ('rollResult' in player){
-      msg += `   ${player.rollResult}`;
+      row.insertCell(2).innerHTML = player.rollResult;
+    } else {
+      row.insertCell(2).innerHTML = "-";
     }
-    playerText.push(msg);
+
+    if (player == thisPlayer){
+      row.style.fontWeight = 'bold';
+    }
   }
-  document.getElementById("textPlayers").textContent = playerText.join("\n")
 
   // New round button
   if (response.data.round.complete){
@@ -158,9 +176,7 @@ function gameStateCallback(response){
     } else {
       document.getElementById("btnRollDice").disabled = false;
     }
-  }
-
-  
+  } 
 
 }
 
@@ -181,17 +197,14 @@ function gameStateCallback(response){
 // }
 
 
-
-function addChatLog(message){
-  var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent
-  document.getElementById("textReceivedMessages").textContent = text;
-}
+// function addChatLog(message){
+//   var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent
+//   document.getElementById("textReceivedMessages").textContent = text;
+// }
 
 // Server events
 
 function onOpen(event) {
-  document.getElementById("output").textContent = "Connected";
-  document.getElementById("btnSetNickname").disabled = false;
 }
 
 function onClose(event) {

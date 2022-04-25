@@ -1,5 +1,10 @@
 {
   "python.analysis.extraPaths": [
     "./lambda/src/python"
-  ]
+  ],
+  "python.testing.pytestArgs": [
+    "lambda/test"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }

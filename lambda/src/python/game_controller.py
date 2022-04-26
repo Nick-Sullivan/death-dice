@@ -103,6 +103,13 @@ class GameController:
   def get_player_ids_in_game(self, game_id):
     return self.player_dao.get_player_ids_in_game(game_id)
 
+  def get_mr_eleven_player_id(self, game_id):
+    return self.game_dao.get_game_attribute(game_id, GameAttribute.MR_ELEVEN)
+
+  def set_mr_eleven_player_id(self, game_id, player_id):
+    return self.game_dao.update_game_attribute(game_id, GameAttribute.MR_ELEVEN, player_id)
+
+
   # Rolls
 
   def new_round(self, game_id):
@@ -112,6 +119,9 @@ class GameController:
 
   def get_dice_value(self, roll_id):
     return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.DICE_VALUES)
+
+  def get_dice_total(self, roll_id):
+    return sum(self.get_dice_value(roll_id))
 
   def get_roll_result(self, roll_id):
     return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.ROLL_RESULT)
@@ -134,10 +144,20 @@ class GameController:
   def calculate_roll_results(self, game_id):
     roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
     values = {r: self.get_dice_value(r) for r in roll_ids}
-    results = game_logic.calculate_roll_results(values)
+    mr_eleven = self.get_mr_eleven_player_id(game_id)
+
+    roll_player_map = {r: self.get_player_id(r) for r in roll_ids}
+    player_roll_map = {v: k for k, v in roll_player_map.items()}
+
+    mr_eleven_key = player_roll_map.get(mr_eleven)
+
+    results, new_mr_eleven_key = game_logic.calculate_roll_results(values, mr_eleven_key)
 
     for roll_id, result in results.items():
       self.roll_dao.update_roll_attribute(roll_id, RollAttribute.ROLL_RESULT, result.value)
+
+    self.set_mr_eleven_player_id(game_id, player_roll_map.get(new_mr_eleven_key))
+
 
   def _is_round_complete(self, game_id):
     """Round is complete if all players have rolled"""
@@ -165,11 +185,12 @@ class GameController:
   def send_game_state_update(self, game_id):
     # Player info
     player_ids = self.get_player_ids_in_game(game_id)
+    mr_eleven = self.get_mr_eleven_player_id(game_id)
 
     player_states = {
       player_id: {
         'id': player_id,
-        'nickname': self.get_nickname(player_id),
+        'nickname': 'Mr Eleven' if player_id == mr_eleven else self.get_nickname(player_id),
         'hasRolled': False,
       }
       for player_id in player_ids
@@ -183,6 +204,7 @@ class GameController:
 
     # Roll info
     roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
+    print(f'roll_ids: {roll_ids}')
 
     for roll_id in roll_ids:
       print(f'roll_id: {roll_id}')
@@ -190,7 +212,11 @@ class GameController:
       print(f'player_id: {player_id}')
       dice_value = self.get_dice_value(roll_id)
       print(f'dice_value: {dice_value}')
+      dice_total = self.get_dice_total(roll_id)
+      print(f'dice_total: {dice_total}')
+
       player_states[player_id]['hasRolled'] = True
+      player_states[player_id]['rollTotal'] = dice_total
       player_states[player_id]['diceValue'] = str(dice_value)
       if is_round_complete:
         player_states[player_id]['rollResult'] = self.get_roll_result(roll_id)

@@ -1,4 +1,4 @@
-const url = "wss://721ay0ep18.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://sdwuq73ffg.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 
@@ -128,6 +128,21 @@ function rollDice() {
   document.getElementById("btnRollDice").disabled = true;
 }
 
+function getDiceHtml(number, colour){
+  var paddedNumber = String(number).padStart(2, '0');
+  return `<img src='img/dice-${colour}-${paddedNumber}.png' height='60px'/>`
+}
+
+function getRollResultHtml(rollResult){
+  return {
+    "FINISH_DRINK": "Finish your drink",
+    "SIP_DRINK": "Drink",
+    "SHOWER": "Shower",
+    "TIE": "Tie, everyone drinks",
+    "WINNER": "Winner",
+  }[rollResult];
+}
+
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
@@ -144,17 +159,30 @@ function gameStateCallback(response){
   for (var player of response.data.players){
     var row = table.insertRow();
     row.insertCell(0).innerHTML = player.nickname;
-
+    
     if ('diceValue' in player){
-      row.insertCell(1).innerHTML = player.diceValue;
+      var diceValues = JSON.parse(player.diceValue);
+      var colour = player == thisPlayer ? "red" : "white";
+      var innerHtml = "";
+      for (var value of diceValues){
+        innerHtml += getDiceHtml(value, colour);
+      }
+      row.insertCell(1).innerHTML = innerHtml;
+
     } else {
       row.insertCell(1).innerHTML = "-";
     }
 
-    if ('rollResult' in player){
-      row.insertCell(2).innerHTML = player.rollResult;
+    if ('rollTotal' in player){
+      row.insertCell(2).innerHTML = player.rollTotal;
     } else {
       row.insertCell(2).innerHTML = "-";
+    }
+
+    if ('rollResult' in player){
+      row.insertCell(3).innerHTML = getRollResultHtml(player.rollResult);
+    } else {
+      row.insertCell(3).innerHTML = "-";
     }
 
     if (player == thisPlayer){

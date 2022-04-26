@@ -25,4 +25,4 @@ wscat -c "$(terraform output -raw production_url)"
 python3 -m venv venv
 ./venv/Scripts/activate
 
-pip install pytest
+pip install pytest boto3

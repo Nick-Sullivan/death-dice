@@ -41,6 +41,60 @@ from src.python.game_logic import RollResult, calculate_roll_results
   ),
 ])
 def test_calculate_roll_results(rolls, expected):
-  result = calculate_roll_results(rolls)
+  result, _ = calculate_roll_results(rolls)
   assert expected == result
 
+@pytest.mark.parametrize('rolls, expected, expected_mr_eleven', [
+  pytest.param(
+    {
+      'MrEleven': [6, 5],
+      'Nick': [6, 6, 6, 5],
+    },
+    {
+      'MrEleven': RollResult.WINNER,
+      'Nick': RollResult.SIP_DRINK
+    },
+    'MrEleven',
+    id='mr eleven wins with an 11',
+  ),
+  pytest.param(
+    {
+      'MrEleven': [3, 3, 5],
+      'Nick': [6, 5],
+    },
+    {
+      'MrEleven': RollResult.WINNER,
+      'Nick': RollResult.WINNER
+    },
+    'MrEleven',
+    id='other 11s dont lose',
+  ),
+  pytest.param(
+    {
+      'MrEleven': [6, 6, 4],
+      'Nick': [6, 5],
+    },
+    {
+      'MrEleven': RollResult.WINNER,
+      'Nick': RollResult.SIP_DRINK
+    },
+    'Nick',
+    id='mr eleven changes',
+  ),
+  pytest.param(
+    {
+      'MrEleven': [1, 2],
+      'Nick': [1, 3],
+    },
+    {
+      'MrEleven': RollResult.SIP_DRINK,
+      'Nick': RollResult.WINNER
+    },
+    'MrEleven',
+    id='mr eleven doesnt change',
+  ),
+])
+def test_calculate_roll_results_mr_eleven(rolls, expected, expected_mr_eleven):
+  result, mr_eleven = calculate_roll_results(rolls, 'MrEleven')
+  assert expected == result
+  assert expected_mr_eleven == mr_eleven

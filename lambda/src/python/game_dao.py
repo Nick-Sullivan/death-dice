@@ -5,6 +5,7 @@ from enum import Enum
 
 class GameAttribute(Enum):
   ID = 'Id'
+  MR_ELEVEN = 'MrEleven'
 
 
 class GameDao:

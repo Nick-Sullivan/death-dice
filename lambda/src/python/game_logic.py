@@ -44,7 +44,7 @@ def _max_duplicates(value):
   }[value]
 
 
-def calculate_roll_results(rolls):
+def calculate_roll_results(rolls, mr_eleven=None):
   print('calculate_roll_results()')
   print(f'rolls: {rolls}')
 
@@ -68,7 +68,24 @@ def calculate_roll_results(rolls):
   roll_totals = {k: sum(v) for k, v in rolls.items() if k not in results}
 
   if not roll_totals:
-    return results
+    return results, mr_eleven
+
+  # Mr eleven wins, anyone else that gets an 11 doesn't lose
+  if mr_eleven is not None:
+    if roll_totals.get(mr_eleven) == 11:
+      results.update({
+        k: RollResult.WINNER if v == 11 else RollResult.SIP_DRINK 
+        for k, v in roll_totals.items()
+      })
+      return results, mr_eleven
+
+  # New mr eleven
+  for k, v in roll_totals.items():
+    if v == 11:
+      mr_eleven = k
+      break
+
+  # Winner is the highest total
 
   max_value = max(roll_totals.values())
   is_tie = sum([v == max_value for v in roll_totals.values()]) > 1
@@ -81,4 +98,4 @@ def calculate_roll_results(rolls):
       for k, v in roll_totals.items()
     })
 
-  return results
+  return results, mr_eleven

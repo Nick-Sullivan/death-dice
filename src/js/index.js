@@ -1,4 +1,4 @@
-const url = "wss://sdwuq73ffg.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://rk0vfki09e.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 
@@ -199,7 +199,7 @@ function gameStateCallback(response){
 
   // Roll dice button
   if (!response.data.round.complete){
-    if (thisPlayer.hasRolled){
+    if (thisPlayer.turnFinished){
       document.getElementById("btnRollDice").disabled = true;
     } else {
       document.getElementById("btnRollDice").disabled = false;

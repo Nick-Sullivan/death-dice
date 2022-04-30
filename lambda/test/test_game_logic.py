@@ -1,8 +1,74 @@
+import os
 import pytest
-from src.python.game_logic import RollResult, calculate_roll_results
+import sys
+sys.path.append(os.path.abspath('./lambda/src/python'))
+from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
+from game_logic import RollResult, calculate_turn_results, _should_roll_another_dice
 
 
-@pytest.mark.parametrize('rolls, expected', [
+@pytest.mark.parametrize('initial_values, extra_values, expected', [
+  pytest.param(
+    [1, 2],
+    [],
+    False,
+    id='no duplicates',
+  ),
+  pytest.param(
+    [6, 6],
+    [],
+    True,
+    id='duplicates on initial',
+  ),
+  pytest.param(
+    [6, 2, 6],
+    [],
+    True,
+    id='duplicates on initial w/ death dice',
+  ),
+  pytest.param(
+    [6, 6, 6],
+    [],
+    True,
+    id='triple on initial',
+  ),
+  pytest.param(
+    [1, 1, 1],
+    [],
+    False,
+    id='triple on initial hits cap',
+  ),
+  pytest.param(
+    [6, 6],
+    [6],
+    True,
+    id='extra throw match',
+  ),
+  pytest.param(
+    [6, 2, 6],
+    [6],
+    True,
+    id='extra throw match w/ death dice',
+  ),
+  pytest.param(
+    [6, 2, 6],
+    [2],
+    False,
+    id='extra throw no match w/ death dice',
+  ),
+  pytest.param(
+    [6, 2, 6],
+    [6, 6, 6, 6],
+    False,
+    id='extra throw hits cap',
+  ),
+])
+def test__should_roll_another_dice(initial_values, extra_values, expected):
+  initial_throw = Roll([D6(v) for v in initial_values])
+  extra_throws = Roll([D6(v) for v in extra_values])
+  result = _should_roll_another_dice(initial_throw, extra_throws)
+  assert expected == result
+
+@pytest.mark.parametrize('roll_values, expected', [
   pytest.param(
     {},
     {},
@@ -40,11 +106,15 @@ from src.python.game_logic import RollResult, calculate_roll_results
     id='duo tie',
   ),
 ])
-def test_calculate_roll_results(rolls, expected):
-  result, _ = calculate_roll_results(rolls)
+def test_calculate_roll_results(roll_values, expected):
+  rolls = {}
+  for k, values in roll_values.items():
+    rolls[k] = Roll([D6(v) for v in values]).to_json()
+
+  result, _ = calculate_turn_results(rolls)
   assert expected == result
 
-@pytest.mark.parametrize('rolls, expected, expected_mr_eleven', [
+@pytest.mark.parametrize('roll_values, expected, expected_mr_eleven', [
   pytest.param(
     {
       'MrEleven': [6, 5],
@@ -94,7 +164,13 @@ def test_calculate_roll_results(rolls, expected):
     id='mr eleven doesnt change',
   ),
 ])
-def test_calculate_roll_results_mr_eleven(rolls, expected, expected_mr_eleven):
-  result, mr_eleven = calculate_roll_results(rolls, 'MrEleven')
+def test_calculate_roll_results_mr_eleven(roll_values, expected, expected_mr_eleven):
+  rolls = {}
+  for k, values in roll_values.items():
+    rolls[k] = Roll([D6(v) for v in values]).to_json()
+
+  result, mr_eleven = calculate_turn_results(rolls, 'MrEleven')
   assert expected == result
   assert expected_mr_eleven == mr_eleven
+
+# TODO - roll results with death dice

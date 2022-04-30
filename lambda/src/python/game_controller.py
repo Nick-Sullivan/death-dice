@@ -1,11 +1,12 @@
-import random
-import string
+
 
 from client_notifier import ClientNotifier
 from game_dao import GameDao, GameAttribute
 from player_dao import PlayerDao, PlayerAttribute
 from roll_dao import RollDao, RollAttribute
+from turn_dao import TurnDao, TurnAttribute
 import game_logic
+import uuid
 
 
 class GameController:
@@ -15,28 +16,39 @@ class GameController:
   player_dao = PlayerDao()
   game_dao = GameDao()
   roll_dao = RollDao()
+  turn_dao = TurnDao()
+
+  def create_unique_id(self):
+    return str(uuid.uuid4())
 
   # Players
 
   def create_player(self, player_id):
-    self.player_dao.create_player(player_id)
+    self.player_dao.create(player_id)
 
   def delete_player(self, player_id):
     """Remove the player from the database, and any games they are part of"""
-    game_id = self.get_game_id(player_id)
+    game_id = self.player_dao.get_attribute(player_id, PlayerAttribute.GAME_ID)
 
-    self.player_dao.delete_player(player_id)
+    self.player_dao.delete(player_id)
 
     if not game_id:
       return
 
-    if self.get_player_ids_in_game(game_id):
+    for turn in self.turn_dao.get_turns_with_player_id(player_id):
+      print(f'turn: {turn}')
+      turn_id = turn[TurnAttribute.ID.value]
+      for roll in self.roll_dao.get_rolls_with_turn_id(turn_id):
+        self.roll_dao.delete(roll[RollAttribute.ID.value])
+      self.turn_dao.delete(turn_id)
+
+    if self.player_dao.get_players_with_game_id(game_id):
       self.send_game_state_update(game_id)
     else:
-      self._delete_game(game_id)
+      self.game_dao.delete(game_id)
 
   def set_nickname(self, player_id, nickname):
-    self.player_dao.update_player_attribute(player_id, PlayerAttribute.NICKNAME, nickname)
+    self.player_dao.set_attribute(player_id, PlayerAttribute.NICKNAME, nickname)
 
     message = {
       'action': 'setNickname',
@@ -47,40 +59,21 @@ class GameController:
     }
     self.client_notifier.send_notification([player_id], message)
 
-  def get_nickname(self, player_id):
-    print('get_nickname()')
-    return self.player_dao.get_player_attribute(player_id, PlayerAttribute.NICKNAME)
-
   def get_game_id(self, player_id):
-    return self.player_dao.get_player_attribute(player_id, PlayerAttribute.GAME_ID)
+    return self.player_dao.get_attribute(player_id, PlayerAttribute.GAME_ID)
 
   # Games
 
   def create_game(self, player_id):
     """Creates a new game, and adds this player to it"""
-    game_id = self._create_unique_game_id()
+    game_id = self.game_dao.create_unique_id()
 
-    self.game_dao.create_game(game_id)
+    self.game_dao.create(game_id)
 
     self.join_game(player_id, game_id)
 
     return game_id
-
-  def _create_unique_game_id(self):
-    """Creates a unique game ID that doesn't yet exist in the database"""
-    # gen = lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-    gen = lambda: ''.join(random.choices(string.ascii_uppercase, k=4))
-
-    game_id = gen()
-    while self.game_dao.game_exists(game_id):
-      game_id = gen()
-
-    return game_id
   
-  def _delete_game(self, game_id):
-    self.roll_dao.delete_rolls_in_game(game_id)
-    self.game_dao.delete_game(game_id)
-
   def join_game(self, player_id, game_id):
     if not self.game_dao.game_exists(game_id):
       message = {
@@ -90,7 +83,9 @@ class GameController:
       self.client_notifier.send_notification([player_id], message)
       return
 
-    self.player_dao.update_player_attribute(player_id, PlayerAttribute.GAME_ID, game_id)
+    self.player_dao.set_attribute(player_id, PlayerAttribute.GAME_ID, game_id)
+    self.player_dao.set_attribute(player_id, PlayerAttribute.WIN_COUNTER, 0)
+    self.turn_dao.create(self.create_unique_id(), game_id, player_id)
 
     message = {
       'action': 'joinGame',
@@ -100,100 +95,106 @@ class GameController:
 
     self.send_game_state_update(game_id)
 
-  def get_player_ids_in_game(self, game_id):
-    return self.player_dao.get_player_ids_in_game(game_id)
-
-  def get_mr_eleven_player_id(self, game_id):
-    return self.game_dao.get_game_attribute(game_id, GameAttribute.MR_ELEVEN)
-
-  def set_mr_eleven_player_id(self, game_id, player_id):
-    return self.game_dao.update_game_attribute(game_id, GameAttribute.MR_ELEVEN, player_id)
-
-
-  # Rolls
+  # Rounds
 
   def new_round(self, game_id):
-    self.roll_dao.delete_rolls_in_game(game_id)
+    print('new_round()')
+    for turn in self.turn_dao.get_turns_with_game_id(game_id):
+      print(f'turn: {turn}')
+      turn_id = turn[TurnAttribute.ID.value]
 
+      for roll in self.roll_dao.get_rolls_with_turn_id(turn_id):
+        print(f'roll: {roll}')
+        roll_id = roll[RollAttribute.ID.value]
+        self.roll_dao.delete(roll_id)
+
+      self.turn_dao.set_attribute(turn_id, TurnAttribute.OUTCOME, game_logic.RollResult.NONE.value)
+      self.turn_dao.set_attribute(turn_id, TurnAttribute.FINISHED, False)
+      
     self.send_game_state_update(game_id)
-
-  def get_dice_value(self, roll_id):
-    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.DICE_VALUES)
-
-  def get_dice_total(self, roll_id):
-    return sum(self.get_dice_value(roll_id))
-
-  def get_roll_result(self, roll_id):
-    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.ROLL_RESULT)
-
-  def get_player_id(self, roll_id):
-    return self.roll_dao.get_roll_attribute(roll_id, RollAttribute.PLAYER_ID)
 
   def roll_dice(self, player_id):
-    dice_values = game_logic.roll_dice()
+    print('roll_dice()')
 
-    game_id = self.get_game_id(player_id)
+    player = self.player_dao.get(player_id)
+    print(f'player: {player}')
+    game_id = player[PlayerAttribute.GAME_ID.value]
 
-    self.roll_dao.create_roll(game_id, player_id, dice_values)
+    turn = self.turn_dao.get_turns_with_player_id(player_id)[0]
+    print(f'turn: {turn}')
+    turn_id = turn[TurnAttribute.ID.value]
+
+    roll = game_logic.roll_dice(player[PlayerAttribute.WIN_COUNTER.value])
+    print(f'roll: {roll}')
+
+    self.roll_dao.create(self.create_unique_id(), turn_id, roll)
+    self.turn_dao.set_attribute(turn_id, TurnAttribute.FINISHED, True)
 
     if self._is_round_complete(game_id):
-      self.calculate_roll_results(game_id)
+      self.calculate_turn_results(game_id)
 
     self.send_game_state_update(game_id)
 
-  def calculate_roll_results(self, game_id):
-    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
-    values = {r: self.get_dice_value(r) for r in roll_ids}
-    mr_eleven = self.get_mr_eleven_player_id(game_id)
-
-    roll_player_map = {r: self.get_player_id(r) for r in roll_ids}
-    player_roll_map = {v: k for k, v in roll_player_map.items()}
-
-    mr_eleven_key = player_roll_map.get(mr_eleven)
-
-    results, new_mr_eleven_key = game_logic.calculate_roll_results(values, mr_eleven_key)
-
-    for roll_id, result in results.items():
-      self.roll_dao.update_roll_attribute(roll_id, RollAttribute.ROLL_RESULT, result.value)
-
-    self.set_mr_eleven_player_id(game_id, player_roll_map.get(new_mr_eleven_key))
-
-
   def _is_round_complete(self, game_id):
-    """Round is complete if all players have rolled"""
+    """Round is complete if all players turns are complete"""
     print('_is_round_complete()')
-    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
-    player_ids = self.get_player_ids_in_game(game_id)
+    for turn in self.turn_dao.get_turns_with_game_id(game_id):
+      print(f'turn: {turn}')
+      if not turn[TurnAttribute.FINISHED.value]:
+        print(False)
+        return False
+    print(True)
+    return True
 
-    if len(roll_ids) == len(player_ids):
-      return True
-    
-    return False
+  def calculate_turn_results(self, game_id):
+    print('calculate_turn_results()')
+    player_rolls = {}
+    player_turn_map = {}
+
+    for turn in self.turn_dao.get_turns_with_game_id(game_id):
+      print(f'turn: {turn}')
+      player_id = turn[TurnAttribute.PLAYER_ID.value]
+      turn_id = turn[TurnAttribute.ID.value]
+      player_turn_map[player_id] = turn_id
+
+      roll = self.roll_dao.get_rolls_with_turn_id(turn_id)[0]
+      print(f'roll: {roll}')
+      player_rolls[player_id] = roll[RollAttribute.DICE.value]
+
+    mr_eleven = self.game_dao.get_attribute(game_id, GameAttribute.MR_ELEVEN)
+
+    results, new_mr_eleven = game_logic.calculate_turn_results(player_rolls, mr_eleven)
+    print(f'results: {results}')
+
+    for player_id, result in results.items():
+      self.turn_dao.set_attribute(player_turn_map[player_id], TurnAttribute.OUTCOME, result.value)
+
+      if result == game_logic.RollResult.WINNER:
+        win_counter = self.player_dao.get_attribute(player_id, PlayerAttribute.WIN_COUNTER)
+        self.player_dao.set_attribute(player_id, PlayerAttribute.WIN_COUNTER, win_counter + 1)
+      else:
+        self.player_dao.set_attribute(player_id, PlayerAttribute.WIN_COUNTER, 0)
+
+    self.game_dao.set_attribute(game_id, GameAttribute.MR_ELEVEN, new_mr_eleven)
 
   # Notifications
-
-  def send_chat(self, player_id, game_id, message):
-    self.client_notifier.send_notification(
-      self.get_player_ids_in_game(game_id),
-      {
-        'action': 'sendMessage',
-        'author': self.get_nickname(player_id),
-        'data': message,
-      }
-    )
   
   def send_game_state_update(self, game_id):
+    print('send_game_state_update()')
+
     # Player info
-    player_ids = self.get_player_ids_in_game(game_id)
-    mr_eleven = self.get_mr_eleven_player_id(game_id)
+    players = self.player_dao.get_players_with_game_id(game_id)
+    print(f'players: {players}')
+    mr_eleven = self.game_dao.get_attribute(game_id, GameAttribute.MR_ELEVEN)
 
     player_states = {
-      player_id: {
-        'id': player_id,
-        'nickname': 'Mr Eleven' if player_id == mr_eleven else self.get_nickname(player_id),
-        'hasRolled': False,
+      p[PlayerAttribute.ID.value]: {
+        'id': p[PlayerAttribute.ID.value],
+        'nickname': 'Mr Eleven' if p[PlayerAttribute.ID.value] == mr_eleven else p[PlayerAttribute.NICKNAME.value],
+        'turnFinished': False,
+        'winCount': p[PlayerAttribute.WIN_COUNTER.value]
       }
-      for player_id in player_ids
+      for p in players
     }
 
     # Round info
@@ -202,24 +203,22 @@ class GameController:
       'complete': is_round_complete
     }
 
-    # Roll info
-    roll_ids = self.roll_dao.get_roll_ids_in_game(game_id)
-    print(f'roll_ids: {roll_ids}')
-
-    for roll_id in roll_ids:
-      print(f'roll_id: {roll_id}')
-      player_id = self.get_player_id(roll_id)
-      print(f'player_id: {player_id}')
-      dice_value = self.get_dice_value(roll_id)
-      print(f'dice_value: {dice_value}')
-      dice_total = self.get_dice_total(roll_id)
-      print(f'dice_total: {dice_total}')
-
-      player_states[player_id]['hasRolled'] = True
-      player_states[player_id]['rollTotal'] = dice_total
-      player_states[player_id]['diceValue'] = str(dice_value)
+    # Turn info
+    for turn in self.turn_dao.get_turns_with_game_id(game_id):
+      print(f'turn: {turn}')
+      player_id = turn[TurnAttribute.PLAYER_ID.value]
+      player_states[player_id]['turnFinished'] = turn[TurnAttribute.FINISHED.value]
       if is_round_complete:
-        player_states[player_id]['rollResult'] = self.get_roll_result(roll_id)
+        player_states[player_id]['rollResult'] = turn[TurnAttribute.OUTCOME.value]
+
+      rolls = self.roll_dao.get_rolls_with_turn_id(turn[TurnAttribute.ID.value])
+      if rolls:
+        roll = rolls[0]
+        print(f'roll: {roll}')
+        values = game_logic.get_values(roll[RollAttribute.DICE.value])
+        print(f'values: {values}')
+        player_states[player_id]['rollTotal'] = sum(values)
+        player_states[player_id]['diceValue'] = str(values)
         
     # Send it
     message = {
@@ -229,4 +228,15 @@ class GameController:
         'round': round_state,
       },
     }
-    self.client_notifier.send_notification(player_ids, message)
+    print(f'message: {message}')
+    self.client_notifier.send_notification([p[PlayerAttribute.ID.value] for p in players], message)
+
+  # def send_chat(self, player_id, game_id, message):
+  #   self.client_notifier.send_notification(
+  #     self.get_player_ids_in_game(game_id),
+  #     {
+  #       'action': 'sendMessage',
+  #       'author': self.player_dao.get_attribute(player_id, PlayerAttribute.NICKNAME),
+  #       'data': message,
+  #     }
+  #   )

@@ -1,8 +1,11 @@
-from random import randint
+
+from collections import Counter
 from enum import Enum
+from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 
 
 class RollResult(Enum):
+  NONE = ''
   FINISH_DRINK = 'FINISH_DRINK'
   SIP_DRINK = 'SIP_DRINK'
   SHOWER = 'SHOWER'
@@ -10,23 +13,57 @@ class RollResult(Enum):
   WINNER = 'WINNER'
 
 
-def roll_dice():
-  values = [
-    randint(1, 6),
-    randint(1, 6),
-  ]
+def roll_dice(win_counter) -> Roll:
+  initial = Roll([D6(), D6()])
 
-  while _roll_another_dice(values):
-    values.append(randint(1, 6))
+  if _is_death_dice(win_counter):
+    initial.append(_get_death_dice(win_counter))
 
-  return values
+  extra = Roll()
+  while _should_roll_another_dice(initial, extra):
+    extra.append(D6())
+
+  return (initial + extra).to_json()
 
 
-def _roll_another_dice(values):
+def _is_death_dice(win_counter):
+  return win_counter >= 3
+
+
+def _get_death_dice(win_counter):
+  if win_counter in [3, 4]:
+    return D4()
+  elif win_counter in [5, 6]:
+    return D6()
+  elif win_counter in [7, 8]:
+    return D8()
+  elif win_counter in [9, 10]:
+    return D10()
+  elif win_counter in [11, 12]:
+    return D12()
+  elif win_counter in [13, 14]:
+    return D20()
+  elif win_counter > 14:
+    return D10Percentile()
+
+  raise NotImplementedError()
+
+
+def _should_roll_another_dice(initial_roll, extra_roll):
+  duplicate_value, duplicate_counter = _get_duplicates(initial_roll.values)
+
+  if duplicate_counter < 2:
+    return False
+
+  combined = [duplicate_value] * duplicate_counter + extra_roll.values
   return (
-    _are_all_values_the_same(values)
-    and len(values) < _max_duplicates(values[0])
+    _are_all_values_the_same(combined)
+    and len(combined) < _max_duplicates(combined[0])
   )
+
+
+def _get_duplicates(values):
+  return Counter(values).most_common(1)[0]
 
 
 def _are_all_values_the_same(values):
@@ -44,9 +81,16 @@ def _max_duplicates(value):
   }[value]
 
 
-def calculate_roll_results(rolls, mr_eleven=None):
-  print('calculate_roll_results()')
+def calculate_turn_results(rolls_json, mr_eleven=None):
+  print('game_logic.calculate_turn_results()')
+  print(f'rolls_json: {rolls_json}')
+
+  rolls = {k: Roll.from_json(v) for k, v in rolls_json.items()}
+
+  # Temp until i get back to this
+  rolls = {k: roll.values for k, roll in rolls.items()}
   print(f'rolls: {rolls}')
+
 
   results = {}
   
@@ -99,3 +143,6 @@ def calculate_roll_results(rolls, mr_eleven=None):
     })
 
   return results, mr_eleven
+
+def get_values(roll_json):
+  return Roll.from_json(roll_json).values

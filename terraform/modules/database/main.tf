@@ -49,10 +49,9 @@ resource "aws_dynamodb_table" "games" {
   }
 }
 
-resource "aws_dynamodb_table" "rolls" {
-  name     = "${var.prefix}Rolls"
+resource "aws_dynamodb_table" "turns" {
+  name     = "${var.prefix}Turns"
   hash_key = "Id"
-  # sort_key       = "PlayerId"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
@@ -61,9 +60,17 @@ resource "aws_dynamodb_table" "rolls" {
   global_secondary_index {
     name            = "GameIndex"
     hash_key        = "GameId"
-    write_capacity  = 5
-    read_capacity   = 5
-    projection_type = "ALL" # allows all other columns to be accessed using this index - but uses more data
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "PlayerIndex"
+    hash_key        = "PlayerId"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
   }
 
   attribute {
@@ -73,6 +80,38 @@ resource "aws_dynamodb_table" "rolls" {
 
   attribute {
     name = "GameId"
+    type = "S"
+  }
+
+  attribute {
+    name = "PlayerId"
+    type = "S"
+  }
+}
+
+resource "aws_dynamodb_table" "rolls" {
+  name     = "${var.prefix}Rolls"
+  hash_key = "Id"
+  billing_mode   = "PROVISIONED"
+  read_capacity  = 5
+  write_capacity = 5
+
+  # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
+  global_secondary_index {
+    name            = "TurnIndex"
+    hash_key        = "TurnId"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
+  }
+
+  attribute {
+    name = "Id"
+    type = "S"
+  }
+
+  attribute {
+    name = "TurnId"
     type = "S"
   }
 }
@@ -93,6 +132,14 @@ data "aws_iam_policy_document" "games" {
     actions   = ["dynamodb:PutItem"]
     effect    = "Allow"
     resources = [aws_dynamodb_table.games.arn]
+  }
+}
+
+data "aws_iam_policy_document" "turns" {
+  statement {
+    actions   = ["dynamodb:PutItem"]
+    effect    = "Allow"
+    resources = [aws_dynamodb_table.turns.arn]
   }
 }
 

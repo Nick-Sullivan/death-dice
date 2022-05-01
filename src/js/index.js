@@ -128,14 +128,20 @@ function rollDice() {
   document.getElementById("btnRollDice").disabled = true;
 }
 
-function getDiceHtml(number, colour){
+function getDiceHtml(id, number, colour){
   var paddedNumber = String(number).padStart(2, '0');
-  return `<img src='img/dice-${colour}-${paddedNumber}.png' height='60px'/>`
+
+  if (id == 'D6') {
+    return `<img src='img/${id.toLowerCase()}-${colour}-${paddedNumber}.png' height='60px'/>`
+  } else {
+    return `<img src='img/${id.toLowerCase()}-${paddedNumber}.png' height='60px'/>`
+  }
 }
 
 function getRollResultHtml(rollResult){
   return {
     "FINISH_DRINK": "Finish your drink",
+    "POOL": "Go jump in a pool",
     "SIP_DRINK": "Drink",
     "SHOWER": "Shower",
     "TIE": "Tie, everyone drinks",
@@ -164,8 +170,8 @@ function gameStateCallback(response){
       var diceValues = JSON.parse(player.diceValue);
       var colour = player == thisPlayer ? "red" : "white";
       var innerHtml = "";
-      for (var value of diceValues){
-        innerHtml += getDiceHtml(value, colour);
+      for (var dice of diceValues){
+        innerHtml += getDiceHtml(dice.id, dice.value, colour);
       }
       row.insertCell(1).innerHTML = innerHtml;
 

@@ -26,3 +26,18 @@ python3 -m venv venv
 ./venv/Scripts/activate
 
 pip install pytest boto3
+
+
+images from:
+- https://ecdn.teacherspayteachers.com/thumbitem/4-Sided-Dice-Clip-Art-Templates-1706644-1593691417/original-1706644-2.jpg
+- https://ecdn.teacherspayteachers.com/thumbitem/8-Sided-Dice-Clip-Art-Templates-1706660-1593690642/original-1706660-2.jpg
+- https://ecdn.teacherspayteachers.com/thumbitem/10-Sided-Dice-Clip-Art-Templates-1706661-1593690397/original-1706661-2.jpg
+- https://ecdn.teacherspayteachers.com/thumbitem/12-Sided-Dice-Clip-Art-Templates-1706670-1593690328/original-1706670-2.jpg
+- https://ecdn.teacherspayteachers.com/thumbitem/20-Sided-Dice-Clipart-Templates-4713194-1593690111/original-4713194-2.jpg
+
+
+TODO
+- three way ties
+- rolling in batches
+- showing who has Death dice
+- german mode

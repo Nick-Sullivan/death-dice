@@ -5,7 +5,7 @@ import json
 class ClientNotifier:
   """Responsible for sending messages to players"""
 
-  url = f'https://hx45les9f5.execute-api.ap-southeast-2.amazonaws.com/production'
+  url = f'https://rk0vfki09e.execute-api.ap-southeast-2.amazonaws.com/production'
   gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
   @staticmethod

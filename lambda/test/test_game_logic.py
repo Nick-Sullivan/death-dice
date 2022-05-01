@@ -94,6 +94,26 @@ def test__should_roll_another_dice(initial_values, extra_values, expected):
     {'k': RollResult.SHOWER},
     id='solo shower',
   ),
+    pytest.param(
+    {'k': [3, 3, 3, 3, 3, 3]},
+    {'k': RollResult.POOL},
+    id='solo pool',
+  ),
+  pytest.param(
+    {'k': [3, 3, 1, 3]},
+    {'k': RollResult.SHOWER},
+    id='solo shower w/ death dice',
+  ),
+  pytest.param(
+    {'k': [1, 3, 1, 6]},
+    {'k': RollResult.SIP_DRINK},
+    id='snake eyes safe w/ death dice',
+  ),
+  pytest.param(
+    {'k': [1, 3, 1, 2]},
+    {'k': RollResult.FINISH_DRINK},
+    id='snake eyes fail w/ death dice',
+  ),
   pytest.param(
     {
       'a': [3, 2, 1],
@@ -104,6 +124,17 @@ def test__should_roll_another_dice(initial_values, extra_values, expected):
       'b': RollResult.TIE,
     },
     id='duo tie',
+  ),
+  pytest.param(
+    {
+      'a': [1, 1, 4],
+      'b': [1, 1, 3],
+    },
+    {
+      'a': RollResult.SIP_DRINK,
+      'b': RollResult.FINISH_DRINK,
+    },
+    id='duo both lose',
   ),
 ])
 def test_calculate_roll_results(roll_values, expected):
@@ -172,5 +203,3 @@ def test_calculate_roll_results_mr_eleven(roll_values, expected, expected_mr_ele
   result, mr_eleven = calculate_turn_results(rolls, 'MrEleven')
   assert expected == result
   assert expected_mr_eleven == mr_eleven
-
-# TODO - roll results with death dice

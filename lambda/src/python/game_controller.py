@@ -218,7 +218,7 @@ class GameController:
         values = game_logic.get_values(roll[RollAttribute.DICE.value])
         print(f'values: {values}')
         player_states[player_id]['rollTotal'] = sum(values)
-        player_states[player_id]['diceValue'] = str(values)
+        player_states[player_id]['diceValue'] = roll[RollAttribute.DICE.value]
         
     # Send it
     message = {

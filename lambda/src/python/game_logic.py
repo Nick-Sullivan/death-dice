@@ -7,6 +7,7 @@ from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 class RollResult(Enum):
   NONE = ''
   FINISH_DRINK = 'FINISH_DRINK'
+  POOL = 'POOL'
   SIP_DRINK = 'SIP_DRINK'
   SHOWER = 'SHOWER'
   TIE = 'TIE'
@@ -85,28 +86,25 @@ def calculate_turn_results(rolls_json, mr_eleven=None):
   print('game_logic.calculate_turn_results()')
   print(f'rolls_json: {rolls_json}')
 
-  rolls = {k: Roll.from_json(v) for k, v in rolls_json.items()}
-
-  # Temp until i get back to this
-  rolls = {k: roll.values for k, roll in rolls.items()}
-  print(f'rolls: {rolls}')
-
+  rolls = {k: Roll.from_json(v).values for k, v in rolls_json.items()}
 
   results = {}
   
   # Instant lose
   for k, values in rolls.items():
 
-    if values[0] == 1 and values[1] == 1:
-      if values[2] > 3:
-        results[k] = RollResult.SIP_DRINK
-      else:
-        results[k] = RollResult.FINISH_DRINK
-      continue
+    if is_roll_pool(values):
+      results[k] = RollResult.POOL
 
-    if values[0] == 3 and values[1] == 3 and values[2] == 3:
+    elif is_roll_shower(values):
       results[k] = RollResult.SHOWER
-      continue
+    
+    elif is_roll_snake_eyes_fail(values):
+      results[k] = RollResult.FINISH_DRINK
+
+    elif is_roll_snake_eyes_safe(values):
+      results[k] = RollResult.SIP_DRINK
+
 
   # In the running
   roll_totals = {k: sum(v) for k, v in rolls.items() if k not in results}
@@ -143,6 +141,31 @@ def calculate_turn_results(rolls_json, mr_eleven=None):
     })
 
   return results, mr_eleven
+
+
+def is_roll_pool(values):
+  counter = Counter(values)
+  return counter.get(3, 0) >= 6
+
+
+def is_roll_shower(values):
+  counter = Counter(values)
+  return counter.get(3, 0) >= 3
+
+
+def is_roll_snake_eyes_fail(values):
+  counter = Counter(values[:-1])
+  if counter.get(1, 0) >= 2:
+    return values[-1] in [1, 2, 3]
+  return False
+
+
+def is_roll_snake_eyes_safe(values):
+  counter = Counter(values[:-1])
+  if counter.get(1, 0) >= 2:
+    return values[-1] in [4, 5, 6]
+  return False
+
 
 def get_values(roll_json):
   return Roll.from_json(roll_json).values

@@ -48,6 +48,14 @@ class GameController:
       self.game_dao.delete(game_id)
 
   def set_nickname(self, player_id, nickname):
+    if not self._is_valid_nickname(nickname):
+      message = {
+        'action': 'setNickname',
+        'error': 'Invalid nickname',
+      }
+      self.client_notifier.send_notification([player_id], message)
+      return
+
     self.player_dao.set_attribute(player_id, PlayerAttribute.NICKNAME, nickname)
 
     message = {
@@ -58,6 +66,12 @@ class GameController:
       },
     }
     self.client_notifier.send_notification([player_id], message)
+
+  def _is_valid_nickname(self, nickname):
+    return (
+      2 <= len(nickname) <= 20
+      and nickname.upper != 'MR ELEVEN'
+    )
 
   def get_game_id(self, player_id):
     return self.player_dao.get_attribute(player_id, PlayerAttribute.GAME_ID)

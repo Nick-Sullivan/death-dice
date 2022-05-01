@@ -41,3 +41,5 @@ TODO
 - rolling in batches
 - showing who has Death dice
 - german mode
+- show result for shower/finish drink before round ends
+- steal with single dice

@@ -19,9 +19,9 @@
     <!-- In a grid layout, content must be placed within columns and only columns may be immediate children of rows. -->
 
     <!-- Setting nickname -->
-    <div class="container text-center" id="containerNickname">
+    <div class="container h-75 text-center" id="containerNickname">
         <div class="row">
-            <div class="col-lg">
+            <div class="col">
                 <label class="label-big" for="textSetNickname">What's your name?</label>
                 <div class="div-padded"></div>
                 <div class="input-group-prepend">
@@ -35,13 +35,13 @@
     </div>
 
     <!-- Create/join game-->
-    <div class="container text-center" id="containerJoinGame" style="display:none">
+    <div class="container h-75 text-center" id="containerJoinGame" style="display:none">
         <div class="row">
-            <div class="col-lg">
+            <div class="col mx-5 mb-5">
                 <label class="label-big" for="textSetNickname">Create a new game</label>
                 <button class="btn btn-primary btn-lg btn-block" id="btnCreateGame" type="button" onclick="createGame()">Create</button>
             </div>
-            <div class="col-lg">
+            <div class="col mx-5 mb-5">
                 <label class="label-big" for="textSetNickname">Join an existing game</label>
                 <div class="input-group-prepend">
                     <span class="input-group-text">Game code</span>
@@ -53,31 +53,33 @@
     </div>
 
     <!-- Game -->
-    <div class="container" id="containerGame" style="display:none">
-        <div class="row">
-            <div class="col-lg">
+    <div class="container-fluid h-100" id="containerGame" style="display:none">
+        <div class="row h-75">
+            <div class="col">
                 <div class="input-group-prepend">
                     <label for="textGameId">Game Code:&nbsp</label>
                     <p class="text-left" id="textGameId">...</p>
                 </div>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col-lg">
-                <table class="table table-bordered" id="tableGameDisplay">
+                <table class="table table-bordered" id="tableGameDisplay" style="font-size: 20px">
                     <thead class="thead-dark">
-                        <th scope="col">Name</th>
-                        <th scope="col">Roll</th>
-                        <th scope="col">Total</th>
-                        <th scope="col">Result</th>
+                        <th scope="col" style="width: 25%">Name</th>
+                        <th scope="col" style="width: 40%">Roll</th>
+                        <!-- <th class="d-none d-lg-table-cell" scope="col" style="width: 10%">Total</th> -->
+                        <th scope="col" style="width: 10%">Total</th>
+                        <th scope="col" style="width: 25%">Result</th>
                     </thead>
                     <tbody>
                     </tbody>
                 </table>
-                <div class="btn-group" role="group">
-                    <button class="btn btn-primary btn-lg" id="btnRollDice" type="button" onclick="rollDice()" disabled>Roll dice</button>
-                    <button class="btn btn-primary btn-lg" id="btnNewRound" type="button" onclick="newRound()" disabled>New round</button>
-
+            </div>
+        </div>
+        <div class="row h-25">
+            <div class="col">
+                <div class="btn-group h-100 w-100 show-border1" role="group">
+                    <button class="btn btn-primary btn-lg w-75" id="btnRollDice" type="button" onclick="rollDice()" disabled>
+                        <img src="img/dice/dice-logo.png" height="100px"/>
+                    </button>
+                    <button class="btn btn-primary btn-lg w-25" id="btnNewRound" type="button" onclick="newRound()" disabled>New round</button>
                 </div>
             </div>
         </div>

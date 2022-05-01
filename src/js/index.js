@@ -50,13 +50,21 @@ function setNickname() {
 
   document.getElementById("btnSetNickname").disabled = true;
   document.getElementById("textSetNickname").disabled = true;
+  document.getElementById("textSetNickname").className = document.getElementById("textSetNickname").className.replace(" error", "");
 }
 
 function setNicknameCallback(response){
   console.log("setNicknameCallback()")
-  playerId = response.data.playerId;
-  $("#containerNickname").hide()
-  $("#containerJoinGame").show()
+
+  if ("error" in response){
+    document.getElementById("btnSetNickname").disabled = false;
+    document.getElementById("textSetNickname").disabled = false;
+    document.getElementById("textSetNickname").className += " error";
+  } else {
+    playerId = response.data.playerId;
+    $("#containerNickname").hide()
+    $("#containerJoinGame").show()
+  }
 }
 
 function createGame() {
@@ -95,7 +103,7 @@ function joinGameCallback(response){
     document.getElementById("btnCreateGame").disabled = false;
     document.getElementById("btnJoinGame").disabled = false;
     document.getElementById("textJoinGame").disabled = false;
-    alert(response.error);
+    document.getElementById("textJoinGame").className += " error";
   }
   else {
     $("#containerJoinGame").hide()
@@ -132,9 +140,9 @@ function getDiceHtml(id, number, colour){
   var paddedNumber = String(number).padStart(2, '0');
 
   if (id == 'D6') {
-    return `<img src='img/${id.toLowerCase()}-${colour}-${paddedNumber}.png' height='60px'/>`
+    return `<img src='img/dice/${id.toLowerCase()}-${colour}-${paddedNumber}.png' height='50px'/>`
   } else {
-    return `<img src='img/${id.toLowerCase()}-${paddedNumber}.png' height='60px'/>`
+    return `<img src='img/dice/${id.toLowerCase()}-${paddedNumber}.png' height='50px'/>`
   }
 }
 

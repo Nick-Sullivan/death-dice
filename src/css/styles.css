@@ -13,8 +13,8 @@ body {
   align-items: center;
   /* -webkit-box-pack: center; */
   justify-content: center;
-  padding-top: 40px;
-  padding-bottom: 300px;
+  /* padding-top: 40px; */
+  /* padding-bottom: 300px; */
   background-color: #f5f5f5;
 }
 
@@ -24,6 +24,9 @@ table {
   font-size: 25px;
 }
 
+.error {
+  border:2px solid red;
+}
 
 .label-big {
   font-size: 40px;
@@ -33,13 +36,14 @@ table {
   padding-bottom: 25px;
 }
 
-
-
-/* .show-border {
+.show-border {
   border: 2px solid green;
 }
+.show-border2 {
+  border: 2px solid red;
+}
 
-.input-group {
+/*.input-group {
   border: 2px solid green;
   width: 100%;
   max-width: 600px;

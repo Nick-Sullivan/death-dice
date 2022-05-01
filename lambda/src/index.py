@@ -49,7 +49,7 @@ def create_game(player_id, request):
 def join_game(player_id, request):
     """Called by the WebSocketAPI when a player wants to join an existing game"""
 
-    game_id = request['data']
+    game_id = request['data'].upper()
 
     controller.join_game(player_id, game_id)
 

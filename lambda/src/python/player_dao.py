@@ -1,62 +1,56 @@
-import boto3
-from boto3.dynamodb.conditions import Key
-from enum import Enum
+from base_dao import BaseDao, TableAttribute
 
 
-class PlayerAttribute(Enum):
-  ID = 'Id'
-  NICKNAME = 'Nickname'
-  GAME_ID = 'GameId'
-  WIN_COUNTER = 'WinCounter'
+class PlayerAttribute(TableAttribute):
+  ID = ('Id', 'S')
+  NICKNAME = ('Nickname', 'S')
+  GAME_ID = ('GameId', 'S')
+  WIN_COUNTER = ('WinCounter', 'N')
 
 
-class PlayerDao:
+class PlayerDao(BaseDao):
   """Creates, updates and destroys entries in the Players table"""
   
-  dynamodb = boto3.resource('dynamodb', endpoint_url="https://dynamodb.ap-southeast-2.amazonaws.com")
-  table = dynamodb.Table('DeathDicePlayers')
+  table_name = 'DeathDicePlayers'
+  attribute = PlayerAttribute
 
-  def create(self, id):
+  def create(self, connection, id):
     assert isinstance(id, str)
-    self.table.put_item(
-      Item={PlayerAttribute.ID.value: id}
-    )
-      
-  def delete(self, id):
-    assert isinstance(id, str)
-    self.table.delete_item(
-      Key={PlayerAttribute.ID.value: id}
-    )
+    connection.write({
+      'Put': {
+        'TableName': self.table_name,
+        'Item': {PlayerAttribute.ID.key: {PlayerAttribute.ID.type: id}},
+        'ConditionExpression': f'attribute_not_exists({PlayerAttribute.ID.key})',
+      }
+    })
 
-  def set_attribute(self, id, attribute, value):
-    assert isinstance(attribute, PlayerAttribute)
-
-    self.table.update_item(
-      Key={PlayerAttribute.ID.value: id},
-      UpdateExpression=f'set {attribute.value} = :s',
-      ExpressionAttributeValues={':s': value},
-    )
-
-  def get_attribute(self, id, attribute):
-    assert isinstance(attribute, PlayerAttribute)
-
-    item = self.get(id)
-    return item.get(attribute.value)
-
-  def get(self, id):
-    item = self.table.get_item(
-      Key={PlayerAttribute.ID.value: id}
-    )
-    return self._parse_item(item['Item'])
-
-  def get_players_with_game_id(self, game_id):
-    response = self.table.query(
-      IndexName='GameIndex',
-      KeyConditionExpression=Key(PlayerAttribute.GAME_ID.value).eq(game_id),
-    )
+  def get_players_with_game_id(self, connection, game_id):
+    response = connection.query({
+      'TableName': self.table_name,
+      'IndexName': 'GameIndex',
+      'KeyConditionExpression': f'{PlayerAttribute.GAME_ID.key} = :id',
+      'ExpressionAttributeValues': {':id': {PlayerAttribute.GAME_ID.type: game_id}},
+    })
     return [self._parse_item(i) for i in response['Items']]
 
   def _parse_item(self, item):
-    if PlayerAttribute.WIN_COUNTER.value in item:
-      item[PlayerAttribute.WIN_COUNTER.value] = int(item[PlayerAttribute.WIN_COUNTER.value])
-    return item
+    # Example input
+    # {
+    #   'Nickname': {'S': 'Nick'},
+    #   'Id': {'S': 'Rvf2mcfhSwMCE-Q='},
+    #   'WinCounter': {'N': '0'},
+    #   'GameId': {'S': 'NLDQ'}
+    # }
+    # Example output
+    # {
+    #   'Nickname': 'Nick',
+    #   'Id': 'Rvf2mcfhSwMCE-Q=',
+    #   'WinCounter': 0,
+    #   'GameId': 'NLDQ',
+    # }
+    new_item = super()._parse_item(item)
+      
+    if PlayerAttribute.WIN_COUNTER.key in new_item:
+      new_item[PlayerAttribute.WIN_COUNTER.key] = int(new_item[PlayerAttribute.WIN_COUNTER.key])
+
+    return new_item

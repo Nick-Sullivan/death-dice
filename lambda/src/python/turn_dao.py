@@ -1,73 +1,49 @@
-import boto3
-from boto3.dynamodb.conditions import Key
-from enum import Enum
+from base_dao import BaseDao, TableAttribute
 
 
-class TurnAttribute(Enum):
-  ID = 'Id'
-  GAME_ID = 'GameId'
-  PLAYER_ID = 'PlayerId'
-  FINISHED = 'Finished'
-  OUTCOME = 'Outcome'
+class TurnAttribute(TableAttribute):
+  ID = ('Id', 'S')
+  GAME_ID = ('GameId', 'S')
+  PLAYER_ID = ('PlayerId', 'S')
+  FINISHED = ('Finished', 'BOOL')
+  OUTCOME = ('Outcome', 'S')
 
 
-class TurnDao:
+class TurnDao(BaseDao):
   """Creates, updates and destroys entries in the Turns table"""
   
-  dynamodb = boto3.resource('dynamodb', endpoint_url="https://dynamodb.ap-southeast-2.amazonaws.com")
-  table = dynamodb.Table('DeathDiceTurns')
+  table_name = 'DeathDiceTurns'
+  attribute = TurnAttribute
 
-  def create(self, id, game_id, player_id):
+  def create(self, connection, id, game_id, player_id):
     assert isinstance(id, str)
-    self.table.put_item(
-      Item={
-        TurnAttribute.ID.value: id,
-        TurnAttribute.GAME_ID.value: game_id,
-        TurnAttribute.PLAYER_ID.value: player_id,
-        TurnAttribute.FINISHED.value: False,
+    connection.write({
+      'Put': {
+        'TableName': self.table_name,
+        'Item': {
+          TurnAttribute.ID.key: {TurnAttribute.ID.type: id},
+          TurnAttribute.GAME_ID.key: {TurnAttribute.GAME_ID.type: game_id},
+          TurnAttribute.PLAYER_ID.key: {TurnAttribute.PLAYER_ID.type: player_id},
+          TurnAttribute.FINISHED.key: {TurnAttribute.FINISHED.type: False},
+        },
+        'ConditionExpression': f'attribute_not_exists({TurnAttribute.ID.key})',
       }
-    )
+    })
 
-  def delete(self, id):
-    assert isinstance(id, str)
-    return self.table.delete_item(
-      Key={TurnAttribute.ID.value: id}
-    )
+  def get_turns_with_player_id(self, connection, player_id):
+    response = connection.query({
+      'TableName': self.table_name,
+      'IndexName': 'PlayerIndex',
+      'KeyConditionExpression': f'{TurnAttribute.PLAYER_ID.key} = :id',
+      'ExpressionAttributeValues': {':id': {TurnAttribute.PLAYER_ID.type: player_id}},
+    })
+    return [self._parse_item(i) for i in response['Items']]
 
-  def set_attribute(self, id, attribute, value):
-    assert isinstance(attribute, TurnAttribute)
-
-    self.table.update_item(
-      Key={TurnAttribute.ID.value: id},
-      UpdateExpression=f'set {attribute.value} = :s',
-      ExpressionAttributeValues={':s': value},
-    )
-
-  def get_attribute(self, id, attribute):
-    assert isinstance(attribute, TurnAttribute)
-
-    item = self._get(id)
-    return item.get(attribute.value)
-
-  def exists(self, id):
-    return self._get(id) != None
-
-  def _get(self, id):
-    item = self.table.get_item(
-      Key={TurnAttribute.ID.value: id}
-    )
-    return item.get('Item')
-
-  def get_turns_with_player_id(self, player_id):
-    response = self.table.query(
-      IndexName='PlayerIndex',
-      KeyConditionExpression=Key(TurnAttribute.PLAYER_ID.value).eq(player_id),
-    )
-    return response['Items']
-
-  def get_turns_with_game_id(self, game_id):
-    response = self.table.query(
-      IndexName='GameIndex',
-      KeyConditionExpression=Key(TurnAttribute.GAME_ID.value).eq(game_id),
-    )
-    return response['Items']
+  def get_turns_with_game_id(self, connection, game_id):
+    response = connection.query({
+      'TableName': self.table_name,
+      'IndexName': 'GameIndex',
+      'KeyConditionExpression': f'{TurnAttribute.GAME_ID.key} = :id',
+      'ExpressionAttributeValues': {':id': {TurnAttribute.GAME_ID.type: game_id}},
+    })
+    return [self._parse_item(i) for i in response['Items']]

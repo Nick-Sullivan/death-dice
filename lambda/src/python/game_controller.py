@@ -1,16 +1,15 @@
 
 
-import time
 import uuid
 from botocore.exceptions import ClientError
 
 import game_logic
 from client_notifier import ClientNotifier
 from connection import DatabaseConnection, transaction_retry
-from dao.game_dao import GameDao, GameAttribute, GameItem
-from dao.player_dao import PlayerDao, PlayerAttribute, PlayerItem
-from dao.roll_dao import RollDao, RollAttribute, RollItem
-from dao.turn_dao import TurnDao, TurnAttribute, TurnItem
+from dao.game_dao import GameDao, GameItem
+from dao.player_dao import PlayerDao, PlayerItem
+from dao.roll_dao import RollDao, RollItem
+from dao.turn_dao import TurnDao, TurnItem
 
 
 class GameController:
@@ -99,10 +98,6 @@ class GameController:
       2 <= len(nickname) <= 20
       and nickname.upper != 'MR ELEVEN'
     )
-
-  def get_game_id(self, player_id):
-    with self.connection as conn:
-      return self.player_dao.get_attribute(conn, player_id, PlayerAttribute.GAME_ID)
 
   # Games
 
@@ -307,13 +302,3 @@ class GameController:
     }
     print(f'message: {message}')
     self.client_notifier.send_notification([p.id for p in player_items], message)
-
-  # def send_chat(self, player_id, game_id, message):
-  #   self.client_notifier.send_notification(
-  #     self.get_player_ids_in_game(game_id),
-  #     {
-  #       'action': 'sendMessage',
-  #       'author': self.player_dao.get_attribute(player_id, PlayerAttribute.NICKNAME),
-  #       'data': message,
-  #     }
-  #   )

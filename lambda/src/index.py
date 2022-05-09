@@ -75,18 +75,6 @@ def roll_dice(player_id, request):
 
 
 @lambda_handler
-def send_message(player_id, request):
-
-    message = request['data']
-
-    game_id = controller.get_game_id(player_id)
-
-    controller.send_chat(player_id, game_id, message)
-
-    return {'statusCode': 200}
-
-
-@lambda_handler
 def set_nickname(player_id, request):
     """Called by the WebSocketAPI when a player wants set their display name"""
 

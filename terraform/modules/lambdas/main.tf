@@ -113,6 +113,7 @@ data "aws_iam_policy_document" "access_dynamodb" {
   # Allow Lambda to interact with the dynamo database
   statement {
     actions = [
+      "dynamodb:ConditionCheckItem",
       "dynamodb:DeleteItem",
       "dynamodb:GetItem",
       "dynamodb:PutItem",

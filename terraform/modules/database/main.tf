@@ -11,107 +11,120 @@ terraform {
 resource "aws_dynamodb_table" "players" {
   # note - doesn't have autoscaling
   name           = "${var.prefix}Players"
-  hash_key       = "Id"
+  hash_key       = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
   # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
   global_secondary_index {
-    name            = "GameIndex"
-    hash_key        = "GameId"
+    name            = "game_index"
+    hash_key        = "game_id"
     write_capacity  = 5
     read_capacity   = 5
     projection_type = "ALL" # allows all other columns to be accessed using this index - but uses more data
   }
 
   attribute {
-    name = "Id"
+    name = "id"
     type = "S"
   }
 
   attribute {
-    name = "GameId"
+    name = "game_id"
     type = "S"
   }
 }
 
 resource "aws_dynamodb_table" "games" {
   name           = "${var.prefix}Games"
-  hash_key       = "Id"
+  hash_key       = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
   attribute {
-    name = "Id"
+    name = "id"
     type = "S"
   }
 }
 
 resource "aws_dynamodb_table" "turns" {
   name     = "${var.prefix}Turns"
-  hash_key = "Id"
+  hash_key = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
   # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
   global_secondary_index {
-    name            = "GameIndex"
-    hash_key        = "GameId"
+    name            = "game_index"
+    hash_key        = "game_id"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"
   }
 
   global_secondary_index {
-    name            = "PlayerIndex"
-    hash_key        = "PlayerId"
+    name            = "player_index"
+    hash_key        = "player_id"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"
   }
 
   attribute {
-    name = "Id"
+    name = "id"
     type = "S"
   }
 
   attribute {
-    name = "GameId"
+    name = "game_id"
     type = "S"
   }
 
   attribute {
-    name = "PlayerId"
+    name = "player_id"
     type = "S"
   }
 }
 
 resource "aws_dynamodb_table" "rolls" {
   name     = "${var.prefix}Rolls"
-  hash_key = "Id"
+  hash_key = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = 5
   write_capacity = 5
 
   # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
   global_secondary_index {
-    name            = "TurnIndex"
-    hash_key        = "TurnId"
+    name            = "turn_index"
+    hash_key        = "turn_id"
+    write_capacity  = 1
+    read_capacity   = 1
+    projection_type = "ALL"
+  }
+
+  global_secondary_index {
+    name            = "game_index"
+    hash_key        = "game_id"
     write_capacity  = 1
     read_capacity   = 1
     projection_type = "ALL"
   }
 
   attribute {
-    name = "Id"
+    name = "id"
     type = "S"
   }
 
   attribute {
-    name = "TurnId"
+    name = "turn_id"
+    type = "S"
+  }
+
+  attribute {
+    name = "game_id"
     type = "S"
   }
 }

@@ -37,9 +37,14 @@ images from:
 
 
 TODO
+- lock to prevent resource clashes
+- card UI
 - three way ties
 - rolling in batches
 - showing who has Death dice
 - german mode
 - show result for shower/finish drink before round ends
 - steal with single dice
+- load all images at same time
+- default game code ROIB unless its in use
+- more efficient reads

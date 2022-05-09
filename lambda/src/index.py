@@ -60,9 +60,7 @@ def join_game(player_id, request):
 def new_round(player_id, request):
     """Called by the WebSocketAPI when a player wants to start the next round"""
 
-    game_id = controller.get_game_id(player_id)
-
-    controller.new_round(game_id)
+    controller.new_round(player_id)
 
     return {'statusCode': 200}
 

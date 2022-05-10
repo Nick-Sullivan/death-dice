@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 
 import game_logic
 from client_notifier import ClientNotifier
-from connection import DatabaseConnection, transaction_retry
+from connection import DatabaseReader, DatabaseWriter, transaction_retry
 from dao.game_dao import GameDao, GameItem
 from dao.player_dao import PlayerDao, PlayerItem
 from dao.roll_dao import RollDao, RollItem
@@ -20,7 +20,8 @@ class GameController:
   game_dao = GameDao()
   roll_dao = RollDao()
   turn_dao = TurnDao()
-  connection = DatabaseConnection()
+  db_writer = DatabaseWriter()
+  db_reader = DatabaseReader()
 
   @staticmethod
   def create_unique_id():
@@ -30,7 +31,7 @@ class GameController:
 
   def create_player(self, player_id):
     """Create a new player object for a new browser session"""
-    with self.connection as conn:
+    with self.db_writer as conn:
       self.player_dao.create(conn, PlayerItem(id=player_id, win_counter=0))
 
   # @transaction_retry
@@ -38,15 +39,15 @@ class GameController:
     """Remove the player from the database, and any games/turns/rolls they are part of
     Transaction retry for if a player joins the game as we try to leave it.
     """
-    with self.connection as conn:
+    with self.db_reader as conn:
       player_item = self.player_dao.get(conn, player_id)
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       turn_items = self.turn_dao.get_turns_with_player_id(conn, player_id)
       roll_items = self.roll_dao.get_rolls_with_game_id(conn, player_item.game_id) if player_item.game_id else []
       game_item = self.game_dao.get(conn, player_item.game_id) if player_item.game_id else None
 
-    with self.connection as conn:
+    with self.db_writer as conn:
       self.player_dao.delete(conn, player_id)
 
       for turn_item in turn_items:
@@ -57,7 +58,7 @@ class GameController:
         if roll_item.turn_id in turn_ids:
           self.roll_dao.delete(conn, roll_item.id)
 
-      if game_item is not None:
+      if game_item.id is not None:
         game_item.num_players -= 1
         if game_item.num_players > 0:
           self.game_dao.set(conn, game_item)
@@ -77,12 +78,12 @@ class GameController:
       )
       return
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       player = self.player_dao.get(conn, player_id)
       
     player.nickname = nickname
 
-    with self.connection as conn:
+    with self.db_writer as conn:
       self.player_dao.set(conn, player)
 
     self.client_notifier.send_notification([player_id], {
@@ -106,16 +107,16 @@ class GameController:
     """Creates a new game, and adds this player to it
     Transaction retry for if two players try to create the same unique ID.
     """
-    with self.connection as conn:
+    with self.db_reader as conn:
       player_item = self.player_dao.get(conn, player_id)
-      game_id = self.game_dao.create_unique_id(conn)
 
+    game_id = self.game_dao.create_unique_id(None)
     game_item = GameItem(id=game_id, num_players=1, mr_eleven='', round_finished=True)
     turn_item = TurnItem(id=self.create_unique_id(), game_id=game_item.id, player_id=player_item.id, finished=False, outcome='')
     player_item.game_id = game_id
     player_item.win_counter = 0
 
-    with self.connection as conn:
+    with self.db_writer as conn:
       self.game_dao.create(conn, game_item)
       self.turn_dao.create(conn, turn_item)
       self.player_dao.set(conn, player_item)
@@ -136,11 +137,11 @@ class GameController:
       'error': f'Unable to join game: {game_id}',
     }
     try:
-      with self.connection as conn:
+      with self.db_reader as conn:
         game_item = self.game_dao.get(conn, game_id)
         player_item = self.player_dao.get(conn, player_id)
 
-      if not game_item:
+      if game_item.id is None:
         self.client_notifier.send_notification([player_id], bad_message)
         return 
 
@@ -149,7 +150,7 @@ class GameController:
       player_item.game_id = game_id
       player_item.win_counter = 0
 
-      with self.connection as conn:
+      with self.db_writer as conn:
         self.game_dao.set(conn, game_item)
         self.player_dao.set(conn, player_item)
         self.turn_dao.create(conn, turn_item)
@@ -174,15 +175,15 @@ class GameController:
     """The previous round is complete, clear the rolls.
     Transaction retry if updating turns that are deleted from a player leaving
     """
-    with self.connection as conn:
+    with self.db_reader as conn:
       player_item = self.player_dao.get(conn, player_id)
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       turn_items = self.turn_dao.get_turns_with_game_id(conn, player_item.game_id)
       game_item = self.game_dao.get(conn, player_item.game_id)
       roll_items = self.roll_dao.get_rolls_with_game_id(conn, player_item.game_id)
 
-    with self.connection as conn:
+    with self.db_writer as conn:
 
       game_item.round_finished = False
       self.game_dao.set(conn, game_item)
@@ -201,10 +202,10 @@ class GameController:
     """Create a new roll for this player, and mark their turn as finished. If this is the last turns, calculate results for the round."""
     print('roll_dice()')
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       player_item = self.player_dao.get(conn, player_id)
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       game_item = self.game_dao.get(conn, player_item.game_id)
       player_items = self.player_dao.get_players_with_game_id(conn, player_item.game_id)
       turn_items = self.turn_dao.get_turns_with_game_id(conn, player_item.game_id)
@@ -216,7 +217,7 @@ class GameController:
     roll_item = RollItem(id=self.create_unique_id(), turn_id=player_turn.id, game_id=game_item.id, dice=roll)
     roll_items.append(roll_item)
 
-    with self.connection as conn:
+    with self.db_writer as conn:
       self.roll_dao.create(conn, roll_item)
       self.turn_dao.set(conn, player_turn)
 
@@ -235,7 +236,7 @@ class GameController:
     results, mr_eleven = game_logic.calculate_turn_results(player_rolls, game_item.mr_eleven)
     print(f'results: {results}')
 
-    with self.connection as conn:
+    with self.db_writer as conn:
 
       game_item.mr_eleven = mr_eleven if mr_eleven is not None else ''
       game_item.round_finished = True
@@ -261,7 +262,7 @@ class GameController:
   def send_game_state_update(self, game_id):
     print('send_game_state_update()')
 
-    with self.connection as conn:
+    with self.db_reader as conn:
       game_item = self.game_dao.get(conn, game_id)
       player_items = self.player_dao.get_players_with_game_id(conn, game_id)
       turn_items = self.turn_dao.get_turns_with_game_id(conn, game_id)

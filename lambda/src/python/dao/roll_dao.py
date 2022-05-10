@@ -5,9 +5,9 @@ from dao.base_dao import BaseDao, DynamodbItem
 
 @dataclass
 class RollItem(DynamodbItem):
-  turn_id: str
-  game_id: str
-  dice: str
+  turn_id: str = None
+  game_id: str = None
+  dice: str = None
 
 
 class RollDao(BaseDao):

@@ -5,7 +5,7 @@ import os
 import pytest
 import sys
 sys.path.append(os.path.abspath('./lambda/src/python'))
-from dao.player_dao import DynamodbItem, PlayerAttribute, PlayerDao, PlayerItem
+from dao.player_dao import DynamodbItem, PlayerDao, PlayerItem
 
 
 class TestPlayerItem:

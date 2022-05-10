@@ -4,10 +4,10 @@ from dao.base_dao import BaseDao, DynamodbItem
 
 @dataclass
 class TurnItem(DynamodbItem):
-  game_id: str
-  player_id: str
-  finished: bool
-  outcome: str
+  game_id: str = None
+  player_id: str = None
+  finished: bool = None
+  outcome: str = None
 
 
 class TurnDao(BaseDao):

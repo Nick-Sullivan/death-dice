@@ -3,7 +3,8 @@ from dataclasses import dataclass, fields
 
 @dataclass
 class DynamodbItem:
-  id: str
+  """All fields must be optional, to support lazy reads from the database"""
+  id: str = None
 
   def to_query(self):
     response = {}
@@ -52,6 +53,10 @@ class DynamodbItem:
       return bool(value)
     raise NotImplementedError()
 
+  def update_from(self, other_obj):
+    """Copies values from the given object, and uses them for our own values"""
+    for field in fields(self):
+      setattr(self, field.name, getattr(other_obj, field.name))
 
 class BaseDao:
   
@@ -83,16 +88,17 @@ class BaseDao:
     })
   
   def get(self, connection, id):
-    item = connection.read({
+    assert isinstance(id, str)
+    return connection.read({
       'Get': {
         'TableName': self.table_name,
         'Key': {'id': {'S': id}},
       }
-    })
-    return self.item_class.from_query(item['Item']) if 'Item' in item else None
+    }, self.item_class)
 
   def set(self, connection, item):
     assert isinstance(item, self.item_class)
+    assert item.id is not None
 
     query = item.to_query()
 

@@ -6,9 +6,9 @@ from dao.base_dao import BaseDao, DynamodbItem
 
 @dataclass
 class GameItem(DynamodbItem):
-  mr_eleven: str
-  num_players: int
-  round_finished: bool
+  mr_eleven: str = None
+  num_players: int = None
+  round_finished: bool = None
 
 
 class GameDao(BaseDao):
@@ -22,7 +22,7 @@ class GameDao(BaseDao):
     gen = lambda: ''.join(random.choices(string.ascii_uppercase, k=4))
 
     game_id = gen()
-    while self.exists(connection, game_id):
-      game_id = gen()
+    # while self.exists(connection, game_id):
+    #   game_id = gen()
 
     return game_id

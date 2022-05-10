@@ -4,7 +4,7 @@ from dao.base_dao import BaseDao, DynamodbItem
 
 @dataclass
 class PlayerItem(DynamodbItem):
-  win_counter: int
+  win_counter: int = None
   nickname: str = None
   game_id: str = None
 
@@ -23,4 +23,3 @@ class PlayerDao(BaseDao):
       'ExpressionAttributeValues': {':id': {'S': game_id}},
     })
     return [self.item_class.from_query(i) for i in response['Items']]
-

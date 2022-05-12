@@ -2,6 +2,15 @@ import boto3
 from botocore.exceptions import ClientError
 
 
+def transaction_fail_logs(func):
+  def inner(*args, **kwargs):
+    try:
+      return func(*args, **kwargs)
+    except ClientError as e:
+      print(e)
+      print(e.response)
+  return inner
+
 def transaction_retry(func, max_attempts=3):
   """Decorator, reattempts processing if it gets a TransactionCanceledException"""
 
@@ -45,8 +54,6 @@ class DatabaseReader:
     return self
   
   def __exit__(self, type, value, traceback):
-    print(f'transact_read_items: {self.items}')
-
     if not self.items:
       return
 
@@ -54,7 +61,7 @@ class DatabaseReader:
     self.items = [] # clear in case of exception
     responses = self.client.transact_get_items(TransactItems=[i[0] for i in items])
 
-    print(f'responses: {responses}')
+    print(f'transact_get_items: {responses}')
 
     for response, (_, obj) in zip(responses['Responses'], items):
       if 'Item' not in response:

@@ -91,6 +91,7 @@ resource "aws_lambda_function" "all" {
   layers           = [aws_lambda_layer_version.layer.arn]
   role             = aws_iam_role.role.arn
   runtime          = "python3.9"
+  timeout          = 10
   source_code_hash = data.archive_file.index.output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
 }

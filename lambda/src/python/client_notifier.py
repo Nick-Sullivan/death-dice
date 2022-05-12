@@ -1,11 +1,12 @@
 import boto3
 import json
+from botocore.exceptions import ClientError
 
 
 class ClientNotifier:
   """Responsible for sending messages to players"""
 
-  url = f'https://rk0vfki09e.execute-api.ap-southeast-2.amazonaws.com/production'
+  url = f'https://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production'
   gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
   @staticmethod
@@ -20,7 +21,13 @@ class ClientNotifier:
 
   def _post_to_connection(self, connection_id, data):
     """Sends data to the API gateway"""
-    self.gatewayapi.post_to_connection(
-        ConnectionId=connection_id,
-        Data=json.dumps(data)
-    )
+    try:
+      self.gatewayapi.post_to_connection(
+          ConnectionId=connection_id,
+          Data=json.dumps(data)
+      )
+    except ClientError as e:
+      if e.response['Error']['Code'] == 'GoneException':
+        print('EXCEPTION: GoneException')
+        return
+      raise e

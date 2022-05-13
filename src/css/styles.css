@@ -43,6 +43,16 @@ table {
   border: 2px solid red;
 }
 
+.card {
+  height: 100px;
+}
+
+.scrollable {
+  /* position: fixed; */
+  overflow-y: scroll;
+  /* height: 200px; */
+}
+
 /*.input-group {
   border: 2px solid green;
   width: 100%;

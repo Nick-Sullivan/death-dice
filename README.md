@@ -47,4 +47,3 @@ TODO
 - steal with single dice
 - load all images at same time
 - default game code ROIB unless its in use
-- more efficient reads

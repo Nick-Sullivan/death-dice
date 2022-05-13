@@ -91,8 +91,9 @@ class GameController:
       players_combined = [(old_state.players.get(i), new_state.players.get(i)) for i in all_player_ids]
       print(f'players_combined: {players_combined}')
       for old, new in players_combined:
-        # if old is None:
-        #   self.player_dao.create(conn, new)
+        if old is None:
+          # Note - joining a game does not require creating a new player 
+          pass
         if new is None:
           self.player_dao.delete(conn, old.id)
         elif new != old:
@@ -139,11 +140,7 @@ class GameController:
       return
 
     if state.game.num_players == 1:
-      state.game = None
-      state.players = {}
-      state.turns = {}
-      state.rolls = {}
-      self.save_state(old_state, state)
+      self.save_state(old_state, GameState(game=None, players={}, turns={}, rolls={}))
       return
     
     state.game.version += 1

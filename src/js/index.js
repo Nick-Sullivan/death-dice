@@ -1,4 +1,4 @@
-const url = "wss://rk0vfki09e.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 
@@ -36,7 +36,7 @@ function setupWebsocket() {
 }
 
 
-// Send messages to the websocket
+// Pre-game
 
 function setNickname() {
   console.log('setNickname()');
@@ -112,6 +112,8 @@ function joinGameCallback(response){
   }
 }
 
+// In-game
+
 function newRound() {
   console.log('newRound');
 
@@ -154,55 +156,136 @@ function getRollResultHtml(rollResult){
     "SHOWER": "Shower",
     "TIE": "Tie, everyone drinks",
     "WINNER": "Winner",
+    "": "",
   }[rollResult];
 }
+
+function getBackgroundColor(rollResult){
+  return {
+    "FINISH_DRINK": "crimson",
+    "POOL": "darkblue",
+    "SIP_DRINK": "tomato",
+    "SHOWER": "royalblue",
+    "TIE": "tomato",
+    "WINNER": "lightgreen",
+    "": "lightgrey",
+  }[rollResult];
+}
+
 
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
   var thisPlayer = response.data.players.find(p => {return p.id == playerId});
 
-  // Game table
-  var table = document.getElementById('tableGameDisplay');
+  // Game status cards
 
-  var rowCount = table.rows.length;
-  while(--rowCount){
-    table.deleteRow(rowCount);
-  } 
+  var gameCardPanel = document.getElementById("gameCardPanel");
+  var children = Array.from(gameCardPanel.children);
 
+  // for(var i=0; i<gameCardPanel.children.length; i++){
+  for (var child of children){
+    console.log(`child: ${child}`);
+    gameCardPanel.removeChild(child);
+  }
+
+  var i = 0;
   for (var player of response.data.players){
-    var row = table.insertRow();
-    row.insertCell(0).innerHTML = player.nickname;
-    
+
+    var diceHtml = "";
     if ('diceValue' in player){
       var diceValues = JSON.parse(player.diceValue);
-      var colour = player == thisPlayer ? "red" : "white";
-      var innerHtml = "";
+      // var colour = player == thisPlayer ? "red" : "white";
+      var colour = "white";
+      diceHtml = "";
       for (var dice of diceValues){
-        innerHtml += getDiceHtml(dice.id, dice.value, colour);
+        diceHtml += getDiceHtml(dice.id, dice.value, colour);
       }
-      row.insertCell(1).innerHTML = innerHtml;
-
-    } else {
-      row.insertCell(1).innerHTML = "-";
     }
 
+    var rollTotalHtml = "";
     if ('rollTotal' in player){
-      row.insertCell(2).innerHTML = player.rollTotal;
-    } else {
-      row.insertCell(2).innerHTML = "-";
+      rollTotalHtml = `(${player.rollTotal})`;
     }
+    console.log(`rollTotalHtml: ${rollTotalHtml}`);
 
+    var winCountHtml = "";
+    if ('winCount' in player && player.winCount > 0){
+      winCountHtml = `(${player.winCount})`;
+    }
+    console.log(`winCountHtml: ${winCountHtml}`);
+    
+    var backgroundColor = "lightgrey";
     if ('rollResult' in player){
-      row.insertCell(3).innerHTML = getRollResultHtml(player.rollResult);
-    } else {
-      row.insertCell(3).innerHTML = "-";
+      backgroundColor = getBackgroundColor(player.rollResult);
+    }
+    console.log(`backgroundColor: ${backgroundColor}`);
+    
+    var resultHtml = "";
+    if ('rollResult' in player){
+      resultHtml = getRollResultHtml(player.rollResult);
     }
 
-    if (player == thisPlayer){
-      row.style.fontWeight = 'bold';
-    }
+
+    // var myCol = $('<div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 pb-4"></div>');
+    var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+    var myPanel = $(`
+      <div class="card border-info d-flex align-items-stretch" id="${i}Panel" style="background-color:${backgroundColor}">
+        <div class="card-body px-3 py-1">
+          <div class="card-title h4">
+            <span>${player.nickname} ${winCountHtml}</span>
+            <span class="float-right">${resultHtml}</span>
+          </div>
+          ${diceHtml}
+        </div>
+      </div>
+    `);
+    myPanel.appendTo(myCol);
+    myCol.appendTo('#gameCardPanel');
+    i++;
   }
+
+  // Game table
+  // var table = document.getElementById('tableGameDisplay');
+
+  // var rowCount = table.rows.length;
+  // while(--rowCount){
+  //   table.deleteRow(rowCount);
+  // } 
+
+  // for (var player of response.data.players){
+  //   var row = table.insertRow();
+  //   row.insertCell(0).innerHTML = player.nickname;
+    
+  //   if ('diceValue' in player){
+  //     var diceValues = JSON.parse(player.diceValue);
+  //     var colour = player == thisPlayer ? "red" : "white";
+  //     var innerHtml = "";
+  //     for (var dice of diceValues){
+  //       innerHtml += getDiceHtml(dice.id, dice.value, colour);
+  //     }
+  //     row.insertCell(1).innerHTML = innerHtml;
+
+  //   } else {
+  //     row.insertCell(1).innerHTML = "-";
+  //   }
+
+  //   if ('rollTotal' in player){
+  //     row.insertCell(2).innerHTML = player.rollTotal;
+  //   } else {
+  //     row.insertCell(2).innerHTML = "-";
+  //   }
+
+  //   if ('rollResult' in player){
+  //     row.insertCell(3).innerHTML = getRollResultHtml(player.rollResult);
+  //   } else {
+  //     row.insertCell(3).innerHTML = "-";
+  //   }
+
+  //   if (player == thisPlayer){
+  //     row.style.fontWeight = 'bold';
+  //   }
+  // }
 
   // New round button
   if (response.data.round.complete){
@@ -213,6 +296,7 @@ function gameStateCallback(response){
 
   // Roll dice button
   if (!response.data.round.complete){
+    console.log(`turn finished: ${thisPlayer.turnFinished}`);
     if (thisPlayer.turnFinished){
       document.getElementById("btnRollDice").disabled = true;
     } else {

@@ -1,6 +1,7 @@
 const url = "wss://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
+var thisPlayerIndex;
 
 var callback_lookup = {
   "setNickname": setNicknameCallback,
@@ -11,8 +12,20 @@ var callback_lookup = {
 };
 
 document.addEventListener("DOMContentLoaded", function() {
+  linkTextToButton("textSetNickname", "btnSetNickname");
+  linkTextToButton("textJoinGame", "btnJoinGame");
   connect();
 });
+
+function linkTextToButton(textName, buttonName) {
+  // When user presses enter, click the button
+  var txt = document.getElementById(textName);
+  txt.addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+      document.getElementById(buttonName).click();
+    }
+  });
+}
 
 
 // Set up / tear down websocket connections
@@ -35,8 +48,35 @@ function setupWebsocket() {
   socket.onerror = onError;
 }
 
+function onOpen(event) {
+  document.getElementById("btnSetNickname").disabled = false;
+}
 
-// Pre-game
+function onClose(event) {
+  if (event.wasClean) {
+    alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    alert('[close] Connection died');
+  }
+}
+
+function onError(event) {
+  alert(`[error] ${event.message}`);
+}
+
+function onMessage(event) {
+  response = JSON.parse(event.data);
+  console.log(response);
+
+  if (response.action in callback_lookup){
+    callback_lookup[response.action](response);
+  } else {
+    alert(`[message] Data received from server: ${event.data}`);
+  }
+}
+
+
+// Setting up player
 
 function setNickname() {
   console.log('setNickname()');
@@ -66,6 +106,8 @@ function setNicknameCallback(response){
     $("#containerJoinGame").show()
   }
 }
+
+// Pre-game
 
 function createGame() {
   console.log('createGame');
@@ -112,6 +154,7 @@ function joinGameCallback(response){
   }
 }
 
+
 // In-game
 
 function newRound() {
@@ -136,16 +179,18 @@ function rollDice() {
   socket.send(JSON.stringify(message));
 
   document.getElementById("btnRollDice").disabled = true;
+
+  // Show spinning dice until roll is decided
+  var newItem = document.createElement('bleh');
+  newItem.innerHTML = `<div class="loader"></div>`;
+
+  var itemToReplace = document.getElementById(`${thisPlayerIndex}DicePanel`);
+  itemToReplace.parentNode.replaceChild(newItem, itemToReplace);
 }
 
 function getDiceHtml(id, number, colour){
   var paddedNumber = String(number).padStart(2, '0');
-
-  if (id == 'D6') {
-    return `<img src='img/dice/${id.toLowerCase()}-${colour}-${paddedNumber}.png' height='50px'/>`
-  } else {
-    return `<img src='img/dice/${id.toLowerCase()}-${paddedNumber}.png' height='50px'/>`
-  }
+  return `<img src='img/dice/${id.toLowerCase()}-${paddedNumber}.png' height='50px'/>`
 }
 
 function getRollResultHtml(rollResult){
@@ -172,18 +217,17 @@ function getBackgroundColor(rollResult){
   }[rollResult];
 }
 
-
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
-  var thisPlayer = response.data.players.find(p => {return p.id == playerId});
+  thisPlayerIndex = response.data.players.findIndex(p => {return p.id == playerId});
+  var thisPlayer = response.data.players[thisPlayerIndex];
 
   // Game status cards
 
   var gameCardPanel = document.getElementById("gameCardPanel");
   var children = Array.from(gameCardPanel.children);
 
-  // for(var i=0; i<gameCardPanel.children.length; i++){
   for (var child of children){
     console.log(`child: ${child}`);
     gameCardPanel.removeChild(child);
@@ -236,7 +280,9 @@ function gameStateCallback(response){
             <span>${player.nickname} ${winCountHtml}</span>
             <span class="float-right">${resultHtml}</span>
           </div>
-          ${diceHtml}
+          <div id="${i}DicePanel">
+            ${diceHtml}
+          </div>
         </div>
       </div>
     `);
@@ -304,54 +350,4 @@ function gameStateCallback(response){
     }
   } 
 
-}
-
-// function sendMessage() {
-//   console.log('sendMessage');
-
-//   var message = {
-//     action: "sendMessage",
-//     data: document.getElementById("textSendMessage").value,
-//   };
-
-//   socket.send(JSON.stringify(message));
-// }
-
-// function sendMessageCallback(response){
-//   console.log("sendMessageCallback()");
-//   addChatLog(`${response.author}: ${response.data}`);
-// }
-
-
-// function addChatLog(message){
-//   var text = `${message}\n` + document.getElementById("textReceivedMessages").textContent
-//   document.getElementById("textReceivedMessages").textContent = text;
-// }
-
-// Server events
-
-function onOpen(event) {
-}
-
-function onClose(event) {
-  if (event.wasClean) {
-    alert(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
-  } else {
-    alert('[close] Connection died');
-  }
-}
-
-function onError(event) {
-  alert(`[error] ${event.message}`);
-}
-
-function onMessage(event) {
-  response = JSON.parse(event.data);
-  console.log(response);
-
-  if (response.action in callback_lookup){
-    callback_lookup[response.action](response);
-  } else {
-    alert(`[message] Data received from server: ${event.data}`);
-  }
 }

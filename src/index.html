@@ -29,7 +29,9 @@
                     <input class="form-control form-control-lg" id="textSetNickname" placeholder="Roib" value="Nick">
                 </div>
                 <div class="div-padded"></div>
-                <button class="btn btn-primary btn-lg btn-block" id="btnSetNickname" type="button" onclick="setNickname()">Let's drink</button>
+                <button class="btn btn-primary btn-lg btn-block" id="btnSetNickname" type="button" disabled="false" onclick="setNickname()">Let's drink</button>
+                
+                <!-- <div class="loader"></div> -->
             </div>
         </div>
     </div>
@@ -65,19 +67,8 @@
                 </div>
             
                 <div class="row" id="gameCardPanel">
-
                 </div>
 
-                <!-- <table class="table table-bordered" id="tableGameDisplay" style="font-size: 20px">
-                    <thead class="thead-dark">
-                        <th scope="col" style="width: 25%">Name</th>
-                        <th scope="col" style="width: 40%">Roll</th>
-                        <th scope="col" style="width: 10%">Total</th>
-                        <th scope="col" style="width: 25%">Result</th>
-                    </thead>
-                    <tbody>
-                    </tbody>
-                </table> -->
             </div>
         </div>
 
@@ -96,6 +87,81 @@
 </body>
 
 <script src="js/index.js"></script>
+
+<!-- Preload images -->
+<div id="preload">
+    <img src='img/dice/d4-01.png' height='50px'/>
+    <img src='img/dice/d4-02.png' height='50px'/>
+    <img src='img/dice/d4-03.png' height='50px'/>
+    <img src='img/dice/d4-04.png' height='50px'/>
+    <img src='img/dice/d6-01.png' height='50px'/>
+    <img src='img/dice/d6-02.png' height='50px'/>
+    <img src='img/dice/d6-03.png' height='50px'/>
+    <img src='img/dice/d6-04.png' height='50px'/>
+    <img src='img/dice/d6-05.png' height='50px'/>
+    <img src='img/dice/d6-06.png' height='50px'/>
+    <img src='img/dice/d8-01.png' height='50px'/>
+    <img src='img/dice/d8-02.png' height='50px'/>
+    <img src='img/dice/d8-03.png' height='50px'/>
+    <img src='img/dice/d8-04.png' height='50px'/>
+    <img src='img/dice/d8-05.png' height='50px'/>
+    <img src='img/dice/d8-06.png' height='50px'/>
+    <img src='img/dice/d8-07.png' height='50px'/>
+    <img src='img/dice/d8-08.png' height='50px'/>
+    <img src='img/dice/d10-00.png' height='50px'/>
+    <img src='img/dice/d10-01.png' height='50px'/>
+    <img src='img/dice/d10-02.png' height='50px'/>
+    <img src='img/dice/d10-03.png' height='50px'/>
+    <img src='img/dice/d10-04.png' height='50px'/>
+    <img src='img/dice/d10-05.png' height='50px'/>
+    <img src='img/dice/d10-06.png' height='50px'/>
+    <img src='img/dice/d10-07.png' height='50px'/>
+    <img src='img/dice/d10-08.png' height='50px'/>
+    <img src='img/dice/d10-09.png' height='50px'/>
+    <img src='img/dice/d10percentile-00.png' height='50px'/>
+    <img src='img/dice/d10percentile-10.png' height='50px'/>
+    <img src='img/dice/d10percentile-20.png' height='50px'/>
+    <img src='img/dice/d10percentile-30.png' height='50px'/>
+    <img src='img/dice/d10percentile-40.png' height='50px'/>
+    <img src='img/dice/d10percentile-50.png' height='50px'/>
+    <img src='img/dice/d10percentile-60.png' height='50px'/>
+    <img src='img/dice/d10percentile-70.png' height='50px'/>
+    <img src='img/dice/d10percentile-80.png' height='50px'/>
+    <img src='img/dice/d10percentile-90.png' height='50px'/>
+    <img src='img/dice/d12-01.png' height='50px'/>
+    <img src='img/dice/d12-02.png' height='50px'/>
+    <img src='img/dice/d12-03.png' height='50px'/>
+    <img src='img/dice/d12-04.png' height='50px'/>
+    <img src='img/dice/d12-05.png' height='50px'/>
+    <img src='img/dice/d12-06.png' height='50px'/>
+    <img src='img/dice/d12-07.png' height='50px'/>
+    <img src='img/dice/d12-08.png' height='50px'/>
+    <img src='img/dice/d12-09.png' height='50px'/>
+    <img src='img/dice/d12-10.png' height='50px'/>
+    <img src='img/dice/d12-11.png' height='50px'/>
+    <img src='img/dice/d12-12.png' height='50px'/>
+    <img src='img/dice/d20-01.png' height='50px'/>
+    <img src='img/dice/d20-02.png' height='50px'/>
+    <img src='img/dice/d20-03.png' height='50px'/>
+    <img src='img/dice/d20-04.png' height='50px'/>
+    <img src='img/dice/d20-05.png' height='50px'/>
+    <img src='img/dice/d20-06.png' height='50px'/>
+    <img src='img/dice/d20-07.png' height='50px'/>
+    <img src='img/dice/d20-08.png' height='50px'/>
+    <img src='img/dice/d20-09.png' height='50px'/>
+    <img src='img/dice/d20-10.png' height='50px'/>
+    <img src='img/dice/d20-11.png' height='50px'/>
+    <img src='img/dice/d20-12.png' height='50px'/>
+    <img src='img/dice/d20-13.png' height='50px'/>
+    <img src='img/dice/d20-14.png' height='50px'/>
+    <img src='img/dice/d20-15.png' height='50px'/>
+    <img src='img/dice/d20-16.png' height='50px'/>
+    <img src='img/dice/d20-17.png' height='50px'/>
+    <img src='img/dice/d20-18.png' height='50px'/>
+    <img src='img/dice/d20-19.png' height='50px'/>
+    <img src='img/dice/d20-20.png' height='50px'/>
+    <img src='img/dice/dice-logo.png' height='50px'/>
+</div>
 
 <!-- Needed for bootstrap -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>

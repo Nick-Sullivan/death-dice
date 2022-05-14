@@ -6,66 +6,58 @@ from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 from game_logic import RollResult, calculate_turn_results, _should_roll_another_dice
 
 
-@pytest.mark.parametrize('initial_values, extra_values, expected', [
+@pytest.mark.parametrize('roll_values, expected', [
   pytest.param(
-    [1, 2],
-    [],
+    [[1, 2]],
     False,
     id='no duplicates',
   ),
   pytest.param(
-    [6, 6],
-    [],
+    [[6, 6]],
     True,
     id='duplicates on initial',
   ),
   pytest.param(
-    [6, 2, 6],
-    [],
+    [[6, 2, 6]],
     True,
     id='duplicates on initial w/ death dice',
   ),
   pytest.param(
-    [6, 6, 6],
-    [],
+    [[6, 6, 6]],
     True,
     id='triple on initial',
   ),
   pytest.param(
-    [1, 1, 1],
-    [],
+    [[1, 1, 1]],
     False,
     id='triple on initial hits cap',
   ),
   pytest.param(
-    [6, 6],
-    [6],
+    [[6, 6], [6]],
     True,
     id='extra throw match',
   ),
   pytest.param(
-    [6, 2, 6],
-    [6],
+    [[6, 2, 6], [6]],
     True,
     id='extra throw match w/ death dice',
   ),
   pytest.param(
-    [6, 2, 6],
-    [2],
+    [[6, 2, 6], [2]],
     False,
     id='extra throw no match w/ death dice',
   ),
   pytest.param(
-    [6, 2, 6],
-    [6, 6, 6, 6],
+    [[6, 2, 6], [6], [6], [6], [6]],
     False,
     id='extra throw hits cap',
   ),
 ])
-def test__should_roll_another_dice(initial_values, extra_values, expected):
-  initial_throw = Roll([D6(v) for v in initial_values])
-  extra_throws = Roll([D6(v) for v in extra_values])
-  result = _should_roll_another_dice(initial_throw, extra_throws)
+def test__should_roll_another_dice(roll_values, expected):
+  rolls = []
+  for roll_value in roll_values:
+    rolls.append(Roll([D6(v) for v in roll_value]))
+  result = _should_roll_another_dice(rolls)
   assert expected == result
 
 @pytest.mark.parametrize('roll_values, expected', [
@@ -94,7 +86,7 @@ def test__should_roll_another_dice(initial_values, extra_values, expected):
     {'k': RollResult.SHOWER},
     id='solo shower',
   ),
-    pytest.param(
+  pytest.param(
     {'k': [3, 3, 3, 3, 3, 3]},
     {'k': RollResult.POOL},
     id='solo pool',

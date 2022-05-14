@@ -1,33 +1,39 @@
 
+import itertools
 from collections import Counter
 from enum import Enum
+
 from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 
 
 class RollResult(Enum):
   NONE = ''
+  DUAL_WIELD = 'DUAL_WIELD'
+  HEAD_ON_TABLE = 'HEAD_ON_TABLE'
   FINISH_DRINK = 'FINISH_DRINK'
   POOL = 'POOL'
   SIP_DRINK = 'SIP_DRINK'
   SHOWER = 'SHOWER'
   TIE = 'TIE'
   WINNER = 'WINNER'
+  WISH_PURCHASE = 'WISH_PURCHASE'
 
 
-def roll_dice(win_counter) -> Roll:
-  initial = Roll([D6(), D6()])
+def initial_roll(win_counter):
+  roll = Roll([D6(), D6()])
 
-  if _is_death_dice(win_counter):
-    initial.append(_get_death_dice(win_counter))
+  if _should_roll_death_dice(win_counter):
+    roll.append(_get_death_dice(win_counter))
 
-  extra = Roll()
-  while _should_roll_another_dice(initial, extra):
-    extra.append(D6())
-
-  return (initial + extra).to_json()
+  return roll.to_json(), not _should_roll_another_dice([roll])
 
 
-def _is_death_dice(win_counter):
+def extra_roll(prev_rolls):
+  roll = Roll([D6()])
+  return roll.to_json(), not _should_roll_another_dice(prev_rolls + [roll])
+
+
+def _should_roll_death_dice(win_counter):
   return win_counter >= 3
 
 
@@ -50,13 +56,13 @@ def _get_death_dice(win_counter):
   raise NotImplementedError()
 
 
-def _should_roll_another_dice(initial_roll, extra_roll):
-  duplicate_value, duplicate_counter = _get_duplicates(initial_roll.values)
+def _should_roll_another_dice(rolls):
+  duplicate_value, duplicate_counter = _get_duplicates(rolls[0].values)
 
   if duplicate_counter < 2:
     return False
 
-  combined = [duplicate_value] * duplicate_counter + extra_roll.values
+  combined = [duplicate_value] * duplicate_counter + list(itertools.chain.from_iterable([r.values for r in rolls[1:]]))
   return (
     _are_all_values_the_same(combined)
     and len(combined) < _max_duplicates(combined[0])
@@ -74,36 +80,49 @@ def _are_all_values_the_same(values):
 def _max_duplicates(value):
   return {
     1: 3,
-    2: 6,
+    2: 4,
     3: 3,
-    4: 6,
-    5: 6,
+    4: 5,
+    5: 5,
     6: 6,
   }[value]
 
 
-def calculate_turn_results(rolls_json, mr_eleven=None):
+def calculate_turn_results(roll_obj_dict, mr_eleven=None):
   print('game_logic.calculate_turn_results()')
-  print(f'rolls_json: {rolls_json}')
+  print(f'roll_objs: {roll_obj_dict}')
 
-  rolls = {k: Roll.from_json(v).values for k, v in rolls_json.items()}
+  # rolls = {k: Roll.from_json(v).values for k, v in rolls_json.items()}
+  rolls = {}
+  for k, roll_objs in roll_obj_dict.items():
+    rolls[k] = list(itertools.chain.from_iterable([r.values for r in roll_objs]))
+  print(f'rolls: {rolls}')
 
   results = {}
   
   # Instant lose
   for k, values in rolls.items():
 
-    if is_roll_pool(values):
-      results[k] = RollResult.POOL
-
-    elif is_roll_shower(values):
-      results[k] = RollResult.SHOWER
-    
-    elif is_roll_snake_eyes_fail(values):
+    if is_roll_snake_eyes_fail(values):
       results[k] = RollResult.FINISH_DRINK
 
     elif is_roll_snake_eyes_safe(values):
       results[k] = RollResult.SIP_DRINK
+
+    elif is_roll_dual_wield(values):
+      results[k] = RollResult.DUAL_WIELD
+
+    elif is_roll_shower(values):
+      results[k] = RollResult.SHOWER
+    
+    elif is_roll_head_on_table(values):
+      results[k] = RollResult.HEAD_ON_TABLE
+
+    elif is_roll_wish_purchase(values):
+      results[k] = RollResult.HEAD_ON_TABLE
+    
+    elif is_roll_pool(values):
+      results[k] = RollResult.POOL
 
 
   # In the running
@@ -143,16 +162,6 @@ def calculate_turn_results(rolls_json, mr_eleven=None):
   return results, mr_eleven
 
 
-def is_roll_pool(values):
-  counter = Counter(values)
-  return counter.get(3, 0) >= 6
-
-
-def is_roll_shower(values):
-  counter = Counter(values)
-  return counter.get(3, 0) >= 3
-
-
 def is_roll_snake_eyes_fail(values):
   counter = Counter(values[:-1])
   if counter.get(1, 0) >= 2:
@@ -167,5 +176,34 @@ def is_roll_snake_eyes_safe(values):
   return False
 
 
+def is_roll_dual_wield(values):
+  counter = Counter(values)
+  return counter.get(2, 0) >= 4
+
+
+def is_roll_pool(values):
+  counter = Counter(values)
+  return counter.get(3, 0) >= 6
+
+
+def is_roll_head_on_table(values):
+  counter = Counter(values)
+  return counter.get(4, 0) >= 5
+
+
+def is_roll_wish_purchase(values):
+  counter = Counter(values)
+  return counter.get(5, 0) >= 5
+  
+
+def is_roll_shower(values):
+  counter = Counter(values)
+  return counter.get(3, 0) >= 3
+
+
 def get_values(roll_json):
   return Roll.from_json(roll_json).values
+
+
+def get_roll(roll_json):
+  return Roll.from_json(roll_json)

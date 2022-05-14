@@ -141,3 +141,18 @@ class BaseDao:
         }
       }
     })
+  
+  def version_check(self, connection, id, value):
+    connection.write({
+      'ConditionCheck': {
+        'TableName': self.table_name,
+        'Key': {'id': {'S': id}},
+        'ConditionExpression': f'#0 = :value',
+        'ExpressionAttributeNames': {
+          '#0': 'version'
+        },
+        'ExpressionAttributeValues': {
+          ':value': {'N': str(value)}
+        }
+      }
+    })

@@ -18,9 +18,9 @@ from dao.turn_dao import TurnDao, TurnItem
 @dataclass
 class GameState:
   game : GameItem
-  players : Dict[str, PlayerItem]
-  turns : Dict[str, TurnItem]
-  rolls: Dict[str, RollItem]
+  players : List[PlayerItem]
+  turns : List[TurnItem]
+  rolls: List[RollItem]
 
 
 class GameController:
@@ -48,27 +48,18 @@ class GameController:
       game_id = player.game_id
 
       if not game_id:
-        state = GameState(
-          game=None,
-          players={player.id: player},
-          turns={},
-          rolls={},
-        )
+        state = GameState(game=None, players=[player], turns=[], rolls=[])
         print(f'state: {state}')
         return state
 
     with self.db_reader as conn:
-      game = self.game_dao.get(conn, game_id)
-      players = self.player_dao.get_players_with_game_id(conn, game_id)
-      turns = self.turn_dao.get_turns_with_game_id(conn, game_id)
-      rolls = self.roll_dao.get_rolls_with_game_id(conn, game_id)
+      state = GameState(
+        game=self.game_dao.get(conn, game_id),
+        players=self.player_dao.get_players_with_game_id(conn, game_id),
+        turns=self.turn_dao.get_turns_with_game_id(conn, game_id),
+        rolls=self.roll_dao.get_rolls_with_game_id(conn, game_id)
+      )
 
-    state = GameState(
-      game=game,
-      players={p.id: p for p in players},
-      turns={t.id: t for t in turns},
-      rolls={r.id: r for r in rolls},
-    )
     print(f'state: {state}')
     return state
 
@@ -77,49 +68,66 @@ class GameController:
     print(f'new_state: {new_state}')
 
     with self.db_writer as conn:
+      self._save_state_game(conn, old_state.game, new_state.game)
+      self._save_state_players(conn, old_state.players, new_state.players)
+      self._save_state_turns(conn, old_state.turns, new_state.turns)
+      self._save_state_rolls(conn, old_state.rolls, new_state.rolls)
 
-      if old_state.game is None and new_state.game is None:
-        pass
-      elif old_state.game is None:
-        self.game_dao.create(conn, new_state.game)
-      elif new_state.game is None:
-        self.game_dao.delete(conn, old_state.game.id)
-      elif old_state.game != new_state.game:
-        self.game_dao.set(conn, new_state.game)
+  def _save_state_game(self, conn, old_game, new_game):
+    if old_game is None and new_game is None:
+      return
+    elif old_game is None:
+      self.game_dao.create(conn, new_game)
+    elif new_game is None:
+      self.game_dao.delete(conn, old_game.id)
+    elif old_game != new_game:
+      self.game_dao.set(conn, new_game)
+    
+  def _save_state_players(self, conn, olds, news):
+    assert all(isinstance(x, PlayerItem) for x in olds + news)
 
-      all_player_ids = set(old_state.players) | set(new_state.players)
-      players_combined = [(old_state.players.get(i), new_state.players.get(i)) for i in all_player_ids]
-      print(f'players_combined: {players_combined}')
-      for old, new in players_combined:
-        if old is None:
-          # Note - joining a game does not require creating a new player 
-          pass
-        if new is None:
-          self.player_dao.delete(conn, old.id)
-        elif new != old:
-          self.player_dao.set(conn, new)
+    all_ids = {x.id for x in olds + news}
+    for id in all_ids:
+      old = next((x for x in olds if x.id == id), None)
+      new = next((x for x in news if x.id == id), None)
 
-      all_turn_ids = set(old_state.turns) | set(new_state.turns)
-      turns_combined = [(old_state.turns.get(i), new_state.turns.get(i)) for i in all_turn_ids]
-      print(f'turns_combined: {turns_combined}')
-      for old, new in turns_combined:
-        if old is None:
-          self.turn_dao.create(conn, new)
-        elif new is None:
-          self.turn_dao.delete(conn, old.id)
-        elif new != old:
-          self.turn_dao.set(conn, new)
+      # a new player is created before being part of a game state - so we don't create it here
+      if new is None:
+        self.player_dao.delete(conn, old.id)
+      elif new != old:
+        self.player_dao.set(conn, new)
 
-      all_roll_ids = set(old_state.rolls) | set(new_state.rolls)
-      rolls_combined = [(old_state.rolls.get(i), new_state.rolls.get(i)) for i in all_roll_ids]
-      print(f'rolls_combined: {rolls_combined}')
-      for old, new in rolls_combined:
-        if old is None:
-          self.roll_dao.create(conn, new)
-        elif new is None:
-          self.roll_dao.delete(conn, old.id)
-        elif new != old:
-          self.roll_dao.set(conn, new)
+  def _save_state_turns(self, conn, olds, news):
+    assert all(isinstance(x, TurnItem) for x in olds + news)
+
+    all_ids = {x.id for x in olds + news}
+    for id in all_ids:
+      old = next((x for x in olds if x.id == id), None)
+      new = next((x for x in news if x.id == id), None)
+
+      if old is None:
+        self.turn_dao.create(conn, new)
+      elif new is None:
+        self.turn_dao.delete(conn, old.id)
+      elif new != old:
+        self.turn_dao.set(conn, new)
+
+  def _save_state_rolls(self, conn, olds, news):
+    assert all(isinstance(x, RollItem) for x in olds + news)
+
+    all_ids = {x.id for x in olds + news}
+    for id in all_ids:
+      old = next((x for x in olds if x.id == id), None)
+      new = next((x for x in news if x.id == id), None)
+
+      if old is None:
+        self.roll_dao.create(conn, new)
+      elif new is None:
+        self.roll_dao.delete(conn, old.id)
+      elif new != old:
+        self.roll_dao.set(conn, new)
+
+  # Player
 
   def create_player(self, player_id):
     """Create a new player object for a new browser session"""
@@ -140,16 +148,15 @@ class GameController:
       return
 
     if state.game.num_players == 1:
-      self.save_state(old_state, GameState(game=None, players={}, turns={}, rolls={}))
+      self.save_state(old_state, GameState(game=None, players=[], turns=[], rolls=[]))
       return
     
     state.game.version += 1
     state.game.num_players -= 1
-    state.players.pop(player_id)
-    turns_to_remove = [t.id for t in state.turns.values() if t.player_id == player_id]
-    rolls_to_remove = [r.id for r in state.rolls.values() if r.turn_id in turns_to_remove]
-    _ = [state.turns.pop(t_id) for t_id in turns_to_remove]
-    _ = [state.rolls.pop(r_id) for r_id in rolls_to_remove]
+    state.players = [p for p in state.players if p.id != player_id]
+    state.turns = [t for t in state.turns if t.player_id != player_id]
+    remaining_turn_ids = [t.id for t in state.turns]
+    state.rolls = [r for r in state.rolls if r.turn_id in remaining_turn_ids]
 
     self.save_state(old_state, state)
     self.send_game_state_update(state)
@@ -183,8 +190,7 @@ class GameController:
   def _is_valid_nickname(self, nickname):
     return (
       2 <= len(nickname) <= 20
-      and nickname.upper != 'MR ELEVEN'
-    )
+      and nickname.upper != 'MR ELEVEN')
 
   # Games
 
@@ -198,10 +204,13 @@ class GameController:
 
     game_id = self.game_dao.create_unique_id(None)
     state.game = GameItem(id=game_id, num_players=1, mr_eleven='', round_finished=True, version=0)
+
     turn_item = TurnItem(id=self.create_unique_id(), game_id=game_id, player_id=player_id, finished=False, outcome='')
-    state.turns[turn_item.id] = turn_item
-    state.players[player_id].game_id = game_id
-    state.players[player_id].win_counter = 0
+    state.turns.append(turn_item)
+
+    player = next(p for p in state.players if p.id == player_id)
+    player.game_id = game_id
+    player.win_counter = 0
 
     self.save_state(old_state, state)
 
@@ -232,13 +241,15 @@ class GameController:
       with self.db_reader as conn:
         player_item = self.player_dao.get(conn, player_id)
 
-      turn_item = TurnItem(id=self.create_unique_id(), game_id=game_id, player_id=player_id, finished=False, outcome='')
       state.game.num_players += 1
       state.game.version += 1
+
       player_item.game_id = game_id
       player_item.win_counter = 0
-      state.players[player_id] = player_item
-      state.turns[turn_item.id] = turn_item
+      state.players.append(player_item)
+
+      turn_item = TurnItem(id=self.create_unique_id(), game_id=game_id, player_id=player_id, finished=False, outcome='')
+      state.turns.append(turn_item)
 
       self.save_state(old_state, state)
       self.client_notifier.send_notification([player_id], {
@@ -269,11 +280,11 @@ class GameController:
     state.game.version += 1
     state.game.round_finished = False
 
-    for turn in state.turns.values():
+    for turn in state.turns:
       turn.outcome = game_logic.RollResult.NONE.value
       turn.finished = False
 
-    state.rolls = {}
+    state.rolls = []
 
     self.save_state(old_state, state)
     self.send_game_state_update(state)
@@ -288,25 +299,38 @@ class GameController:
     state = self.get_state(player_id=player_id)
     old_state = deepcopy(state)
 
-    player_turn = [t for t in state.turns.values() if t.player_id == player_id][0]  # only one turn per player right now
-    player_turn.finished = True
-    roll = game_logic.roll_dice(state.players[player_id].win_counter)
-    roll_item = RollItem(id=self.create_unique_id(), turn_id=player_turn.id, game_id=state.game.id, dice=roll)
-    state.rolls[roll_item.id] = roll_item
+    player = next(p for p in state.players if p.id == player_id)
+    player_turn = [t for t in state.turns if t.player_id == player_id][0]  # only one turn per player right now
+    player_rolls = [r for r in state.rolls if r.turn_id == player_turn.id]
+
+    if not player_rolls:
+      roll, finished = game_logic.initial_roll(player.win_counter)
+    else:
+      roll, finished = game_logic.extra_roll([game_logic.get_roll(r.dice) for r in player_rolls])
+
+    player_turn.finished = finished
+
     state.game.version += 1
 
-    is_last_roll = all([t.finished for t in state.turns.values()])
+    state.rolls.append(
+      RollItem(id=self.create_unique_id(), turn_id=player_turn.id, game_id=state.game.id, dice=roll, order=len(player_rolls))
+    )
+
+    is_last_roll = all([t.finished for t in state.turns])
     if not is_last_roll:
       self.save_state(old_state, state)
       self.send_game_state_update(state)
       return
 
     # Calculate turn results
-    turn_player_map = {t.id: t.player_id for t in state.turns.values()}
-    player_turn_map = {t.player_id: t for t in state.turns.values()}
-    print(f'turn_player_map: {turn_player_map}')
 
-    player_rolls = {turn_player_map[r.turn_id]: r.dice for r in state.rolls.values()}
+    turn_rolls = {t.id: [] for t in state.turns}
+    for r in state.rolls:
+      turn_rolls[r.turn_id].append(r)
+
+    player_rolls = {t.player_id: turn_rolls[t.id] for t in state.turns} # assumes 1 turn per player
+    player_rolls = {p_id: [game_logic.get_roll(r.dice) for r in rolls] for p_id, rolls in player_rolls.items()}
+
     print(f'player_rolls: {player_rolls}')
 
     results, mr_eleven = game_logic.calculate_turn_results(player_rolls, state.game.mr_eleven)
@@ -314,14 +338,15 @@ class GameController:
 
     state.game.mr_eleven = mr_eleven if mr_eleven is not None else ''
     state.game.round_finished = True
-    for p in state.players.values():
-      turn = player_turn_map[p.id]
-      turn.outcome = results[p.id].value
 
-      if results[p.id] == game_logic.RollResult.WINNER:
-        p.win_counter += 1
+    for turn in state.turns:
+      player = next(p for p in state.players if p.id == turn.player_id)
+      turn.outcome = results[player.id].value
+
+      if results[player.id] == game_logic.RollResult.WINNER:
+        player.win_counter += 1
       else:
-        p.win_counter = 0
+        player.win_counter = 0
 
     self.save_state(old_state, state)
     self.send_game_state_update(state)
@@ -331,38 +356,66 @@ class GameController:
   def send_game_state_update(self, state):
     print('send_game_state_update()')
 
-    # Player info
-    player_states = {
-      p.id: {
-        'id': p.id,
-        'nickname': 'Mr Eleven' if p.id == state.game.mr_eleven else p.nickname,
-        'turnFinished': False,
-        'winCount': p.win_counter
+    # Player and turn info
+    player_output = []
+    for turn in state.turns:
+      player = next(p for p in state.players if p.id == turn.player_id)
+      entry = {
+        'id': player.id,
+        'nickname': 'Mr Eleven' if player.id == state.game.mr_eleven else player.nickname,
+        'turnFinished': turn.finished,
+        'winCount': player.win_counter
       }
-      for p in state.players.values()
-    }
-
-    # Turn info
-    for turn in state.turns.values():
-      player_id = turn.player_id
-      player_states[player_id]['turnFinished'] = turn.finished
       if state.game.round_finished:
-        player_states[player_id]['rollResult'] = turn.outcome #if turn.outcome.get(TurnAttribute.OUTCOME.key, 'SIP_DRINK') # workaround for players that join end of round
+        entry['rollResult'] = turn.outcome
 
-      matching_rolls = [r for r in state.rolls.values() if r.turn_id == turn.id]
-      if matching_rolls:
-        roll = matching_rolls[0]
-        values = game_logic.get_values(roll.dice)
-        player_states[player_id]['rollTotal'] = sum(values)
-        player_states[player_id]['diceValue'] = roll.dice
+      # Combine dice rolls into one
+      rolls = [r for r in state.rolls if r.turn_id == turn.id]
+      if rolls:
+        dice_rolls = [game_logic.get_roll(r.dice) for r in rolls]
+
+        dice_roll = dice_rolls[0]
+        for dr in dice_rolls[1:]:
+          dice_roll += dr
+
+        entry['rollTotal'] = sum(dice_roll.values)
+        entry['diceValue'] = dice_roll.to_json()
+
+      player_output.append(entry)
+
+
+    # player_states = {
+    #   p.id: {
+    #     'id': p.id,
+    #     'nickname': 'Mr Eleven' if p.id == state.game.mr_eleven else p.nickname,
+    #     'turnFinished': False,
+    #     'winCount': p.win_counter
+    #   }
+    #   for p in state.players
+    # }
+
+    # # Turn info
+    # for turn in state.turns:
+    #   player_id = turn.player_id
+    #   player_states[player_id]['turnFinished'] = turn.finished
+    #   if state.game.round_finished:
+    #     player_states[player_id]['rollResult'] = turn.outcome #if turn.outcome.get(TurnAttribute.OUTCOME.key, 'SIP_DRINK') # workaround for players that join end of round
+
+    #   matching_rolls = [r for r in state.rolls if r.turn_id == turn.id]
+    #   if matching_rolls:
+    #     roll = matching_rolls[0]
+    #     values = game_logic.get_values(roll.dice)
+    #     player_states[player_id]['rollTotal'] = sum(values)
+    #     player_states[player_id]['diceValue'] = roll.dice
       
     # Send it
     message = {
       'action': 'gameState',
       'data': {
-        'players': list(player_states.values()),
+        # 'players': list(player_states.values()),
+        'players': player_output,
         'round': {'complete': state.game.round_finished},
       },
     }
     print(f'message: {message}')
-    self.client_notifier.send_notification(list(state.players), message)
+    self.client_notifier.send_notification([p.id for p in state.players], message)

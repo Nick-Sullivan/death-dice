@@ -12,7 +12,6 @@
     <title>Death Dice</title>
 
     <link rel="stylesheet" type="text/css" href="css/styles.css" />
-
 </head>
 
 <body>
@@ -26,12 +25,10 @@
                 <div class="div-padded"></div>
                 <div class="input-group-prepend">
                     <span class="input-group-text">You can call me...</span>
-                    <input class="form-control form-control-lg" id="textSetNickname" placeholder="Roib" value="Nick">
+                    <input class="form-control form-control-lg px-4 mx-1" id="textSetNickname" placeholder="Roib" value="Nick">
                 </div>
                 <div class="div-padded"></div>
                 <button class="btn btn-primary btn-lg btn-block" id="btnSetNickname" type="button" disabled="false" onclick="setNickname()">Let's drink</button>
-                
-                <!-- <div class="loader"></div> -->
             </div>
         </div>
     </div>
@@ -47,7 +44,7 @@
                 <label class="label-big" for="textSetNickname">Join an existing game</label>
                 <div class="input-group-prepend">
                     <span class="input-group-text">Game code</span>
-                    <input class="form-control form-control-lg" id="textJoinGame" placeholder="ABCD">
+                    <input class="form-control form-control-lg px-4 mx-1" id="textJoinGame" placeholder="ABCD">
                 </div>
                 <button class="btn btn-primary btn-lg btn-block" id="btnJoinGame" type="button" onclick="joinGame()">Join</button>
             </div>
@@ -60,11 +57,11 @@
         <!-- Showing roll results -->
         <div class="row h-75 scrollable">
             <div class="col">
-
-                <div class="input-group-prepend">
+                <p class="text-center game-code" id="textGameId">...</p>
+                <!-- <div class="input-group-prepend">
                     <label for="textGameId">Game Code:&nbsp</label>
-                    <p class="text-left" id="textGameId">...</p>
-                </div>
+                    <p class="text-center game-code" id="textGameId">...</p>
+                </div> -->
             
                 <div class="row" id="gameCardPanel">
                 </div>
@@ -79,7 +76,10 @@
                     <button class="btn btn-primary btn-lg w-75" id="btnRollDice" type="button" onclick="rollDice()" disabled>
                         <img src="img/dice/dice-logo.png" height="100px"/>
                     </button>
-                    <button class="btn btn-primary btn-lg w-25" id="btnNewRound" type="button" onclick="newRound()" disabled>New round</button>
+                    <button class="btn btn-primary btn-lg w-25" id="btnNewRound" type="button" onclick="newRound()" disabled>
+                        <img src="img/dice/can-logo.png" height="100px"/>
+                        <!-- New round -->
+                    </button>
                 </div>
             </div>
         </div>

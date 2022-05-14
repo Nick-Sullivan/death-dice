@@ -184,36 +184,47 @@ function rollDice() {
   var newItem = document.createElement('bleh');
   newItem.innerHTML = `<div class="loader"></div>`;
 
-  var itemToReplace = document.getElementById(`${thisPlayerIndex}DicePanel`);
-  itemToReplace.parentNode.replaceChild(newItem, itemToReplace);
+  var dicePanel = document.getElementById(`${thisPlayerIndex}DicePanel`);
+  dicePanel.parentNode.appendChild(newItem);
 }
 
-function getDiceHtml(id, number, colour){
+function getDiceHtml(id, number){
   var paddedNumber = String(number).padStart(2, '0');
   return `<img src='img/dice/${id.toLowerCase()}-${paddedNumber}.png' height='50px'/>`
 }
 
 function getRollResultHtml(rollResult){
   return {
+    "DUAL_WIELD": "Dual wield",
+    "HEAD_ON_TABLE": "Head on the table",
     "FINISH_DRINK": "Finish your drink",
     "POOL": "Go jump in a pool",
     "SIP_DRINK": "Drink",
     "SHOWER": "Shower",
     "TIE": "Tie, everyone drinks",
     "WINNER": "Winner",
+    "WISH_PURCHASE": "Buy from wish.com",
     "": "",
   }[rollResult];
 }
 
 function getBackgroundColor(rollResult){
   return {
-    "FINISH_DRINK": "crimson",
-    "POOL": "darkblue",
-    "SIP_DRINK": "tomato",
+    "WINNER": "#f6d5c6",
+
+    "FINISH_DRINK": "#b7212a",
+
+    "SIP_DRINK": "#c9686f",
+    "TIE": "#c9686f",
+
+    "POOL": "royalblue",
     "SHOWER": "royalblue",
-    "TIE": "tomato",
-    "WINNER": "lightgreen",
-    "": "lightgrey",
+    
+    "DUAL_WIELD": "#fffcb3",
+    "HEAD_ON_TABLE": "#fffcb3",
+    "WISH_PURCHASE": "#fffcb3",
+    
+    "": "#c8c9ce",
   }[rollResult];
 }
 
@@ -239,11 +250,9 @@ function gameStateCallback(response){
     var diceHtml = "";
     if ('diceValue' in player){
       var diceValues = JSON.parse(player.diceValue);
-      // var colour = player == thisPlayer ? "red" : "white";
-      var colour = "white";
       diceHtml = "";
       for (var dice of diceValues){
-        diceHtml += getDiceHtml(dice.id, dice.value, colour);
+        diceHtml += getDiceHtml(dice.id, dice.value);
       }
     }
 
@@ -251,37 +260,34 @@ function gameStateCallback(response){
     if ('rollTotal' in player){
       rollTotalHtml = `(${player.rollTotal})`;
     }
-    console.log(`rollTotalHtml: ${rollTotalHtml}`);
 
     var winCountHtml = "";
     if ('winCount' in player && player.winCount > 0){
       winCountHtml = `(${player.winCount})`;
     }
-    console.log(`winCountHtml: ${winCountHtml}`);
     
-    var backgroundColor = "lightgrey";
+    var backgroundColor = getBackgroundColor("");
     if ('rollResult' in player){
       backgroundColor = getBackgroundColor(player.rollResult);
     }
-    console.log(`backgroundColor: ${backgroundColor}`);
     
     var resultHtml = "";
     if ('rollResult' in player){
       resultHtml = getRollResultHtml(player.rollResult);
     }
 
-
-    // var myCol = $('<div class="col-sm-6 col-md-4 col-lg-3 col-xl-2 pb-4"></div>');
-    var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6"></div>');
+    var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6 pb-1"></div>');
     var myPanel = $(`
-      <div class="card border-info d-flex align-items-stretch" id="${i}Panel" style="background-color:${backgroundColor}">
-        <div class="card-body px-3 py-1">
+      <div class="card rounded d-flex align-items-stretch" id="${i}Panel" style="background-color:${backgroundColor}">
+        <div class="card-body px-3 py-2">
           <div class="card-title h4">
-            <span>${player.nickname} ${winCountHtml}</span>
+            <span class="font-weight-bold">${player.nickname} ${winCountHtml}</span>
             <span class="float-right">${resultHtml}</span>
           </div>
-          <div id="${i}DicePanel">
-            ${diceHtml}
+          <div class="d-flex flex-row">
+            <div id="${i}DicePanel">
+              ${diceHtml}
+            </div>
           </div>
         </div>
       </div>
@@ -290,48 +296,6 @@ function gameStateCallback(response){
     myCol.appendTo('#gameCardPanel');
     i++;
   }
-
-  // Game table
-  // var table = document.getElementById('tableGameDisplay');
-
-  // var rowCount = table.rows.length;
-  // while(--rowCount){
-  //   table.deleteRow(rowCount);
-  // } 
-
-  // for (var player of response.data.players){
-  //   var row = table.insertRow();
-  //   row.insertCell(0).innerHTML = player.nickname;
-    
-  //   if ('diceValue' in player){
-  //     var diceValues = JSON.parse(player.diceValue);
-  //     var colour = player == thisPlayer ? "red" : "white";
-  //     var innerHtml = "";
-  //     for (var dice of diceValues){
-  //       innerHtml += getDiceHtml(dice.id, dice.value, colour);
-  //     }
-  //     row.insertCell(1).innerHTML = innerHtml;
-
-  //   } else {
-  //     row.insertCell(1).innerHTML = "-";
-  //   }
-
-  //   if ('rollTotal' in player){
-  //     row.insertCell(2).innerHTML = player.rollTotal;
-  //   } else {
-  //     row.insertCell(2).innerHTML = "-";
-  //   }
-
-  //   if ('rollResult' in player){
-  //     row.insertCell(3).innerHTML = getRollResultHtml(player.rollResult);
-  //   } else {
-  //     row.insertCell(3).innerHTML = "-";
-  //   }
-
-  //   if (player == thisPlayer){
-  //     row.style.fontWeight = 'bold';
-  //   }
-  // }
 
   // New round button
   if (response.data.round.complete){
@@ -349,5 +313,4 @@ function gameStateCallback(response){
       document.getElementById("btnRollDice").disabled = false;
     }
   } 
-
 }

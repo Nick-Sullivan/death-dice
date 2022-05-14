@@ -8,6 +8,7 @@ class RollItem(DynamodbItem):
   turn_id: str = None
   game_id: str = None
   dice: str = None
+  order: int = None
 
 
 class RollDao(BaseDao):
@@ -23,7 +24,7 @@ class RollDao(BaseDao):
       'KeyConditionExpression': f'turn_id = :id',
       'ExpressionAttributeValues': {':id': {'S': turn_id}},
     })
-    return [self.item_class.from_query(i) for i in response['Items']]
+    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.order)
 
   def get_rolls_with_game_id(self, connection, game_id):
     response = connection.query({
@@ -32,4 +33,4 @@ class RollDao(BaseDao):
       'KeyConditionExpression': f'game_id = :id',
       'ExpressionAttributeValues': {':id': {'S': game_id}},
     })
-    return [self.item_class.from_query(i) for i in response['Items']]
+    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.order)

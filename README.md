@@ -48,4 +48,28 @@ TODO
 
 # Consistency 
 
-TODO FILL THIS IN
+Making sure everything is consistent.
+
+# Resource locking
+This uses optimistic locking.
+- Optimistic: Give items a version. When writing, add a condition that the version must not have changed since you read it. Faster when resources are not in contention very often.
+- Pessimistic: Give items a lock. Before writing, request the lock. When finished, release the lock. Faster when resources are frequently in contention.
+
+We use optimistic to avoid needing to implement a time-to-live for the lock.
+
+It's not sufficient for item-level locking, we need to prevent the game state becoming inconsistent. For example, in our tables of:
+
+`Game` - `Player` - `Turn` - `Roll`
+
+If two players roll at the same time, they'll be editing unique items in the `Roll` table. But the state message they report to the frontend will be different:
+- Process A reports "Player A has rolled, Player B has not yet rolled"
+- Process B reports "Player B has rolled, Player A has not yet rolled"
+- Database has "Player A and Player B have rolled"
+
+To accomodate this, every transaction will also bump the Game version, which prevents those two transactions from occurring at the same time.
+
+This also requires that we read the `Game` table before (or at the same time as) other tables, otherwise other processes could make changes that aren't detected by our Game version. DynamoDB doesn't support a transaction with multiple queries, so we need to read the `Game` table before any other queries.
+
+This then requires that our queries are immediately consistent (as opposed to eventually consistent). DynamoDB only supports this for queries on the primary key (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html). So our tables `Player`, `Turn`, `Roll`
+need to use `game_id` as their partition key, with a sort key to create item uniqueness (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html).
+

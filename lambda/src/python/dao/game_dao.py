@@ -9,7 +9,6 @@ class GameItem(DynamodbItem):
   mr_eleven: str = None
   num_players: int = None
   round_finished: bool = None
-  version: int = None
 
 
 class GameDao(BaseDao):
@@ -28,31 +27,5 @@ class GameDao(BaseDao):
 
     return game_id
 
-  def set(self, connection, item):
-    """Overwrites base function with an added version condition check"""
-    assert isinstance(item, self.item_class)
-    assert item.id is not None
-
-    query = item.to_query()
-
-    expressions = []
-    values = {}
-    for i, (key, value) in enumerate(query.items()):
-      if key == 'id':
-        continue
-      expressions.append(f'{key} = :{i}')
-      values[f':{i}'] = value
-
-    update_expression = f'SET ' + ', '.join(expressions)
-
-    values[':v'] = {'N': str(item.version-1)}
-
-    connection.write({
-      'Update': {
-        'TableName': self.table_name,
-        'Key': {'id': {'S': item.id}},
-        'ConditionExpression': f'attribute_exists(id) AND version = :v',
-        'UpdateExpression': update_expression,
-        "ExpressionAttributeValues": values,
-      }
-    })
+  def get_items_with_game_id(self, connection, game_id):
+    raise NotImplementedError()

@@ -11,7 +11,7 @@ def transaction_fail_logs(func):
       print(e.response)
   return inner
 
-def transaction_retry(func, max_attempts=3):
+def transaction_retry(func, max_attempts=5):
   """Decorator, reattempts processing if it gets a TransactionCanceledException"""
 
   def inner(*args, **kwargs):
@@ -56,7 +56,10 @@ class DatabaseReader:
   def __exit__(self, type, value, traceback):
     if not self.items:
       return
+    
+    self._transact()
 
+  def _transact(self):
     items = self.items
     self.items = [] # clear in case of exception
     responses = self.client.transact_get_items(TransactItems=[i[0] for i in items])
@@ -72,6 +75,7 @@ class DatabaseReader:
   def read(self, request, cls):
     obj = cls()
     self.items.append((request, obj))
+    self._transact() # do it now, so thatgame state is read first. TODO
     return obj
   
   def query(self, kwargs):
@@ -92,7 +96,7 @@ class DatabaseWriter:
       conn.write(...) # not executed
     # both are now executed
   """
-
+  MAX_ITEMS = 25
   client = boto3.client('dynamodb', region_name='ap-southeast-2')
   
   def __init__(self):
@@ -103,7 +107,7 @@ class DatabaseWriter:
     return self
 
   def __exit__(self, type, value, traceback):
-    print(f'transact_write_items: {self.items}')
+    print(f'transact_write_items ({len(self.items)}): {self.items}')
 
     if not self.items:
       return
@@ -113,4 +117,5 @@ class DatabaseWriter:
     self.client.transact_write_items(TransactItems=items)
 
   def write(self, item):
+    assert len(item) < self.MAX_ITEMS, 'Too many write transactions'
     self.items.append(item)

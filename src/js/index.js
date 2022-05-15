@@ -1,7 +1,10 @@
 const url = "wss://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
-var thisPlayerIndex;
+var prevState = {"players": []};
+var cardIdCounter = 0;
+var playerIdToCardId = {};
+
 
 var callback_lookup = {
   "setNickname": setNicknameCallback,
@@ -184,7 +187,9 @@ function rollDice() {
   var newItem = document.createElement('bleh');
   newItem.innerHTML = `<div class="loader"></div>`;
 
-  var dicePanel = document.getElementById(`${thisPlayerIndex}DicePanel`);
+  let cardId = playerIdToCardId[playerId];
+
+  var dicePanel = document.getElementById(`${cardId}DicePanel`);
   dicePanel.parentNode.appendChild(newItem);
 }
 
@@ -231,86 +236,145 @@ function getBackgroundColor(rollResult){
 function gameStateCallback(response){
   console.log("gameStateCallback()");
 
-  thisPlayerIndex = response.data.players.findIndex(p => {return p.id == playerId});
-  var thisPlayer = response.data.players[thisPlayerIndex];
+  const state = response.data;
+  
+  // Remove players that have left the game
+  for (const player of prevState.players){
+    ind = state.players.findIndex(p => {return p.id == player.id});
+    if (ind == -1){
+      _removePlayerCard(player.id);
+    }
+  }
+  
+  // If the player is new, or the diceValue or turnFinished has changed, then we'll need to update the cards
+  let playersToUpdate = [];
+  for (const player of state.players){
+    const prevPlayer = prevState.players.find(p => {return p.id == player.id});
+    
+    if (prevPlayer === undefined){
+      playerIdToCardId[player.id] = cardIdCounter;
+      cardIdCounter++;
+      playersToUpdate.push(player.id);
+      continue;
+    }
+    if (_cardShouldUpdate(prevPlayer, player, prevState.round, state.round)){
+      _removePlayerCard(player.id);
+      playersToUpdate.push(player.id);
+    }
 
-  // Game status cards
-
-  var gameCardPanel = document.getElementById("gameCardPanel");
-  var children = Array.from(gameCardPanel.children);
-
-  for (var child of children){
-    console.log(`child: ${child}`);
-    gameCardPanel.removeChild(child);
+  }
+  
+  // Update the cards
+  for (const player of state.players){
+    if (!playersToUpdate.includes(player.id)){
+      continue;
+    }
+    _createPlayerCard(player);
   }
 
-  var i = 0;
-  for (var player of response.data.players){
+  // Re-order the cards to match the state
+  _orderCards(state.players);
 
-    var diceHtml = "";
-    if ('diceValue' in player){
-      var diceValues = JSON.parse(player.diceValue);
-      diceHtml = "";
-      for (var dice of diceValues){
-        diceHtml += getDiceHtml(dice.id, dice.value);
+  const thisPlayer = state.players.find(p => {return p.id == playerId});
+
+  if (playersToUpdate.includes(playerId)) {
+    // New round button
+    if (state.round.complete){
+      document.getElementById("btnNewRound").disabled = false;
+    } else {
+      document.getElementById("btnNewRound").disabled = true;
+    }
+
+    // Roll dice button
+    if (state.round.complete){
+      document.getElementById("btnRollDice").disabled = true;
+    } else {
+      console.log(`turn finished: ${thisPlayer.turnFinished}`);
+      if (thisPlayer.turnFinished){
+        document.getElementById("btnRollDice").disabled = true;
+      } else {
+        document.getElementById("btnRollDice").disabled = false;
       }
-    }
+    } 
+  }
 
-    var rollTotalHtml = "";
-    if ('rollTotal' in player){
-      rollTotalHtml = `(${player.rollTotal})`;
-    }
+  prevState = state;
 
-    var winCountHtml = "";
-    if ('winCount' in player && player.winCount > 0){
-      winCountHtml = `(${player.winCount})`;
-    }
-    
-    var backgroundColor = getBackgroundColor("");
-    if ('rollResult' in player){
-      backgroundColor = getBackgroundColor(player.rollResult);
-    }
-    
-    var resultHtml = "";
-    if ('rollResult' in player){
-      resultHtml = getRollResultHtml(player.rollResult);
-    }
+}
 
-    var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6 pb-1"></div>');
-    var myPanel = $(`
-      <div class="card rounded d-flex align-items-stretch" id="${i}Panel" style="background-color:${backgroundColor}">
-        <div class="card-body px-3 py-2">
-          <div class="card-title h4">
-            <span class="font-weight-bold">${player.nickname} ${winCountHtml}</span>
-            <span class="float-right">${resultHtml}</span>
-          </div>
-          <div class="d-flex flex-row">
-            <div id="${i}DicePanel">
-              ${diceHtml}
-            </div>
+function _removePlayerCard(pId){
+  const cardId = playerIdToCardId[pId];
+  const panel = document.getElementById(`${cardId}Panel`);
+  const col = panel.parentNode;
+  col.parentNode.removeChild(col);
+}
+
+function _createPlayerCard(player){
+  var diceHtml = "";
+  if ('diceValue' in player){
+    var diceValues = JSON.parse(player.diceValue);
+    diceHtml = "";
+    for (var dice of diceValues){
+      diceHtml += getDiceHtml(dice.id, dice.value);
+    }
+  }
+
+  var rollTotalHtml = "";
+  if ('rollTotal' in player){
+    rollTotalHtml = `(${player.rollTotal})`;
+  }
+
+  var winCountHtml = "";
+  if ('winCount' in player && player.winCount > 0){
+    winCountHtml = `(${player.winCount})`;
+  }
+  
+  var backgroundColor = getBackgroundColor("");
+  if ('rollResult' in player){
+    backgroundColor = getBackgroundColor(player.rollResult);
+  }
+  
+  var resultHtml = "";
+  if ('rollResult' in player){
+    resultHtml = getRollResultHtml(player.rollResult);
+  }
+
+  const cardId = playerIdToCardId[player.id];
+  var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6 pb-1"></div>');
+  var myPanel = $(`
+    <div class="card rounded d-flex align-items-stretch" id="${cardId}Panel" style="background-color:${backgroundColor}">
+      <div class="card-body px-3 py-2">
+        <div class="card-title h4">
+          <span class="font-weight-bold">${player.nickname} ${winCountHtml}</span>
+          <span class="float-right">${resultHtml}</span>
+        </div>
+        <div class="d-flex flex-row">
+          <div id="${cardId}DicePanel">
+            ${diceHtml}
           </div>
         </div>
       </div>
-    `);
-    myPanel.appendTo(myCol);
-    myCol.appendTo('#gameCardPanel');
-    i++;
-  }
+    </div>
+  `);
+  myPanel.appendTo(myCol);
+  myCol.appendTo('#gameCardPanel');
+}
 
-  // New round button
-  if (response.data.round.complete){
-    document.getElementById("btnNewRound").disabled = false;
-  } else {
-    document.getElementById("btnNewRound").disabled = true;
-  }
+function _cardShouldUpdate(prevPlayer, player, prevRound, round){
+  return !(
+    (prevPlayer.diceValue == player.diceValue)
+    && (prevPlayer.turnFinished == player.turnFinished)
+    && (prevRound.complete == round.complete)
+  );
+}
 
-  // Roll dice button
-  if (!response.data.round.complete){
-    console.log(`turn finished: ${thisPlayer.turnFinished}`);
-    if (thisPlayer.turnFinished){
-      document.getElementById("btnRollDice").disabled = true;
-    } else {
-      document.getElementById("btnRollDice").disabled = false;
-    }
-  } 
+function _orderCards(players){
+  for (const player of players){
+    const cardId = playerIdToCardId[player.id];
+    const panel = document.getElementById(`${cardId}Panel`);
+    const col = panel.parentNode;
+    const parent = col.parentNode;
+    parent.removeChild(col);
+    parent.appendChild(col);
+  }
 }

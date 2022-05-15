@@ -8,7 +8,6 @@ class RollItem(DynamodbItem):
   turn_id: str = None
   game_id: str = None
   dice: str = None
-  order: int = None
 
 
 class RollDao(BaseDao):
@@ -16,21 +15,3 @@ class RollDao(BaseDao):
 
   table_name = 'DeathDiceRolls'
   item_class = RollItem
-
-  def get_rolls_with_turn_id(self, connection, turn_id):
-    response = connection.query({
-      'TableName': self.table_name,
-      'IndexName': 'turn_index',
-      'KeyConditionExpression': f'turn_id = :id',
-      'ExpressionAttributeValues': {':id': {'S': turn_id}},
-    })
-    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.order)
-
-  def get_rolls_with_game_id(self, connection, game_id):
-    response = connection.query({
-      'TableName': self.table_name,
-      'IndexName': 'game_index',
-      'KeyConditionExpression': f'game_id = :id',
-      'ExpressionAttributeValues': {':id': {'S': game_id}},
-    })
-    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.order)

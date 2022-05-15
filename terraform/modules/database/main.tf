@@ -8,21 +8,27 @@ terraform {
   }
 }
 
+locals {
+  read_capacity = 10
+  write_capacity = 10
+}
+
 resource "aws_dynamodb_table" "players" {
   # note - doesn't have autoscaling
   name           = "${var.prefix}Players"
   hash_key       = "id"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
+  read_capacity  = local.read_capacity
+  write_capacity = local.write_capacity
 
   # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
+  # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-indexes-general.html
   global_secondary_index {
     name            = "game_index"
     hash_key        = "game_id"
-    write_capacity  = 5
-    read_capacity   = 5
-    projection_type = "ALL" # allows all other columns to be accessed using this index - but uses more data
+    read_capacity   = local.read_capacity
+    write_capacity  = local.write_capacity
+    projection_type = "ALL"
   }
 
   attribute {
@@ -40,8 +46,8 @@ resource "aws_dynamodb_table" "games" {
   name           = "${var.prefix}Games"
   hash_key       = "id"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
+  read_capacity  = local.read_capacity
+  write_capacity = local.write_capacity
 
   attribute {
     name = "id"
@@ -53,23 +59,14 @@ resource "aws_dynamodb_table" "turns" {
   name     = "${var.prefix}Turns"
   hash_key = "id"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
+  read_capacity  = local.read_capacity
+  write_capacity = local.write_capacity
 
-  # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
   global_secondary_index {
     name            = "game_index"
     hash_key        = "game_id"
-    write_capacity  = 1
-    read_capacity   = 1
-    projection_type = "ALL"
-  }
-
-  global_secondary_index {
-    name            = "player_index"
-    hash_key        = "player_id"
-    write_capacity  = 1
-    read_capacity   = 1
+    read_capacity   = local.read_capacity
+    write_capacity  = local.write_capacity
     projection_type = "ALL"
   }
 
@@ -82,44 +79,25 @@ resource "aws_dynamodb_table" "turns" {
     name = "game_id"
     type = "S"
   }
-
-  attribute {
-    name = "player_id"
-    type = "S"
-  }
 }
 
 resource "aws_dynamodb_table" "rolls" {
   name     = "${var.prefix}Rolls"
   hash_key = "id"
   billing_mode   = "PROVISIONED"
-  read_capacity  = 5
-  write_capacity = 5
-
-  # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/GSI.html
-  global_secondary_index {
-    name            = "turn_index"
-    hash_key        = "turn_id"
-    write_capacity  = 1
-    read_capacity   = 1
-    projection_type = "ALL"
-  }
+  read_capacity  = local.read_capacity
+  write_capacity = local.write_capacity
 
   global_secondary_index {
     name            = "game_index"
     hash_key        = "game_id"
-    write_capacity  = 1
-    read_capacity   = 1
+    read_capacity   = local.read_capacity
+    write_capacity  = local.write_capacity
     projection_type = "ALL"
   }
 
   attribute {
     name = "id"
-    type = "S"
-  }
-
-  attribute {
-    name = "turn_id"
     type = "S"
   }
 

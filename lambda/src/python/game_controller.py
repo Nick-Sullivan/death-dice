@@ -1,10 +1,10 @@
 
 
-from copy import deepcopy
-from dataclasses import dataclass
-from typing import Dict, List
 import uuid
 from botocore.exceptions import ClientError
+from copy import deepcopy
+from dataclasses import dataclass
+from typing import List
 
 import game_logic
 from client_notifier import ClientNotifier
@@ -39,6 +39,9 @@ class GameController:
     return str(uuid.uuid4())
 
   def get_state(self, player_id=None, game_id=None):
+    """Gets the game state.
+    Important for it to read the game state first, because the optimistic locking uses that version.
+    """
     assert (player_id is None) ^ (game_id is None)
 
     if player_id is not None:
@@ -55,15 +58,26 @@ class GameController:
     with self.db_reader as conn:
       state = GameState(
         game=self.game_dao.get(conn, game_id),
-        players=self.player_dao.get_players_with_game_id(conn, game_id),
-        turns=self.turn_dao.get_turns_with_game_id(conn, game_id),
-        rolls=self.roll_dao.get_rolls_with_game_id(conn, game_id)
+        players=self.player_dao.get_items_with_game_id(conn, game_id),
+        turns=self.turn_dao.get_items_with_game_id(conn, game_id),
+        rolls=self.roll_dao.get_items_with_game_id(conn, game_id)
       )
 
     print(f'state: {state}')
     return state
 
   def save_state(self, old_state, new_state):
+    """Limited by a transaction of 25 items
+    
+    player leaves, causing recalculation:
+      1 game + 3 player(leave and new winner) + N turns <= 25
+      N <= 21
+
+    new round:
+      1 game + N turns + N*5 rolls <= 25
+      N*6 <= 24
+      N <= 4               
+    """
     print(f'old_state: {old_state}')
     print(f'new_state: {new_state}')
 
@@ -74,13 +88,18 @@ class GameController:
       self._save_state_rolls(conn, old_state.rolls, new_state.rolls)
 
   def _save_state_game(self, conn, old_game, new_game):
+    """Updates the game state.
+    Updates the version even if the game state is unchanged
+    e.g. player A and player B roll at the same time - both can update the database concurrently, but they will send inconsistent 
+    messages to the front end.
+    """
     if old_game is None and new_game is None:
       return
     elif old_game is None:
       self.game_dao.create(conn, new_game)
     elif new_game is None:
       self.game_dao.delete(conn, old_game.id)
-    elif old_game != new_game:
+    else:
       self.game_dao.set(conn, new_game)
     
   def _save_state_players(self, conn, olds, news):
@@ -132,7 +151,7 @@ class GameController:
   def create_player(self, player_id):
     """Create a new player object for a new browser session"""
     with self.db_writer as conn:
-      self.player_dao.create(conn, PlayerItem(id=player_id, win_counter=0))
+      self.player_dao.create(conn, PlayerItem(id=player_id, win_counter=0, ))
 
   @transaction_retry
   def delete_player(self, player_id):
@@ -151,7 +170,6 @@ class GameController:
       self.save_state(old_state, GameState(game=None, players=[], turns=[], rolls=[]))
       return
     
-    state.game.version += 1
     state.game.num_players -= 1
     state.players = [p for p in state.players if p.id != player_id]
     state.turns = [t for t in state.turns if t.player_id != player_id]
@@ -203,7 +221,7 @@ class GameController:
     old_state = deepcopy(state)
 
     game_id = self.game_dao.create_unique_id(None)
-    state.game = GameItem(id=game_id, num_players=1, mr_eleven='', round_finished=True, version=0)
+    state.game = GameItem(id=game_id, num_players=1, mr_eleven='', round_finished=True)
 
     turn_item = TurnItem(id=self.create_unique_id(), game_id=game_id, player_id=player_id, finished=False, outcome='')
     state.turns.append(turn_item)
@@ -242,7 +260,6 @@ class GameController:
         player_item = self.player_dao.get(conn, player_id)
 
       state.game.num_players += 1
-      state.game.version += 1
 
       player_item.game_id = game_id
       player_item.win_counter = 0
@@ -277,7 +294,6 @@ class GameController:
     state = self.get_state(player_id=player_id)
     old_state = deepcopy(state)
 
-    state.game.version += 1
     state.game.round_finished = False
 
     for turn in state.turns:
@@ -310,20 +326,18 @@ class GameController:
 
     player_turn.finished = finished
 
-    state.game.version += 1
-
     state.rolls.append(
-      RollItem(id=self.create_unique_id(), turn_id=player_turn.id, game_id=state.game.id, dice=roll, order=len(player_rolls))
+      RollItem(id=self.create_unique_id(), turn_id=player_turn.id, game_id=state.game.id, dice=roll)
     )
 
     is_last_roll = all([t.finished for t in state.turns])
-    if not is_last_roll:
-      self.save_state(old_state, state)
-      self.send_game_state_update(state)
-      return
+    if is_last_roll:
+      state = self._calculate_turn_results(state)
+      
+    self.save_state(old_state, state)
+    self.send_game_state_update(state)
 
-    # Calculate turn results
-
+  def _calculate_turn_results(self, state):
     turn_rolls = {t.id: [] for t in state.turns}
     for r in state.rolls:
       turn_rolls[r.turn_id].append(r)
@@ -348,8 +362,7 @@ class GameController:
       else:
         player.win_counter = 0
 
-    self.save_state(old_state, state)
-    self.send_game_state_update(state)
+    return state
 
   # Notifications
   
@@ -383,36 +396,13 @@ class GameController:
 
       player_output.append(entry)
 
-
-    # player_states = {
-    #   p.id: {
-    #     'id': p.id,
-    #     'nickname': 'Mr Eleven' if p.id == state.game.mr_eleven else p.nickname,
-    #     'turnFinished': False,
-    #     'winCount': p.win_counter
-    #   }
-    #   for p in state.players
-    # }
-
-    # # Turn info
-    # for turn in state.turns:
-    #   player_id = turn.player_id
-    #   player_states[player_id]['turnFinished'] = turn.finished
-    #   if state.game.round_finished:
-    #     player_states[player_id]['rollResult'] = turn.outcome #if turn.outcome.get(TurnAttribute.OUTCOME.key, 'SIP_DRINK') # workaround for players that join end of round
-
-    #   matching_rolls = [r for r in state.rolls if r.turn_id == turn.id]
-    #   if matching_rolls:
-    #     roll = matching_rolls[0]
-    #     values = game_logic.get_values(roll.dice)
-    #     player_states[player_id]['rollTotal'] = sum(values)
-    #     player_states[player_id]['diceValue'] = roll.dice
+    # Order by player joined time TODO
+    player_output.sort(key=lambda x: x['id'])
       
     # Send it
     message = {
       'action': 'gameState',
       'data': {
-        # 'players': list(player_states.values()),
         'players': player_output,
         'round': {'complete': state.game.round_finished},
       },

@@ -1,10 +1,13 @@
 from dataclasses import dataclass, fields
+from datetime import datetime, timezone
 
 
 @dataclass
 class DynamodbItem:
   """All fields must be optional, to support lazy reads from the database"""
   id: str = None
+  version: int = None
+  created_on: datetime = None
 
   def to_query(self):
     response = {}
@@ -41,6 +44,8 @@ class DynamodbItem:
       return {'N': str(value)}
     if python_type == bool:
       return {'BOOL': value}
+    if python_type == datetime:
+      return {'S': str(value)}
     raise NotImplementedError()
 
   @staticmethod
@@ -58,6 +63,7 @@ class DynamodbItem:
     for field in fields(self):
       setattr(self, field.name, getattr(other_obj, field.name))
 
+
 class BaseDao:
   
   table_name = None
@@ -69,6 +75,10 @@ class BaseDao:
 
   def create(self, connection, item):
     assert isinstance(item, self.item_class)
+
+    item.version = 0
+    item.created_on=datetime.now(timezone.utc)
+
     connection.write({
       'Put': {
         'TableName': self.table_name,
@@ -100,6 +110,8 @@ class BaseDao:
     assert isinstance(item, self.item_class)
     assert item.id is not None
 
+    item.version += 1
+
     query = item.to_query()
 
     expressions = []
@@ -112,11 +124,13 @@ class BaseDao:
 
     update_expression = f'SET ' + ', '.join(expressions)
 
+    values[':v'] = {'N': str(item.version-1)}
+
     connection.write({
       'Update': {
         'TableName': self.table_name,
         'Key': {'id': {'S': item.id}},
-        'ConditionExpression': f'attribute_exists(id)',
+        'ConditionExpression': f'attribute_exists(id) AND version = :v',
         'UpdateExpression': update_expression,
         "ExpressionAttributeValues": values,
       }
@@ -124,6 +138,17 @@ class BaseDao:
 
   def exists(self, connection, id):
     return self.get(connection, id) != None
+
+  def get_items_with_game_id(self, connection, game_id):
+    response = connection.query({
+      'TableName': self.table_name,
+      'IndexName': 'game_index',
+      'KeyConditionExpression': f'game_id = :id',
+      'ExpressionAttributeValues': {':id': {'S': game_id}},
+    })
+    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.created_on)
+
+  # unused
 
   def delete_if_attribute_has_value(self, connection, id, attribute, value):
     print('delete_if_attribute_has_value')
@@ -142,17 +167,17 @@ class BaseDao:
       }
     })
   
-  def version_check(self, connection, id, value):
+  def version_check(self, connection, item):
     connection.write({
       'ConditionCheck': {
         'TableName': self.table_name,
-        'Key': {'id': {'S': id}},
+        'Key': {'id': {'S': item.id}},
         'ConditionExpression': f'#0 = :value',
         'ExpressionAttributeNames': {
           '#0': 'version'
         },
         'ExpressionAttributeValues': {
-          ':value': {'N': str(value)}
+          ':value': {'N': str(item.version)}
         }
       }
     })

@@ -183,7 +183,7 @@ def is_roll_dual_wield(values):
 
 def is_roll_pool(values):
   counter = Counter(values)
-  return counter.get(3, 0) >= 6
+  return counter.get(6, 0) >= 6
 
 
 def is_roll_head_on_table(values):

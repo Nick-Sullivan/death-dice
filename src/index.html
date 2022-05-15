@@ -25,7 +25,7 @@
                 <div class="div-padded"></div>
                 <div class="input-group-prepend">
                     <span class="input-group-text">You can call me...</span>
-                    <input class="form-control form-control-lg px-4 mx-1" id="textSetNickname" placeholder="Roib" value="Nick">
+                    <input class="form-control form-control-lg px-4 mx-1" id="textSetNickname" autofocus="autofocus" placeholder="Roib" value="Nick">
                 </div>
                 <div class="div-padded"></div>
                 <button class="btn btn-primary btn-lg btn-block" id="btnSetNickname" type="button" disabled="false" onclick="setNickname()">Let's drink</button>
@@ -57,12 +57,7 @@
         <!-- Showing roll results -->
         <div class="row h-75 scrollable">
             <div class="col">
-                <p class="text-center game-code" id="textGameId">...</p>
-                <!-- <div class="input-group-prepend">
-                    <label for="textGameId">Game Code:&nbsp</label>
-                    <p class="text-center game-code" id="textGameId">...</p>
-                </div> -->
-            
+                <p class="text-center text-monospace game-code" id="textGameId">...</p>            
                 <div class="row" id="gameCardPanel">
                 </div>
 

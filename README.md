@@ -41,4 +41,11 @@ TODO
 - german mode
 - show result for shower/finish drink before round ends
 - steal with single dice
-- if last player leaves
+- calculate win if last player leaves
+- order gamestate by join datetime
+(maybe) change hash keys so we can ConsistentRead the queries
+
+
+# Consistency 
+
+TODO FILL THIS IN

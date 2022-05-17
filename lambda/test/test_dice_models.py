@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+
 sys.path.append(os.path.abspath('./lambda/src/python'))
 from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 

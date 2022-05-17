@@ -11,6 +11,7 @@ def transaction_fail_logs(func):
       print(e.response)
   return inner
 
+
 def transaction_retry(func, max_attempts=5):
   """Decorator, reattempts processing if it gets a TransactionCanceledException"""
 
@@ -34,7 +35,8 @@ def transaction_retry(func, max_attempts=5):
 
 class DatabaseReader:
   """Created to perform multiple database reads in a single transaction.
-  https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html#DynamoDB.Client.transact_write_items
+  It will also perform queries AFTER the get's, but DynamoDB does not support queries in a single transaction.
+  https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html#DynamoDB.Client.transact_get_items
   
   Example usage:
   
@@ -43,23 +45,24 @@ class DatabaseReader:
       response2 = conn.read(..., Object)
     print(response)                      # attributes are now populated
   """
-
+  MAX_ITEMS = 25
   client = boto3.client('dynamodb', region_name='ap-southeast-2')
 
   def __init__(self):
     self.items = []
+    self.queries = []
 
   def __enter__(self):
-    assert self.items == [], 'Tried creating a new transaction before the previous one was completed'
+    assert self.items == [] and self.queries == [], 'Tried creating a new transaction before the previous one was completed'
     return self
   
   def __exit__(self, type, value, traceback):
-    if not self.items:
-      return
-    
-    self._transact()
+    if self.items:
+      self._transact_read()
+    if self.queries:
+      self._transact_query()
 
-  def _transact(self):
+  def _transact_read(self):
     items = self.items
     self.items = [] # clear in case of exception
     responses = self.client.transact_get_items(TransactItems=[i[0] for i in items])
@@ -72,17 +75,38 @@ class DatabaseReader:
       new_obj = obj.from_query(response['Item'])
       obj.update_from(new_obj)
 
+  def _transact_query(self):
+    queries = self.queries
+    self.queries = [] # clear in case of exception
+    for kwargs, response_obj in queries:
+      response = self.client.query(**kwargs)
+      print(f'query_response: {response}')
+      response_obj.items = [response_obj.item_cls.from_query(i) for i in response['Items']]
+
   def read(self, request, cls):
+    assert len(request) < self.MAX_ITEMS, 'Too many reads for a transaction'
     obj = cls()
     self.items.append((request, obj))
-    self._transact() # do it now, so thatgame state is read first. TODO
     return obj
-  
-  def query(self, kwargs):
-    """Queries are executed immediately because they don't support transactions"""
-    response = self.client.query(**kwargs)
-    print(f'query response: {response}')
-    return response
+    
+  def query(self, request, cls):
+    obj = QueryResponse(item_cls=cls)
+    self.queries.append((request, obj))
+    return obj
+
+
+class QueryResponse:
+  """Iterable query response, has no data until the DatabaseReader __exit__"""
+  def __init__(self, item_cls):
+    self.items = []
+    self.item_cls = item_cls
+
+  def __iter__(self):
+    for item in self.items:
+      yield item
+
+  def __len__(self):
+    return len(self.items)
 
 
 class DatabaseWriter:
@@ -117,5 +141,5 @@ class DatabaseWriter:
     self.client.transact_write_items(TransactItems=items)
 
   def write(self, item):
-    assert len(item) < self.MAX_ITEMS, 'Too many write transactions'
+    assert len(item) < self.MAX_ITEMS, 'Too many writes for a transaction'
     self.items.append(item)

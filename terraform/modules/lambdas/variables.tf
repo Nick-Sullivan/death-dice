@@ -1,4 +1,3 @@
-
 variable "prefix" {
   description = "Prefix of the Lambdas"
   type        = string

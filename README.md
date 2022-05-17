@@ -1,56 +1,60 @@
-aws lambda invoke --region=ap-southeast-2 --function-name=$(terraform output -raw function_name) response.json
-
-curl "$(terraform output -raw base_url)/hello"
-
-# Text dump
-- manually check using dynamodb explore items
-// Test to connect / scan / disconnect / scan
-// Manually create API gateway
-// use the websocket URL
-// wscat -c wss://4l76elb8w0.execute-api.ap-southeast-2.amazonaws.com/production
-
-Copy the websocket URL to both player_interactor.py and index.js
-
-# Notes
-
-Lambda layer needs to be in the python folder to work properly
+Written by Nick Sullivan.
 
 
-wscat -c "$(terraform output -raw production_url)"
+# Death Dice
 
-{"action" : "sendMessage", "message": "hi there"}
+Each `game` has one or more `players`. Each player does a `roll`, which could warrant further `rolls`, until they finish their `turn`. Once all players finish their `turn`, results are calculated, and it all repeats. 
+
+Rules:
+ - Every player rolls two 6-sided dice.
+ - A players score is the sum of all their dice.
+ - The player with the highest score wins, everyone else takes a sip of their drink.
+ - If players roll `doubles`, two dice with the same value, they get to roll again.
+ - If players keep rolling the same value, they get to keep rolling, according to the following:
+   - Two 1's: Your score is 0. Roll again - if it's 1, 2, or 3, finish your drink. 
+   - Four 2's: Hold one drink in each hand until your drink is finished. All drinking from one must be done to the other.
+   - Three 3's: Stop playing, go have a shower (take your drink).
+   - Five 4's: Put your head on the table until your drink is finished.
+   - Five 5's: Buy something from Wish.com, and give it to Mr Eleven.
+   - Six 6's: Stop playing, jump into the nearest body of water you can find.
+ - If a player has a final score of 11, they are known as Mr Eleven. They have always, and will always be known as Mr Eleven.
+ - If Mr Eleven rolls an 11, they win. Any other players that rolled an 11 in that turn, don't lose.
+ - When a player wins 3 turns in a row, they get a 4-sided dice (the death dice).
+ - The player with the death dice must always win, otherwise they lose the death dice.
+ - If the player with the death dice wins two turns in a row, they upgrade their death dice (incrementing through the DnD dice set)
 
 
+# Setting up
 
+```
 python3 -m venv venv
 ./venv/Scripts/activate
-
 pip install pytest boto3
+cd terraform/website_contents
+terraform apply
+```
+
+- Update the URL in `src/js/index.js`, and `lambda/src/python/client_notifier.py`
+
+```
+terraform apply
+```
 
 
-images from:
-- https://ecdn.teacherspayteachers.com/thumbitem/4-Sided-Dice-Clip-Art-Templates-1706644-1593691417/original-1706644-2.jpg
-- https://ecdn.teacherspayteachers.com/thumbitem/8-Sided-Dice-Clip-Art-Templates-1706660-1593690642/original-1706660-2.jpg
-- https://ecdn.teacherspayteachers.com/thumbitem/10-Sided-Dice-Clip-Art-Templates-1706661-1593690397/original-1706661-2.jpg
-- https://ecdn.teacherspayteachers.com/thumbitem/12-Sided-Dice-Clip-Art-Templates-1706670-1593690328/original-1706670-2.jpg
-- https://ecdn.teacherspayteachers.com/thumbitem/20-Sided-Dice-Clipart-Templates-4713194-1593690111/original-4713194-2.jpg
+# Architecture
+
+Website -> API Gateway -> Lambdas -> DynamoDB
 
 
-TODO
-- three way ties
-- german mode
-- show result for shower/finish drink before round ends
-- steal with single dice
-- calculate win if last player leaves
-- order gamestate by join datetime
-(maybe) change hash keys so we can ConsistentRead the queries
+# Files
 
+- `lambda` contains the contents of the Lambda functions, along with unit tests.
+- `src` contains the website html, css, javascript and images
+- `terraform` contains infrastructure as code
 
-# Consistency 
-
-Making sure everything is consistent.
 
 # Resource locking
+
 This uses optimistic locking.
 - Optimistic: Give items a version. When writing, add a condition that the version must not have changed since you read it. Faster when resources are not in contention very often.
 - Pessimistic: Give items a lock. Before writing, request the lock. When finished, release the lock. Faster when resources are frequently in contention.
@@ -73,3 +77,12 @@ This also requires that we read the `Game` table before (or at the same time as)
 This then requires that our queries are immediately consistent (as opposed to eventually consistent). DynamoDB only supports this for queries on the primary key (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.ReadConsistency.html). So our tables `Player`, `Turn`, `Roll`
 need to use `game_id` as their partition key, with a sort key to create item uniqueness (https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/HowItWorks.CoreComponents.html).
 
+
+# TODO
+
+- three way ties
+- german mode
+- show result for shower/finish drink before round ends
+- steal with single dice
+- order gamestate by join datetime
+(maybe) change hash keys so we can ConsistentRead the queries

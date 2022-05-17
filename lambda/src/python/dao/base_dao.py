@@ -132,7 +132,7 @@ class BaseDao:
         'Key': {'id': {'S': item.id}},
         'ConditionExpression': f'attribute_exists(id) AND version = :v',
         'UpdateExpression': update_expression,
-        "ExpressionAttributeValues": values,
+        'ExpressionAttributeValues': values,
       }
     })
 
@@ -140,44 +140,10 @@ class BaseDao:
     return self.get(connection, id) != None
 
   def get_items_with_game_id(self, connection, game_id):
-    response = connection.query({
+    assert isinstance(game_id, str)
+    return connection.query({
       'TableName': self.table_name,
       'IndexName': 'game_index',
       'KeyConditionExpression': f'game_id = :id',
       'ExpressionAttributeValues': {':id': {'S': game_id}},
-    })
-    return sorted([self.item_class.from_query(i) for i in response['Items']], key=lambda x: x.created_on)
-
-  # unused
-
-  def delete_if_attribute_has_value(self, connection, id, attribute, value):
-    print('delete_if_attribute_has_value')
-
-    connection.write({
-      'Delete': {
-        'TableName': self.table_name,
-        'Key': {'id': {'S': id}},
-        'ConditionExpression': f'#0 = :value',
-        'ExpressionAttributeNames': {
-          '#0': attribute
-        },
-        'ExpressionAttributeValues': {
-          ':value': {'N': value}
-        }
-      }
-    })
-  
-  def version_check(self, connection, item):
-    connection.write({
-      'ConditionCheck': {
-        'TableName': self.table_name,
-        'Key': {'id': {'S': item.id}},
-        'ConditionExpression': f'#0 = :value',
-        'ExpressionAttributeNames': {
-          '#0': 'version'
-        },
-        'ExpressionAttributeValues': {
-          ':value': {'N': str(item.version)}
-        }
-      }
-    })
+    }, self.item_class)

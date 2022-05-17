@@ -1,8 +1,3 @@
-# output "connect_uri" {
-#   description = "ARN to invoke the connecting lambda function"
-#   value       = aws_lambda_function.connect.invoke_arn
-# }
-
 output "lambdas" {
   description = "Map of lambda objects"
   value = {

@@ -129,7 +129,7 @@ data "aws_iam_policy_document" "access_dynamodb" {
 
 data "aws_iam_policy_document" "api_connections" {
   # Allow Lambda to send messages to API gateway connections
-  # TODO - restrict resources
+  # TODO - restrict resources. We don't know the Gateway ARN because it's not made yet :(
   statement {
     actions = [
       "execute-api:ManageConnections",

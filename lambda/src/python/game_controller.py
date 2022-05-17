@@ -55,13 +55,18 @@ class GameController:
         print(f'state: {state}')
         return state
 
-    with self.db_reader as conn:
-      state = GameState(
-        game=self.game_dao.get(conn, game_id),
-        players=self.player_dao.get_items_with_game_id(conn, game_id),
-        turns=self.turn_dao.get_items_with_game_id(conn, game_id),
-        rolls=self.roll_dao.get_items_with_game_id(conn, game_id)
-      )
+    with self.db_reader as conn: # lazy loads, so create GameState object later 
+      game = self.game_dao.get(conn, game_id)
+      players = self.player_dao.get_items_with_game_id(conn, game_id)
+      turns = self.turn_dao.get_items_with_game_id(conn, game_id)
+      rolls = self.roll_dao.get_items_with_game_id(conn, game_id)
+
+    state = GameState( 
+      game=game,
+      players=sorted(players, key=lambda x: x.created_on),
+      turns=sorted(turns, key=lambda x: x.created_on),
+      rolls=sorted(rolls, key=lambda x: x.created_on),
+    )
 
     print(f'state: {state}')
     return state
@@ -175,6 +180,10 @@ class GameController:
     state.turns = [t for t in state.turns if t.player_id != player_id]
     remaining_turn_ids = [t.id for t in state.turns]
     state.rolls = [r for r in state.rolls if r.turn_id in remaining_turn_ids]
+
+    is_last_roll = all([t.finished for t in state.turns])
+    if is_last_roll:
+      state = self._calculate_turn_results(state)
 
     self.save_state(old_state, state)
     self.send_game_state_update(state)

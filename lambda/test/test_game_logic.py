@@ -1,6 +1,7 @@
 import os
 import pytest
 import sys
+
 sys.path.append(os.path.abspath('./lambda/src/python'))
 from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 from game_logic import RollResult, calculate_turn_results, _should_roll_another_dice
@@ -87,7 +88,7 @@ def test__should_roll_another_dice(roll_values, expected):
     id='solo shower',
   ),
   pytest.param(
-    {'k': [3, 3, 3, 3, 3, 3]},
+    {'k': [6, 6, 6, 6, 6, 6]},
     {'k': RollResult.POOL},
     id='solo pool',
   ),
@@ -132,7 +133,7 @@ def test__should_roll_another_dice(roll_values, expected):
 def test_calculate_roll_results(roll_values, expected):
   rolls = {}
   for k, values in roll_values.items():
-    rolls[k] = Roll([D6(v) for v in values]).to_json()
+    rolls[k] = [Roll([D6(v) for v in values])]
 
   result, _ = calculate_turn_results(rolls)
   assert expected == result
@@ -190,7 +191,7 @@ def test_calculate_roll_results(roll_values, expected):
 def test_calculate_roll_results_mr_eleven(roll_values, expected, expected_mr_eleven):
   rolls = {}
   for k, values in roll_values.items():
-    rolls[k] = Roll([D6(v) for v in values]).to_json()
+    rolls[k] = [Roll([D6(v) for v in values])]
 
   result, mr_eleven = calculate_turn_results(rolls, 'MrEleven')
   assert expected == result

@@ -1,9 +1,9 @@
-
-
 import os
 import pytest
 import sys
 from unittest.mock import MagicMock
+from typing import List
+
 sys.path.append(os.path.abspath('./lambda/src/python'))
 from connection import DatabaseReader, DatabaseWriter
 from dao.player_dao import PlayerItem
@@ -15,11 +15,16 @@ class TestDatabaseReader:
   def fake_transact_get_items(TransactItems):
     return {'Responses': [{'Item': t} for t in TransactItems]}
 
+  @staticmethod
+  def fake_query(kwarg):
+    return {'Items': [kwarg]}
+
   @pytest.fixture
   def reader(self):
     dbr = DatabaseReader()
     dbr.client = MagicMock()
     dbr.client.transact_get_items = MagicMock(side_effect=self.fake_transact_get_items)
+    dbr.client.query = MagicMock(side_effect=self.fake_query)
     return dbr
 
   def test_read(self, reader):
@@ -32,6 +37,20 @@ class TestDatabaseReader:
       assert read2.id == None
     assert read1.id == 'apple'
     assert read2.id == 'banana'
+
+  def test_query(self, reader):
+    with reader:
+      result = reader.query({'kwarg': {'id': {'S': 'apple'}}}, PlayerItem)
+      assert list(result) == []
+    # Iterable
+    for r in result:
+      assert isinstance(r, PlayerItem)
+      assert r.id == 'apple'
+    # Convertable to list
+    result_list = list(result)
+    assert len(result_list) == 1
+    assert isinstance(result_list[0], PlayerItem)
+    assert result_list[0].id == 'apple'
 
 
 class TestDatabaseWriter:

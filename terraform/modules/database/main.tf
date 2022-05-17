@@ -9,7 +9,7 @@ terraform {
 }
 
 locals {
-  read_capacity = 10
+  read_capacity  = 10
   write_capacity = 10
 }
 
@@ -56,8 +56,8 @@ resource "aws_dynamodb_table" "games" {
 }
 
 resource "aws_dynamodb_table" "turns" {
-  name     = "${var.prefix}Turns"
-  hash_key = "id"
+  name           = "${var.prefix}Turns"
+  hash_key       = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = local.read_capacity
   write_capacity = local.write_capacity
@@ -82,8 +82,8 @@ resource "aws_dynamodb_table" "turns" {
 }
 
 resource "aws_dynamodb_table" "rolls" {
-  name     = "${var.prefix}Rolls"
-  hash_key = "id"
+  name           = "${var.prefix}Rolls"
+  hash_key       = "id"
   billing_mode   = "PROVISIONED"
   read_capacity  = local.read_capacity
   write_capacity = local.write_capacity

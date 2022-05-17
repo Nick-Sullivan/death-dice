@@ -49,3 +49,10 @@ module "api_gateway" {
   name    = local.prefix
   lambdas = module.lambdas.lambdas
 }
+
+# Create a dashboard for observing correct behaviour
+
+resource "aws_cloudwatch_dashboard" "dashboard" {
+  dashboard_name = local.prefix
+  dashboard_body = file("cloudwatch_dashboard.json")
+}

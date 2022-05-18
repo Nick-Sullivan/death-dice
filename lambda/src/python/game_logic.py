@@ -19,17 +19,46 @@ class RollResult(Enum):
   WISH_PURCHASE = 'WISH_PURCHASE'
 
 
-def initial_roll(win_counter):
+SPECIAL_NAMES = {
+  'SNAKE_EYES': [1, 1, 1],
+  'SNAKE_EYES_SAFE': [1, 1, 6],
+  'DUAL': [2, 2, 2, 2],
+  'SHOWER': [3, 3, 3],
+  'HEAD': [4, 4, 4, 4, 4],
+  'WISH': [5, 5, 5, 5, 5],
+  'POOL': [6, 6, 6, 6, 6, 6],
+  'MR_ELEVEN': [6, 5],
+  'AVERAGE_JOE': [1, 2, 1],
+  'AVERAGE_PETE': [1, 2, 2],
+  'AVERAGE_GREG': [1, 2, 3],
+  'ABOVE_AVERAGE_JOE': [5, 4, 4, 5],
+  'LUCKY_JOE': [6, 6, 5],
+}
+
+
+def initial_roll(win_counter, special_name=None):
   roll = Roll([D6(), D6()])
 
   if _should_roll_death_dice(win_counter):
     roll.append(_get_death_dice(win_counter))
 
+  if special_name in SPECIAL_NAMES:
+    values = SPECIAL_NAMES[special_name]
+    for i, d in enumerate(roll.dice):
+      d.value = values[i]
+
   return roll.to_json(), not _should_roll_another_dice([roll])
 
 
-def extra_roll(prev_rolls):
+def extra_roll(prev_rolls, special_name=None):
   roll = Roll([D6()])
+
+  if special_name in SPECIAL_NAMES:
+    prev_values = list(itertools.chain.from_iterable([r.values for r in prev_rolls]))
+    values = SPECIAL_NAMES[special_name]
+    for i, d in enumerate(roll.dice):
+      d.value = values[i+len(prev_values)]
+
   return roll.to_json(), not _should_roll_another_dice(prev_rolls + [roll])
 
 
@@ -119,7 +148,7 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
       results[k] = RollResult.HEAD_ON_TABLE
 
     elif is_roll_wish_purchase(values):
-      results[k] = RollResult.HEAD_ON_TABLE
+      results[k] = RollResult.WISH_PURCHASE
     
     elif is_roll_pool(values):
       results[k] = RollResult.POOL

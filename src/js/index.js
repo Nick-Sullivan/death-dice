@@ -205,7 +205,7 @@ function getRollResultHtml(rollResult){
     "FINISH_DRINK": "Finish your drink",
     "POOL": "Go jump in a pool",
     "SIP_DRINK": "Drink",
-    "SHOWER": "Shower",
+    "SHOWER": "Go take a shower",
     "TIE": "Tie, everyone drinks",
     "WINNER": "Winner",
     "WISH_PURCHASE": "Buy from wish.com",

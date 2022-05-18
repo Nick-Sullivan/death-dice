@@ -3,7 +3,9 @@
     "./lambda/src/python"
   ],
   "python.testing.pytestArgs": [
-    "lambda/test"
+    "lambda/test",
+    "tests",
+    "-n", "auto"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true

@@ -329,9 +329,9 @@ class GameController:
     player_rolls = [r for r in state.rolls if r.turn_id == player_turn.id]
 
     if not player_rolls:
-      roll, finished = game_logic.initial_roll(player.win_counter)
+      roll, finished = game_logic.initial_roll(player.win_counter, player.nickname)
     else:
-      roll, finished = game_logic.extra_roll([game_logic.get_roll(r.dice) for r in player_rolls])
+      roll, finished = game_logic.extra_roll([game_logic.get_roll(r.dice) for r in player_rolls], player.nickname)
 
     player_turn.finished = finished
 

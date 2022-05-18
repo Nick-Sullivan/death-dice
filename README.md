@@ -27,9 +27,6 @@ Rules:
 # Setting up
 
 ```
-python3 -m venv venv
-./venv/Scripts/activate
-pip install pytest boto3
 cd terraform/website_contents
 terraform apply
 ```
@@ -40,6 +37,26 @@ terraform apply
 terraform apply
 ```
 
+# Developing locally
+
+To run locally, I use VSCode with extensions `Playwright Test`, `Live Server`, `Terraform`, and `Python`.
+
+Install required things
+
+```
+python3 -m venv venv
+./venv/Scripts/activate
+pip install pytest boto3 playwright pytest-playwright pytest-xdist
+playwright install
+```
+
+Run tests (see https://playwright.dev/python/docs/test-runners#cli-arguments for Playwright CLI)
+(To use non-headless mode, remove "-n auto" from settings.json)
+
+```
+pytest 
+pytest -n auto  // for parallel
+```
 
 # Architecture
 
@@ -51,6 +68,7 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 - `lambda` contains the contents of the Lambda functions, along with unit tests.
 - `src` contains the website html, css, javascript and images
 - `terraform` contains infrastructure as code
+- `tests` contains Playwright browser testing
 
 
 # Resource locking
@@ -85,4 +103,5 @@ need to use `game_id` as their partition key, with a sort key to create item uni
 - show result for shower/finish drink before round ends
 - steal with single dice
 - order gamestate by join datetime
+- clean up logging
 (maybe) change hash keys so we can ConsistentRead the queries

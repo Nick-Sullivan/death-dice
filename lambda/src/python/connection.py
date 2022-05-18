@@ -53,7 +53,7 @@ class DatabaseReader:
     self.queries = []
 
   def __enter__(self):
-    assert self.items == [] and self.queries == [], 'Tried creating a new transaction before the previous one was completed'
+    assert self.items == [] and self.queries == [], f'Tried creating a new transaction before the previous one was completed, {self.items}, {self.queries}'
     return self
   
   def __exit__(self, type, value, traceback):

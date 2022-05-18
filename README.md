@@ -56,6 +56,7 @@ Run tests (see https://playwright.dev/python/docs/test-runners#cli-arguments for
 ```
 pytest 
 pytest -n auto  // for parallel
+pytest --headed // to see the browser
 ```
 
 # Architecture
@@ -104,4 +105,5 @@ need to use `game_id` as their partition key, with a sort key to create item uni
 - steal with single dice
 - order gamestate by join datetime
 - clean up logging
+- some browser tests have delays
 (maybe) change hash keys so we can ConsistentRead the queries

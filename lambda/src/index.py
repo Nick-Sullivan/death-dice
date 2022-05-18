@@ -10,7 +10,6 @@ def lambda_handler(func):
     """Decorator, parses AWS lambda input"""
 
     def inner(event, context):
-        print(f'event: {event}')
         player_id = event['requestContext']['connectionId']
         request=json.loads(event['body']) if 'body' in event else {}
         return func(player_id, request)

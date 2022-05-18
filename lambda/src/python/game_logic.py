@@ -118,14 +118,10 @@ def _max_duplicates(value):
 
 
 def calculate_turn_results(roll_obj_dict, mr_eleven=None):
-  print('game_logic.calculate_turn_results()')
-  print(f'roll_objs: {roll_obj_dict}')
 
-  # rolls = {k: Roll.from_json(v).values for k, v in rolls_json.items()}
   rolls = {}
   for k, roll_objs in roll_obj_dict.items():
     rolls[k] = list(itertools.chain.from_iterable([r.values for r in roll_objs]))
-  print(f'rolls: {rolls}')
 
   results = {}
   

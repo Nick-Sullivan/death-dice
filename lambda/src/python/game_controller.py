@@ -83,7 +83,6 @@ class GameController:
       N*6 <= 24
       N <= 4               
     """
-    print(f'old_state: {old_state}')
     print(f'new_state: {new_state}')
 
     with self.db_writer as conn:
@@ -319,8 +318,6 @@ class GameController:
     """Create a new roll for this player, and mark their turn as finished. If this is the last turns, calculate results for the round.
     Transaction retry so players don't think they are both the second-to-last roll.
     """
-    print('roll_dice()')
-
     state = self.get_state(player_id=player_id)
     old_state = deepcopy(state)
 
@@ -354,10 +351,7 @@ class GameController:
     player_rolls = {t.player_id: turn_rolls[t.id] for t in state.turns} # assumes 1 turn per player
     player_rolls = {p_id: [game_logic.get_roll(r.dice) for r in rolls] for p_id, rolls in player_rolls.items()}
 
-    print(f'player_rolls: {player_rolls}')
-
     results, mr_eleven = game_logic.calculate_turn_results(player_rolls, state.game.mr_eleven)
-    print(f'results: {results}')
 
     state.game.mr_eleven = mr_eleven if mr_eleven is not None else ''
     state.game.round_finished = True
@@ -376,7 +370,6 @@ class GameController:
   # Notifications
   
   def send_game_state_update(self, state):
-    print('send_game_state_update()')
 
     # Player and turn info
     player_output = []
@@ -416,5 +409,5 @@ class GameController:
         'round': {'complete': state.game.round_finished},
       },
     }
-    print(f'message: {message}')
+    print(f'game_state_update: {message}')
     self.client_notifier.send_notification([p.id for p in state.players], message)

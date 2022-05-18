@@ -9,8 +9,8 @@ terraform {
 }
 
 locals {
-  read_capacity  = 7
-  write_capacity = 7
+  read_capacity  = 10
+  write_capacity = 10
 }
 
 resource "aws_dynamodb_table" "players" {

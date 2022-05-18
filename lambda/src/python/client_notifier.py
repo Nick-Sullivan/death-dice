@@ -28,6 +28,5 @@ class ClientNotifier:
       )
     except ClientError as e:
       if e.response['Error']['Code'] == 'GoneException':
-        print('EXCEPTION: GoneException')
         return
       raise e

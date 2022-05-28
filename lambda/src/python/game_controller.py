@@ -89,7 +89,7 @@ class GameController:
         self.game_dao.create(conn, new)
       elif new is None:
         self.game_dao.delete(conn, old)
-      elif new != old:
+      else:
         self.game_dao.set(conn, new)
 
   # Connecting
@@ -122,11 +122,11 @@ class GameController:
         return
     
     state.players = [p for p in state.players if p.id != connection_id]
-    # state.rolls = [r for r in state.rolls if r.turn_id in remaining_turn_ids]
+    state.rolls = [r for r in state.rolls if r.player_id != connection_id]
 
-    # is_last_roll = all([p.finished for p in state.players])
-    # if is_last_roll:
-    #   state = self._calculate_turn_results(state)
+    is_last_roll = all([p.finished for p in state.players])
+    if is_last_roll:
+      state = self._calculate_turn_results(state)
 
     with DatabaseWriter() as conn:
       self.connection_dao.delete(conn, connection_id)
@@ -206,6 +206,9 @@ class GameController:
       'action': 'joinGame',
       'error': f'Unable to join game: {game_id}',
     }
+    if len(game_id) != 4:
+      return self.client_notifier.send_notification([connection_id], bad_message)
+
     try:
       state = self.get_state(game_id=game_id)
       old_state = deepcopy(state)

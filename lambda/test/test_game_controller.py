@@ -49,12 +49,13 @@ class TestGameController:
     assert not obj.game_dao.set.called
 
   def test_save_state_set(self, obj, conn, state):
+    # Update all items even if only one is changed, for optimistic concurrency
     new_state = deepcopy(state)
     new_state.players[0].version = 3
-
     obj.save_state(conn, state, new_state)
+    obj.game_dao.set.assert_any_call(conn, state.game)
     obj.game_dao.set.assert_any_call(conn, new_state.players[0])
-
-    assert obj.game_dao.set.call_count == 1
+    obj.game_dao.set.assert_any_call(conn, state.rolls[0])
     assert not obj.game_dao.create.called
     assert not obj.game_dao.delete.called
+  

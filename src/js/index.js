@@ -170,26 +170,29 @@ function newRound() {
   socket.send(JSON.stringify(message));
 
   document.getElementById("btnNewRound").disabled = true;
+}
 
-  audio_files = [
-    "real-crack-01",
-    "mish-crack-01",  // immitating crack
-    "mish-crack-02",  // vomitting
-    "mish-crack-03",  // saying tinnies
-    "mish-crack-04",  // saying crack
-    "mish-crack-05",  // immitating crack
-    "mish-crack-06",  // saying i'm a beer
-  ]
+audio_files = [
+  "real-crack-01",
+  "mish-crack-01",  // immitating crack
+  "mish-crack-02",  // vomitting
+  "mish-crack-03",  // saying tinnies
+  "mish-crack-04",  // saying crack
+  "mish-crack-05",  // immitating crack
+  "mish-crack-06",  // saying i'm a beer
+]
+weights = [
+  20,
+  5,
+  1,
+  1,
+  1,
+  5,
+  1,
+]
 
-  weights = [
-    20,
-    5,
-    1,
-    1,
-    1,
-    5,
-    1,
-  ]
+function playRandomCrackSound(){
+
   index = weightedRandom(weights);
 
   audio = document.getElementById(audio_files[index]);
@@ -350,6 +353,18 @@ function gameStateCallback(response){
         document.getElementById("btnRollDice").disabled = false;
       }
     } 
+    // Play sound
+    let newRound = true;
+    for (const player of state.players){
+      if ("diceValue" in player || state.round.complete) {
+        newRound = false;
+        break;
+      }
+    }
+    console.log(`newRound: ${newRound}`);
+    if (newRound){
+      playRandomCrackSound();
+    }
   }
 
   prevState = state;

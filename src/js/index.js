@@ -1,4 +1,4 @@
-const url = "wss://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://0zplabvdya.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 var prevState = {"players": []};
@@ -170,6 +170,60 @@ function newRound() {
   socket.send(JSON.stringify(message));
 
   document.getElementById("btnNewRound").disabled = true;
+
+  audio_files = [
+    "real-crack-01",
+    "mish-crack-01",  // immitating crack
+    "mish-crack-02",  // vomitting
+    "mish-crack-03",  // saying tinnies
+    "mish-crack-04",  // saying crack
+    "mish-crack-05",  // immitating crack
+    "mish-crack-06",  // saying i'm a beer
+  ]
+
+  weights = [
+    20,
+    5,
+    1,
+    1,
+    1,
+    5,
+    1,
+  ]
+  index = weightedRandom(weights);
+
+  audio = document.getElementById(audio_files[index]);
+  audio.volume = 0.4;
+  audio.play();
+}
+
+function weightedRandom(weights) {
+  // https://dev.to/trekhleb/weighted-random-algorithm-in-javascript-1pdc
+
+  // Preparing the cumulative weights array.
+  // For example:
+  // - weights = [1, 4, 3]
+  // - cumulativeWeights = [1, 5, 8]
+  const cumulativeWeights = [];
+  for (let i = 0; i < weights.length; i += 1) {
+    cumulativeWeights[i] = weights[i] + (cumulativeWeights[i - 1] || 0);
+  }
+
+  // Getting the random number in a range of [0...sum(weights)]
+  // For example:
+  // - weights = [1, 4, 3]
+  // - maxCumulativeWeight = 8
+  // - range for the random number is [0...8]
+  const maxCumulativeWeight = cumulativeWeights[cumulativeWeights.length - 1];
+  const randomNumber = maxCumulativeWeight * Math.random();
+
+  // Picking the random item based on its weight.
+  // The items with higher weight will be picked more often.
+  for (let itemIndex = 0; itemIndex < weights.length; itemIndex += 1) {
+    if (cumulativeWeights[itemIndex] >= randomNumber) {
+      return itemIndex;
+    }
+  }
 }
 
 function rollDice() {

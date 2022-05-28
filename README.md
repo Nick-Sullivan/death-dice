@@ -106,4 +106,9 @@ need to use `game_id` as their partition key, with a sort key to create item uni
 - order gamestate by join datetime
 - clean up logging
 - some browser tests have delays
+- flames for death dice
+- mr eleven first to roll, not first in list
+- death dice upgrade on 3 wins with two players
+- Airhorn people that take too long
+- 4 4 1 1 should be death dice
 (maybe) change hash keys so we can ConsistentRead the queries

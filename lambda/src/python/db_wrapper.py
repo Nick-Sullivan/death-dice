@@ -1,3 +1,4 @@
+"""Wrappers for writing/reading to a DynamoDB in transactions"""
 import boto3
 from botocore.exceptions import ClientError
 
@@ -35,7 +36,7 @@ def transaction_retry(func, max_attempts=5):
 
 class DatabaseReader:
   """Created to perform multiple database reads in a single transaction.
-  It will also perform queries AFTER the get's, but DynamoDB does not support queries in a single transaction.
+  It will also perform queries IMMEDIATELY AFTER the get's, but DynamoDB does not support queries in a single transaction.
   https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/dynamodb.html#DynamoDB.Client.transact_get_items
   
   Example usage:
@@ -89,10 +90,11 @@ class DatabaseReader:
     self.items.append((request, obj))
     return obj
     
-  def query(self, request, cls):
-    obj = QueryResponse(item_cls=cls)
-    self.queries.append((request, obj))
-    return obj
+  def query(self, request, cls=None):
+    return self.client.query(**request)['Items']
+    # obj = QueryResponse(item_cls=cls)
+    # self.queries.append((request, obj))
+    # return obj
 
 
 class QueryResponse:

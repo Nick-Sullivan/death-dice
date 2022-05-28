@@ -6,7 +6,7 @@ from botocore.exceptions import ClientError
 class ClientNotifier:
   """Responsible for sending messages to players"""
 
-  url = f'https://fd7yv03sm1.execute-api.ap-southeast-2.amazonaws.com/production'
+  url = f'https://0zplabvdya.execute-api.ap-southeast-2.amazonaws.com/production'
   gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
   @staticmethod

@@ -5,8 +5,8 @@ from unittest.mock import MagicMock
 from typing import List
 
 sys.path.append(os.path.abspath('./lambda/src/python'))
-from connection import DatabaseReader, DatabaseWriter
-from dao.player_dao import PlayerItem
+from db_wrapper import DatabaseReader, DatabaseWriter
+from dao.connection import ConnectionItem
 
 
 class TestDatabaseReader:
@@ -29,10 +29,10 @@ class TestDatabaseReader:
 
   def test_read(self, reader):
     with reader:
-      read1 = reader.read({'id': {'S': 'apple'}}, PlayerItem)
-      read2 = reader.read({'id': {'S': 'banana'}}, PlayerItem)
-      assert isinstance(read1, PlayerItem)
-      assert isinstance(read2, PlayerItem)
+      read1 = reader.read({'id': {'S': 'apple'}}, ConnectionItem)
+      read2 = reader.read({'id': {'S': 'banana'}}, ConnectionItem)
+      assert isinstance(read1, ConnectionItem)
+      assert isinstance(read2, ConnectionItem)
       assert read1.id == None
       assert read2.id == None
     assert read1.id == 'apple'
@@ -40,16 +40,16 @@ class TestDatabaseReader:
 
   def test_query(self, reader):
     with reader:
-      result = reader.query({'kwarg': {'id': {'S': 'apple'}}}, PlayerItem)
+      result = reader.query({'kwarg': {'id': {'S': 'apple'}}}, ConnectionItem)
       assert list(result) == []
     # Iterable
     for r in result:
-      assert isinstance(r, PlayerItem)
+      assert isinstance(r, ConnectionItem)
       assert r.id == 'apple'
     # Convertable to list
     result_list = list(result)
     assert len(result_list) == 1
-    assert isinstance(result_list[0], PlayerItem)
+    assert isinstance(result_list[0], ConnectionItem)
     assert result_list[0].id == 'apple'
 
 

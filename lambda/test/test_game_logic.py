@@ -3,7 +3,7 @@ import pytest
 import sys
 
 sys.path.append(os.path.abspath('./lambda/src/python'))
-from dice_models import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
+from model.dice import Roll, D4, D6, D8, D10, D12, D20, D10Percentile
 from game_logic import RollResult, calculate_turn_results, _should_roll_another_dice
 
 

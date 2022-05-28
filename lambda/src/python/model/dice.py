@@ -1,3 +1,5 @@
+"""Models representing physical dice, for use in rolling logic"""
+
 import json
 from random import randint
 from typing import List

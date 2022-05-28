@@ -1,115 +1,113 @@
 {
-  "widgets": [
-      {
-          "height": 6,
-          "width": 6,
-          "y": 0,
-          "x": 12,
-          "type": "metric",
-          "properties": {
-              "metrics": [
-                  [ { "expression": "m1+m2+m3+m4", "label": "ConsumedReadCapacityUnits", "id": "e1", "region": "ap-southeast-2" } ],
-                  [ { "expression": "m5+m6+m7+m8", "label": "ConsumedWriteCapacityUnits", "id": "e2", "region": "ap-southeast-2" } ],
-                  [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "DeathDiceGames", { "id": "m1", "visible": false } ],
-                  [ "...", "DeathDicePlayers", { "id": "m2", "visible": false } ],
-                  [ "...", "DeathDiceRolls", { "id": "m3", "visible": false } ],
-                  [ "...", "DeathDiceTurns", { "id": "m4", "visible": false } ],
-                  [ ".", "ConsumedWriteCapacityUnits", ".", "DeathDiceGames", { "id": "m5", "visible": false } ],
-                  [ "...", "DeathDicePlayers", { "id": "m6", "visible": false } ],
-                  [ "...", "DeathDiceRolls", { "id": "m7", "visible": false } ],
-                  [ "...", "DeathDiceTurns", { "id": "m8", "visible": false } ]
-              ],
-              "view": "timeSeries",
-              "stacked": false,
-              "region": "ap-southeast-2",
-              "stat": "Average",
-              "period": 300,
-              "annotations": {
-                  "horizontal": [
-                      {
-                          "label": "Free Tier",
-                          "value": 25
-                      }
-                  ]
-              },
-              "title": "DynamoDB",
-              "yAxis": {
-                  "left": {
-                      "showUnits": false
-                  },
-                  "right": {
-                      "showUnits": false
-                  }
-              }
-          }
-      },
-      {
-          "height": 13,
-          "width": 12,
-          "y": 0,
-          "x": 0,
-          "type": "explorer",
-          "properties": {
-              "metrics": [
-                  {
-                      "metricName": "Duration",
-                      "resourceType": "AWS::Lambda::Function",
-                      "stat": "p90"
-                  },
-                  {
-                      "metricName": "Errors",
-                      "resourceType": "AWS::Lambda::Function",
-                      "stat": "Sum"
-                  },
-                  {
-                      "metricName": "Invocations",
-                      "resourceType": "AWS::Lambda::Function",
-                      "stat": "Sum"
-                  },
-                  {
-                      "metricName": "Throttles",
-                      "resourceType": "AWS::Lambda::Function",
-                      "stat": "Sum"
-                  }
-              ],
-              "labels": [
-                  {
-                      "key": "Project",
-                      "value": "Death Dice"
-                  }
-              ],
-              "widgetOptions": {
-                  "legend": {
-                      "position": "bottom"
-                  },
-                  "view": "timeSeries",
-                  "stacked": false,
-                  "rowsPerPage": 2,
-                  "widgetsPerRow": 2
-              },
-              "period": 300,
-              "splitBy": "Project",
-              "region": "ap-southeast-2",
-              "title": "Lambda"
-          }
-      },
-      {
-          "height": 6,
-          "width": 6,
-          "y": 6,
-          "x": 12,
-          "type": "metric",
-          "properties": {
-              "metrics": [
-                  [ "AWS/ApiGateway", "MessageCount", "Stage", "production", "ApiId", "fd7yv03sm1" ]
-              ],
-              "view": "timeSeries",
-              "stacked": false,
-              "region": "ap-southeast-2",
-              "stat": "Sum",
-              "period": 86400,
-              "title": "ApiGateway"
-          }
-      }
-  ]
+    "widgets": [
+        {
+            "height": 6,
+            "width": 6,
+            "y": 0,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "m1+m2", "label": "ConsumedReadCapacityUnits", "id": "e1", "region": "ap-southeast-2", "stat": "Sum" } ],
+                    [ { "expression": "m3+m6", "label": "ConsumedWriteCapacityUnits", "id": "e2", "region": "ap-southeast-2", "stat": "Sum" } ],
+                    [ { "expression": "RUNNING_SUM(e1)", "label": "CumulativeConsumedReadCapacityUnits", "id": "e3", "region": "ap-southeast-2" } ],
+                    [ { "expression": "RUNNING_SUM(e2)", "label": "CumulativeConsumedWriteCapacityUnits", "id": "e4", "region": "ap-southeast-2" } ],
+                    [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "DeathDicePlayers", { "id": "m2", "visible": false } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m6", "visible": false } ],
+                    [ ".", "ConsumedReadCapacityUnits", ".", "DeathDice", { "id": "m1", "visible": false } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m3", "visible": false } ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-southeast-2",
+                "stat": "Sum",
+                "period": 300,
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "label": "Free Tier",
+                            "value": 18600
+                        }
+                    ]
+                },
+                "title": "DynamoDB",
+                "yAxis": {
+                    "left": {
+                        "showUnits": false
+                    },
+                    "right": {
+                        "showUnits": false
+                    }
+                }
+            }
+        },
+        {
+            "height": 13,
+            "width": 12,
+            "y": 0,
+            "x": 0,
+            "type": "explorer",
+            "properties": {
+                "metrics": [
+                    {
+                        "metricName": "Duration",
+                        "resourceType": "AWS::Lambda::Function",
+                        "stat": "p90"
+                    },
+                    {
+                        "metricName": "Errors",
+                        "resourceType": "AWS::Lambda::Function",
+                        "stat": "Sum"
+                    },
+                    {
+                        "metricName": "Invocations",
+                        "resourceType": "AWS::Lambda::Function",
+                        "stat": "Sum"
+                    },
+                    {
+                        "metricName": "Throttles",
+                        "resourceType": "AWS::Lambda::Function",
+                        "stat": "Sum"
+                    }
+                ],
+                "labels": [
+                    {
+                        "key": "Project",
+                        "value": "Death Dice"
+                    }
+                ],
+                "widgetOptions": {
+                    "legend": {
+                        "position": "bottom"
+                    },
+                    "view": "timeSeries",
+                    "stacked": false,
+                    "rowsPerPage": 2,
+                    "widgetsPerRow": 2
+                },
+                "period": 300,
+                "splitBy": "Project",
+                "region": "ap-southeast-2",
+                "title": "Lambda"
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 6,
+            "x": 12,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ "AWS/ApiGateway", "MessageCount", "Stage", "production", "ApiId", "fd7yv03sm1" ]
+                ],
+                "view": "timeSeries",
+                "stacked": false,
+                "region": "ap-southeast-2",
+                "stat": "Sum",
+                "period": 86400,
+                "title": "ApiGateway"
+            }
+        }
+    ]
 }

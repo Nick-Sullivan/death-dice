@@ -5,7 +5,7 @@ import sys
 from unittest.mock import MagicMock
 
 sys.path.append(os.path.abspath('./lambda/src/python'))
-from dao.player_dao import DynamodbItem, BaseDao
+from dao.game import DynamodbItem, GameDao
 
 
 class TestDynamodbItem:
@@ -27,32 +27,27 @@ class TestDynamodbItem:
     assert result.version == 2
 
 
-class FakeBaseDao(BaseDao):
-  table_name = 'TableName'
-  item_class = DynamodbItem
-
-
-class TestBaseDao:
+class TestGameDao:
 
   @pytest.fixture
   def obj(self):
-    return FakeBaseDao()
+    return GameDao()
 
   @pytest.fixture
   def conn(self):
     return MagicMock()
 
   def test_init(self, obj):
-    assert isinstance(obj, BaseDao)
+    assert isinstance(obj, GameDao)
 
   def test_set(self, obj, conn):
-    obj.set(conn, DynamodbItem(id="id", version=2))
+    obj.set(conn, DynamodbItem(game_id="game_id", id="id", version=2))
     conn.write.assert_called_once_with({
       'Update': {
-        'TableName': 'TableName',
-        'Key': {'id': {'S': 'id'}},
-        'ConditionExpression': 'attribute_exists(id) AND version = :v',
-        'UpdateExpression': 'SET version = :1',
-        'ExpressionAttributeValues': {':1': {'N': '3'}, ':v': {'N': '2'}},
+        'TableName': 'DeathDice',
+        'Key': {'game_id': {'S': 'game_id'}, 'id': {'S': 'id'}},
+        'ConditionExpression': 'attribute_exists(game_id) AND attribute_exists(id) AND version = :v',
+        'UpdateExpression': 'SET version = :2',
+        'ExpressionAttributeValues': {':2': {'N': '3'}, ':v': {'N': '2'}},
       }
     })

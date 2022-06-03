@@ -10,7 +10,6 @@ class DynamodbItem:
   version: int = None
   created_on: datetime = None
   
-
   def to_query(self):
     response = {}
     for f in fields(self):

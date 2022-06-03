@@ -1,7 +1,6 @@
 from datetime import datetime, timezone
 
-from model.connection import ConnectionItem
-
+from model.game_items import ConnectionItem
 
 
 class ConnectionDao:

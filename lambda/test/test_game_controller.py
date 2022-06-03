@@ -6,7 +6,7 @@ from copy import deepcopy
 from unittest.mock import MagicMock, patch
 
 sys.path.append(os.path.abspath('./lambda/src/python'))
-from model.game import GameItem, PlayerItem, GameState, RollItem
+from model.game_items import ConnectionItem, GameItem, PlayerItem, GameState, RollItem
 from game_controller import GameController
 
 
@@ -23,6 +23,24 @@ class TestGameController:
   @pytest.fixture(scope='class')
   def conn(self):
     return 'conn'
+
+  def test_get_state(self, obj):
+    items_raw = [
+      {
+        'id': {'S': 'BFRJ'},
+        'item_type': {'S': 'GAME'}
+      },
+      {
+        'nickname': {'S': 'AVERAGE_JOE'},
+        'item_type': {'S': 'PLAYER'}
+      }
+    ]
+    obj.game_dao.get_items_with_game_id = MagicMock(side_effect=lambda *x: items_raw)
+
+    result = obj.get_state('BFRJ')
+    assert result.game.id == 'BFRJ'
+    assert result.players[0].nickname == 'AVERAGE_JOE'
+    assert not result.rolls
 
   @pytest.fixture(scope='class')
   def state(self):
@@ -59,3 +77,35 @@ class TestGameController:
     assert not obj.game_dao.create.called
     assert not obj.game_dao.delete.called
   
+  def test_disconnect_pre_game(self, obj):
+    obj.connection_dao.get = MagicMock(return_value=ConnectionItem(game_id=None))
+    obj.save_state = MagicMock()
+
+    obj.disconnect('connection id')
+    obj.connection_dao.delete.assert_called_once()
+    obj.save_state.assert_not_called()
+
+  def test_disconnect_last_player_in_game(self, obj):
+    obj.connection_dao.get = MagicMock(return_value=ConnectionItem(game_id='GAME'))
+    obj.get_state = MagicMock(return_value=GameState(game=GameItem(), players=[], rolls=[]))
+    obj.save_state = MagicMock()
+
+    obj.disconnect('connection id')
+    obj.connection_dao.delete.assert_called_once()
+    obj.save_state.assert_called_once()
+    assert obj.save_state.call_args.args[2] == None
+
+  def test_disconnect_two_players_in_game(self, obj):
+    obj.connection_dao.get = MagicMock(return_value=ConnectionItem(game_id='GAME'))
+    obj.get_state = MagicMock(return_value=GameState(
+      game=GameItem(),
+      players=[PlayerItem(finished=False), PlayerItem(finished=False)],
+      rolls=[]
+    ))
+    obj.save_state = MagicMock()
+    obj.send_game_state_update = MagicMock()
+
+    obj.disconnect('connection id')
+    obj.connection_dao.delete.assert_called_once()
+    obj.save_state.assert_called_once()
+    assert isinstance(obj.save_state.call_args.args[2], GameState)

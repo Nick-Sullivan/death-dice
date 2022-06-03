@@ -1,13 +1,13 @@
 from datetime import datetime, timezone
 
-from model.game import DynamodbItem
+from model.dynamodb_item import DynamodbItem
 
 
 class GameDao:
   """Creates, updates and destroys entries in the Game table"""
 
-  item_class = DynamodbItem
   table_name = 'DeathDice'
+  item_class = DynamodbItem
 
   def create(self, connection, item):
     assert isinstance(item, self.item_class)

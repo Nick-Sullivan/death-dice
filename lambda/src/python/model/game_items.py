@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from enum import Enum
-from model.base import DynamodbItem
+from model.dynamodb_item import DynamodbItem
 from typing import List
 
 
@@ -10,6 +10,11 @@ class ItemType(Enum):
   GAME = 'GAME'
   PLAYER = 'PLAYER'
   ROLL = 'ROLL'
+
+
+@dataclass
+class ConnectionItem(DynamodbItem):
+  nickname: str = None
 
 
 @dataclass

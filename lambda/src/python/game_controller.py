@@ -11,8 +11,7 @@ from client_notifier import ClientNotifier
 from dao.connection import ConnectionDao
 from dao.game import GameDao
 from db_wrapper import DatabaseReader, DatabaseWriter, transaction_fail_logs, transaction_retry
-from model.connection import ConnectionItem
-from model.game import ItemType, GameItem, GameState, PlayerItem, RollItem, lookup_item_class
+from model.game_items import ItemType, ConnectionItem, GameItem, GameState, PlayerItem, RollItem, lookup_item_class
 
 
 class GameController:
@@ -115,7 +114,7 @@ class GameController:
     state = self.get_state(connection.game_id)
     old_state = deepcopy(state)
 
-    if len(state.players) == 1:
+    if len(state.players) <= 1:
       with DatabaseWriter() as conn:
         self.connection_dao.delete(conn, connection_id)
         self.save_state(conn, old_state, None)

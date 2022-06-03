@@ -75,7 +75,7 @@ def roll_dice(connection_id, request):
 
 @lambda_handler
 def set_nickname(connection_id, request):
-    """Called by the WebSocketAPI when a player wants set their display name"""
+    """Called by the WebSocketAPI when a player wants to set their display name"""
 
     nickname = request['data']
 

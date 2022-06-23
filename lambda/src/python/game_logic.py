@@ -213,7 +213,7 @@ def is_roll_pool(values):
 
 def is_roll_head_on_table(values):
   counter = Counter(values)
-  return counter.get(4, 0) >= 5
+  return counter.get(4, 0) >= 4
 
 
 def is_roll_wish_purchase(values):

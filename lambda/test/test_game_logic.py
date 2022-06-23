@@ -108,6 +108,11 @@ def test__should_roll_another_dice(roll_values, expected):
     id='snake eyes fail w/ death dice',
   ),
   pytest.param(
+    {'k': [4, 4, 4, 4]},
+    {'k': RollResult.HEAD_ON_TABLE},
+    id='head on table',
+  ),
+  pytest.param(
     {
       'a': [3, 2, 1],
       'b': [1, 2, 3],

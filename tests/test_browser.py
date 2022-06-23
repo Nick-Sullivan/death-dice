@@ -4,8 +4,8 @@ from playwright.sync_api import Page, BrowserContext
 
 class GameSession:
 
-  # URL = "http://127.0.0.1:5500/src/index.html"
-  URL = "http://100percentofthetimehotspaghetti.com/dice.html"
+  URL = "http://127.0.0.1:5500/src/index.html"
+  # URL = "http://100percentofthetimehotspaghetti.com/dice.html"
   DEFAULT_TIMEOUT = 20000  # milliseconds
 
   def __init__(self, page: Page):

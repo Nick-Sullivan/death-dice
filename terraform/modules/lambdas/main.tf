@@ -58,7 +58,7 @@ locals {
 resource "aws_cloudwatch_log_group" "all" {
   for_each          = local.lambdas
   name              = "/aws/lambda/${each.value.name}"
-  retention_in_days = 3
+  retention_in_days = 90
 }
 
 # Create the functions using the source code zips

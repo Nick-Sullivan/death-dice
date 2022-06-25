@@ -134,14 +134,27 @@ def test__should_roll_another_dice(roll_values, expected):
     },
     id='duo both lose',
   ),
+  pytest.param(
+    {
+      'a': [2, 2, 2, 2],
+      'b': [1, 2, 3],
+    },
+    {
+      'a': RollResult.DUAL_WIELD,
+      'b': RollResult.SIP_DRINK,
+    },
+    id='dual wield isnt instant loss',
+  ),
+
 ])
 def test_calculate_roll_results(roll_values, expected):
   rolls = {}
   for k, values in roll_values.items():
     rolls[k] = [Roll([D6(v) for v in values])]
 
-  result, _ = calculate_turn_results(rolls)
+  result, _, _ = calculate_turn_results(rolls)
   assert expected == result
+
 
 @pytest.mark.parametrize('roll_values, expected, expected_mr_eleven', [
   pytest.param(
@@ -192,12 +205,51 @@ def test_calculate_roll_results(roll_values, expected):
     'MrEleven',
     id='mr eleven doesnt change',
   ),
+  pytest.param(
+    {
+      'a': [6, 5],
+      'MrEleven': [6, 5],
+      'c': [5, 6],
+    },
+    {
+      'a': RollResult.THREE_WAY_TIE,
+      'MrEleven': RollResult.THREE_WAY_TIE,
+      'c': RollResult.THREE_WAY_TIE,
+    },
+    "MrEleven",
+    id='three way tie w/ mr eleven',
+  ),
 ])
 def test_calculate_roll_results_mr_eleven(roll_values, expected, expected_mr_eleven):
   rolls = {}
   for k, values in roll_values.items():
     rolls[k] = [Roll([D6(v) for v in values])]
 
-  result, mr_eleven = calculate_turn_results(rolls, 'MrEleven')
+  result, mr_eleven, _ = calculate_turn_results(rolls, 'MrEleven')
   assert expected == result
   assert expected_mr_eleven == mr_eleven
+
+
+@pytest.mark.parametrize('roll_values, expected', [
+  pytest.param(
+    {
+      'a': [3, 2],
+      'b': [2, 3],
+      'c': [4, 1],
+    },
+    {
+      'a': RollResult.THREE_WAY_TIE,
+      'b': RollResult.THREE_WAY_TIE,
+      'c': RollResult.THREE_WAY_TIE,
+    },
+    id='three way tie',
+  ),
+])
+def test_calculate_roll_results_extra_roll(roll_values, expected):
+  rolls = {}
+  for k, values in roll_values.items():
+    rolls[k] = [Roll([D6(v) for v in values])]
+
+  result, _, finished = calculate_turn_results(rolls)
+  assert expected == result
+  assert not finished

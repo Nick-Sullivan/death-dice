@@ -307,11 +307,17 @@ class GameController:
       roll_obj = game_logic.get_roll(r.dice)
       player_rolls[r.player_id].append(roll_obj)
 
-    results, mr_eleven = game_logic.calculate_turn_results(player_rolls, state.game.mr_eleven)
+    results, mr_eleven, round_finished = game_logic.calculate_turn_results(player_rolls, state.game.mr_eleven)
 
     state.game.mr_eleven = mr_eleven if mr_eleven is not None else ''
-    state.game.round_finished = True
+    state.game.round_finished = round_finished
 
+    if not round_finished:
+      for player in state.players:
+        player.outcome = results[player.id].value
+        player.finished = False
+      return state
+    
     for player in state.players:
       player.outcome = results[player.id].value
 
@@ -333,10 +339,9 @@ class GameController:
         'id': player.id,
         'nickname': 'Mr Eleven' if player.id == state.game.mr_eleven else player.nickname,
         'turnFinished': player.finished,
-        'winCount': player.win_counter
+        'winCount': player.win_counter,
+        'rollResult': player.outcome,
       }
-      if state.game.round_finished:
-        entry['rollResult'] = player.outcome
 
       # Combine dice rolls into one
       rolls = [r for r in state.rolls if r.player_id == player.id]

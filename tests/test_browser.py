@@ -4,9 +4,9 @@ from playwright.sync_api import Page, BrowserContext
 
 class GameSession:
 
-  URL = "http://127.0.0.1:5500/src/index.html"
-  # URL = "http://100percentofthetimehotspaghetti.com/dice.html"
-  DEFAULT_TIMEOUT = 20000  # milliseconds
+  # URL = "http://127.0.0.1:5500/src/index.html"
+  URL = "http://100percentofthetimehotspaghetti.com/dice.html"
+  DEFAULT_TIMEOUT = 30000  # milliseconds
 
   def __init__(self, page: Page):
     page.goto(self.URL)
@@ -101,7 +101,6 @@ class GameSession:
     assert self.roll_dice_btn.is_disabled()
 
   def assert_result_text(self, text):
-    self.new_round_btn.click(trial=True)
     result = self.page.locator(f"text={text}")
     assert result.is_enabled()
 
@@ -334,22 +333,20 @@ def test_three_player_tie(context: BrowserContext):
   session3.set_name("AVERAGE_GREG")
   session3.join_game(game_code)
 
-  session2.new_round()
+  session3.new_round()
 
   session.roll_dice() # 1,2
   session2.roll_dice() # 1,2
   session3.roll_dice() # 1,2
 
-  # Current logic
-  session3.assert_result_text("AVERAGE_JOE Tie, everyone drinks")
-  session3.assert_result_text("AVERAGE_PETE Tie, everyone drinks")
-  session3.assert_result_text("AVERAGE_GREG Tie, everyone drinks")
+  session3.assert_result_text("AVERAGE_JOE Freeway, roll again")
+  session3.assert_result_text("AVERAGE_PETE Freeway, roll again")
+  session3.assert_result_text("AVERAGE_GREG Freeway, roll again")
 
-  # # Desired logic
-  # session.roll_dice() # 1,2,1
-  # session2.roll_dice() # 1,2,2
-  # session3.roll_dice() # 1,2,3
+  session.roll_dice() # 1,2,1
+  session2.roll_dice() # 1,2,2
+  session3.roll_dice() # 1,2,3
 
-  # session3.assert_result_text("AVERAGE_JOE Drink")
-  # session3.assert_result_text("AVERAGE_PETE Drink")
-  # session3.assert_result_text("AVERAGE_GREG (1) Winner")
+  session3.assert_result_text("AVERAGE_JOE Drink")
+  session3.assert_result_text("AVERAGE_PETE Drink")
+  session3.assert_result_text("AVERAGE_GREG (1) Winner")

@@ -14,6 +14,7 @@ class RollResult(Enum):
   POOL = 'POOL'
   SIP_DRINK = 'SIP_DRINK'
   SHOWER = 'SHOWER'
+  THREE_WAY_TIE = 'THREE_WAY_TIE'
   TIE = 'TIE'
   WINNER = 'WINNER'
   WISH_PURCHASE = 'WISH_PURCHASE'
@@ -124,6 +125,7 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
     rolls[k] = list(itertools.chain.from_iterable([r.values for r in roll_objs]))
 
   results = {}
+  round_finished = True
   
   # Instant lose
   for k, values in rolls.items():
@@ -134,27 +136,25 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
     elif is_roll_snake_eyes_safe(values):
       results[k] = RollResult.SIP_DRINK
 
-    elif is_roll_dual_wield(values):
-      results[k] = RollResult.DUAL_WIELD
-
     elif is_roll_shower(values):
       results[k] = RollResult.SHOWER
     
-    elif is_roll_head_on_table(values):
-      results[k] = RollResult.HEAD_ON_TABLE
-
-    elif is_roll_wish_purchase(values):
-      results[k] = RollResult.WISH_PURCHASE
-    
     elif is_roll_pool(values):
       results[k] = RollResult.POOL
-
 
   # In the running
   roll_totals = {k: sum(v) for k, v in rolls.items() if k not in results}
 
   if not roll_totals:
-    return results, mr_eleven
+    return results, mr_eleven, round_finished
+
+  # Extra roll needed
+  max_value = max(roll_totals.values())
+  is_tie = sum([v == max_value for v in roll_totals.values()]) > 1
+  if is_tie and len(rolls) == 3:
+    results.update({k: RollResult.THREE_WAY_TIE for k in roll_totals})
+    round_finished = False
+    return results, mr_eleven, round_finished
 
   # Mr eleven wins, anyone else that gets an 11 doesn't lose
   if mr_eleven is not None:
@@ -163,7 +163,7 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
         k: RollResult.WINNER if v == 11 else RollResult.SIP_DRINK 
         for k, v in roll_totals.items()
       })
-      return results, mr_eleven
+      return results, mr_eleven, round_finished
 
   # New mr eleven
   for k, v in roll_totals.items():
@@ -172,10 +172,6 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
       break
 
   # Winner is the highest total
-
-  max_value = max(roll_totals.values())
-  is_tie = sum([v == max_value for v in roll_totals.values()]) > 1
-
   if is_tie:
     results.update({k: RollResult.TIE for k in roll_totals})
   else:
@@ -184,7 +180,19 @@ def calculate_turn_results(roll_obj_dict, mr_eleven=None):
       for k, v in roll_totals.items()
     })
 
-  return results, mr_eleven
+  # Special cases that aren't instant lose
+  for k, values in rolls.items():
+
+    if is_roll_dual_wield(values):
+      results[k] = RollResult.DUAL_WIELD
+
+    elif is_roll_head_on_table(values):
+      results[k] = RollResult.HEAD_ON_TABLE
+
+    elif is_roll_wish_purchase(values):
+      results[k] = RollResult.WISH_PURCHASE
+
+  return results, mr_eleven, round_finished
 
 
 def is_roll_snake_eyes_fail(values):

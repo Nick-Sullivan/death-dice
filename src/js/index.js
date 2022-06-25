@@ -259,6 +259,7 @@ function getRollResultHtml(rollResult){
     "SIP_DRINK": "Drink",
     "SHOWER": "Go take a shower",
     "TIE": "Tie, everyone drinks",
+    "THREE_WAY_TIE": "Freeway, roll again",
     "WINNER": "Winner",
     "WISH_PURCHASE": "Buy from wish.com",
     "": "",
@@ -281,6 +282,7 @@ function getBackgroundColor(rollResult){
     "HEAD_ON_TABLE": "#fffcb3",
     "WISH_PURCHASE": "#fffcb3",
     
+    "THREE_WAY_TIE": "#c8c9ce",
     "": "#c8c9ce",
   }[rollResult];
 }
@@ -393,15 +395,10 @@ function _createPlayerCard(player){
     winCountHtml = `(${player.winCount})`;
   }
   
-  var backgroundColor = getBackgroundColor("");
-  if ('rollResult' in player){
-    backgroundColor = getBackgroundColor(player.rollResult);
-  }
+  var backgroundColor = getBackgroundColor(player.rollResult);
+  console.log(`background: ${backgroundColor}`);
   
-  var resultHtml = "";
-  if ('rollResult' in player){
-    resultHtml = getRollResultHtml(player.rollResult);
-  }
+  var resultHtml = getRollResultHtml(player.rollResult);
 
   const cardId = playerIdToCardId[player.id];
   var myCol = $('<div class="col-sm-12 col-md-6 col-lg-6 col-xl-6 pb-1"></div>');

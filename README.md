@@ -51,7 +51,7 @@ playwright install
 ```
 
 Run tests (see https://playwright.dev/python/docs/test-runners#cli-arguments for Playwright CLI)
-(To use non-headless mode, remove "-n auto" from settings.json)
+(To use non-headless mode, replace "-n auto" with "--headed" in settings.json)
 
 ```
 pytest 
@@ -74,8 +74,6 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 
 # TODO
 
-- three way ties
-- german mode
 - show result for shower/finish drink before round ends
 - steal with single dice
 - order gamestate by join datetime
@@ -83,6 +81,6 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 - some browser tests have delays
 - flames for death dice
 - mr eleven first to roll, not first in list
-- death dice upgrade on 3 wins with two players
 - Airhorn people that take too long
 - 4 4 1 1 should be death dice
+- death dice upgrade on 3 wins with two players

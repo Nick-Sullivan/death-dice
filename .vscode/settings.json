@@ -3,9 +3,11 @@
     "./lambda/src/python"
   ],
   "python.testing.pytestArgs": [
-    "lambda/test",
-    "tests",
-    "-n", "auto"
+    "-n", "auto",
+    // "--headed",
+    "--browser=firefox",
+    "--browser=chromium",
+    "--browser=webkit"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true

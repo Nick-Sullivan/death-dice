@@ -51,7 +51,7 @@ playwright install
 ```
 
 Run tests (see https://playwright.dev/python/docs/test-runners#cli-arguments for Playwright CLI)
-(To use non-headless mode, replace "-n auto" with "--headed" in settings.json)
+(To use non-headless mode, uncomment "--headed" in settings.json)
 
 ```
 pytest 

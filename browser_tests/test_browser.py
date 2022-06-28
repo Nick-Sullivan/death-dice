@@ -136,7 +136,7 @@ def test_dual(page: Page):
   session.roll_dice() # 2,2
   session.roll_dice() # 2,2,2
   session.roll_dice() # 2,2,2,2
-  session.assert_result_text("DUAL Dual wield")
+  session.assert_result_text("DUAL (1) Dual wield")
 
 
 def test_shower(page: Page):
@@ -159,8 +159,7 @@ def test_head(page: Page):
   session.roll_dice() # 4,4
   session.roll_dice() # 4,4,4
   session.roll_dice() # 4,4,4,4
-  session.roll_dice() # 4,4,4,4,4
-  session.assert_result_text("HEAD Head on the table")
+  session.assert_result_text("HEAD (1) Head on the table")
 
 
 def test_wish(page: Page):
@@ -173,7 +172,7 @@ def test_wish(page: Page):
   session.roll_dice() # 5,5,5
   session.roll_dice() # 5,5,5,5
   session.roll_dice() # 5,5,5,5,5
-  session.assert_result_text("WISH Buy from wish.com")
+  session.assert_result_text("WISH (1) Buy from wish.com")
 
 
 def test_pool(page: Page):

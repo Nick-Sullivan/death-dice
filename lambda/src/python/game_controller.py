@@ -6,12 +6,15 @@ import uuid
 from botocore.exceptions import ClientError
 from copy import deepcopy
 
-import game_logic
 from client_notifier import ClientNotifier
 from dao.connection import ConnectionDao
 from dao.game import GameDao
 from db_wrapper import DatabaseReader, DatabaseWriter, transaction_fail_logs, transaction_retry
+from game_logic.dice_roller import DiceRoller
+from game_logic.roll_judge import IndividualRollJudge, GroupRollJudge
+from model.dice import Roll
 from model.game_items import ItemType, ConnectionItem, GameItem, GameState, PlayerItem, RollItem, lookup_item_class
+from model.roll_result import RollResult, RollResultNote, RollResultType
 
 
 class GameController:
@@ -20,7 +23,6 @@ class GameController:
   client_notifier = ClientNotifier()
   connection_dao = ConnectionDao()
   game_dao = GameDao()
-
 
   @staticmethod
   def create_unique_id():
@@ -257,7 +259,7 @@ class GameController:
     state.game.round_finished = False
 
     for player in state.players:
-      player.outcome = game_logic.RollResult.NONE.value
+      player.outcome = RollResultNote.NONE.value
       player.finished = False
 
     state.rolls = []
@@ -281,15 +283,14 @@ class GameController:
     player = next(p for p in state.players if p.id == connection_id)
     player_rolls = [r for r in state.rolls if r.player_id == connection_id]
 
-    if not player_rolls:
-      roll, finished = game_logic.initial_roll(player.win_counter, player.nickname)
-    else:
-      roll, finished = game_logic.extra_roll([game_logic.get_roll(r.dice) for r in player_rolls], player.nickname)
+    prev_rolls = [Roll.from_json(r.dice) for r in player_rolls]
+    new_roll = DiceRoller.roll(prev_rolls, player.win_counter, player.nickname)
 
-    player.finished = finished
-
+    roll_result = IndividualRollJudge.calculate_result(prev_rolls + [new_roll], state.game.mr_eleven)
+    
+    player.finished = roll_result.turn_finished
     state.rolls.append(
-      RollItem(game_id=state.game.id, id=self.create_unique_id(), player_id=player.id, dice=roll)
+      RollItem(game_id=state.game.id, id=self.create_unique_id(), player_id=player.id, dice=new_roll.to_json())
     )
 
     is_last_roll = all([p.finished for p in state.players])
@@ -304,26 +305,34 @@ class GameController:
 
     player_rolls = {p.id: [] for p in state.players}
     for r in state.rolls:
-      roll_obj = game_logic.get_roll(r.dice)
+      roll_obj = Roll.from_json(r.dice)
       player_rolls[r.player_id].append(roll_obj)
 
-    results, mr_eleven, round_finished = game_logic.calculate_turn_results(player_rolls, state.game.mr_eleven)
+    judge = GroupRollJudge(player_rolls, state.game.mr_eleven)
+
+    results = judge.calculate_result()
+    mr_eleven = judge.calculate_new_mr_eleven()
+    round_finished = all([r.turn_finished for r in results.values()])
 
     state.game.mr_eleven = mr_eleven if mr_eleven is not None else ''
     state.game.round_finished = round_finished
 
     if not round_finished:
       for player in state.players:
-        player.outcome = results[player.id].value
-        player.finished = False
+        player.outcome = results[player.id].note.value
+        player.finished = results[player.id].turn_finished
       return state
     
     for player in state.players:
-      player.outcome = results[player.id].value
+      player.outcome = results[player.id].note.value
+      player.finished = results[player.id].turn_finished
 
-      if results[player.id] == game_logic.RollResult.WINNER:
+      if not round_finished:
+        continue
+
+      if results[player.id].type == RollResultType.WINNER:
         player.win_counter += 1
-      else:
+      elif results[player.id].type == RollResultType.LOSER:
         player.win_counter = 0
 
     return state
@@ -346,7 +355,7 @@ class GameController:
       # Combine dice rolls into one
       rolls = [r for r in state.rolls if r.player_id == player.id]
       if rolls:
-        dice_rolls = [game_logic.get_roll(r.dice) for r in rolls]
+        dice_rolls = [Roll.from_json(r.dice) for r in rolls]
 
         dice_roll = dice_rolls[0]
         for dr in dice_rolls[1:]:

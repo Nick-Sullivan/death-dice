@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 from model.game_items import ConnectionItem
@@ -6,7 +7,7 @@ from model.game_items import ConnectionItem
 class ConnectionDao:
   """Creates, updates and destroys entries in the Connection table"""
   
-  table_name = 'DeathDiceConnections'
+  table_name = os.environ['PROJECT'] + 'Connections'
   item_class = ConnectionItem
 
   def create(self, connection, item):

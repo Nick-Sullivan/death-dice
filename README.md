@@ -27,7 +27,8 @@ Rules:
 # Setting up
 
 ```
-cd terraform/website_contents
+cd terraform/environments/production
+terraform init
 terraform apply
 ```
 

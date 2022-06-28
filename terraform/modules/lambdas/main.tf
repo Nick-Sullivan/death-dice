@@ -40,11 +40,6 @@ locals {
       handler = "index.roll_dice"
       route   = "rollDice"
     },
-    "SendMessage" = {
-      name    = "${var.prefix}SendMessage"
-      handler = "index.send_message"
-      route   = "sendMessage"
-    },
     "SetNickname" = {
       name    = "${var.prefix}SetNickname"
       handler = "index.set_nickname"
@@ -78,7 +73,7 @@ data "archive_file" "index" {
 
 resource "aws_lambda_layer_version" "layer" {
   filename            = "${var.lambda_folder}/layer.zip"
-  layer_name          = "game_logic"
+  layer_name          = "${var.prefix}Logic"
   compatible_runtimes = ["python3.9"]
   source_code_hash    = data.archive_file.layer.output_base64sha256
 }
@@ -94,6 +89,11 @@ resource "aws_lambda_function" "all" {
   timeout          = 10
   source_code_hash = data.archive_file.index.output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
+  environment {
+    variables = {
+      "PROJECT": var.prefix,
+    }
+  }
 }
 
 # Permissions

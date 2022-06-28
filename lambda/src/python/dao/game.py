@@ -1,3 +1,4 @@
+import os
 from datetime import datetime, timezone
 
 from model.dynamodb_item import DynamodbItem
@@ -6,7 +7,7 @@ from model.dynamodb_item import DynamodbItem
 class GameDao:
   """Creates, updates and destroys entries in the Game table"""
 
-  table_name = 'DeathDice'
+  table_name = os.environ['PROJECT']
   item_class = DynamodbItem
 
   def create(self, connection, item):

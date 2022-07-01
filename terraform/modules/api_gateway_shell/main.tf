@@ -15,8 +15,9 @@ resource "aws_apigatewayv2_api" "websocket" {
 }
 
 resource "aws_apigatewayv2_stage" "production" {
-  api_id = aws_apigatewayv2_api.websocket.id
-  name   = "production"
+  api_id      = aws_apigatewayv2_api.websocket.id
+  name        = "production"
+  auto_deploy = true  # needed, otherwise it requires a manual deploy to overcome 403 error
   default_route_settings {
     data_trace_enabled     = true
     logging_level          = "INFO"

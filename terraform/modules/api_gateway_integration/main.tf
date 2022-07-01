@@ -43,9 +43,10 @@ resource "aws_lambda_permission" "all" {
 # Deploy the websocket so it is accessible
 
 resource "aws_apigatewayv2_deployment" "websocket" {
-  depends_on  = [aws_apigatewayv2_route.all]
+  depends_on  = [aws_apigatewayv2_route.all, aws_apigatewayv2_integration.all]
   api_id      = var.websocket_id
   description = "Terraform deployment"
+
   lifecycle {
     create_before_destroy = true
   }

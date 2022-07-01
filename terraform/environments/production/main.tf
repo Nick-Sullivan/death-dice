@@ -26,6 +26,13 @@ provider "aws" {
   }
 }
 
+# Create an API with a URL, to be populated later
+
+module "api_gateway_shell" {
+  source = "./../../modules/api_gateway_shell"
+  name   = local.prefix
+}
+
 # Create a database to store game state
 
 module "database" {
@@ -40,14 +47,16 @@ module "lambdas" {
   prefix        = local.prefix
   lambda_folder = "${path.root}/../../../lambda"
   table_arns    = module.database.table_arns
+  gateway_url   = module.api_gateway_shell.gateway_url
 }
 
-# Create an API for the website to talk to, that will trigger the lambdas
+# Populate the API so it will trigger the lambdas
 
-module "api_gateway" {
-  source  = "./../../modules/api_gateway"
-  name    = local.prefix
-  lambdas = module.lambdas.lambdas
+module "api_gateway_integration" {
+  source        = "./../../modules/api_gateway_integration"
+  lambdas       = module.lambdas.lambdas
+  websocket_id  = module.api_gateway_shell.websocket_id
+  websocket_arn = module.api_gateway_shell.websocket_arn
 }
 
 # Create a dashboard for observing correct behaviour

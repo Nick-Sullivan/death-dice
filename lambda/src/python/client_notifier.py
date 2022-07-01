@@ -1,12 +1,13 @@
 import boto3
 import json
+import os
 from botocore.exceptions import ClientError
 
 
 class ClientNotifier:
   """Responsible for sending messages to players"""
-
-  url = f'https://0zplabvdya.execute-api.ap-southeast-2.amazonaws.com/production'
+  
+  url = os.environ['GATEWAY_URL'].replace('wss', 'https')
   gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 
   @staticmethod

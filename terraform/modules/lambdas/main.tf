@@ -91,7 +91,8 @@ resource "aws_lambda_function" "all" {
   depends_on       = [aws_cloudwatch_log_group.all]
   environment {
     variables = {
-      "PROJECT": var.prefix,
+      "PROJECT" : var.prefix,
+      "GATEWAY_URL" : var.gateway_url,
     }
   }
 }

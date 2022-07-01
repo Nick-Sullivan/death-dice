@@ -9,10 +9,10 @@ terraform {
 }
 
 resource "aws_dynamodb_table" "death_dice" {
-  name           = "${var.prefix}"
-  hash_key       = "game_id"
-  range_key      = "id"
-  billing_mode   = "PAY_PER_REQUEST"
+  name         = var.prefix
+  hash_key     = "game_id"
+  range_key    = "id"
+  billing_mode = "PAY_PER_REQUEST"
   attribute {
     name = "game_id"
     type = "S"
@@ -24,9 +24,9 @@ resource "aws_dynamodb_table" "death_dice" {
 }
 
 resource "aws_dynamodb_table" "connections" {
-  name           = "${var.prefix}Connections"
-  hash_key       = "id"
-  billing_mode   = "PAY_PER_REQUEST"
+  name         = "${var.prefix}Connections"
+  hash_key     = "id"
+  billing_mode = "PAY_PER_REQUEST"
   attribute {
     name = "id"
     type = "S"

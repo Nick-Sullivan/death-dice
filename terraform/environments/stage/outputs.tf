@@ -1,4 +1,4 @@
-output "production_url" {
-  description = "Production URL for API Gateway."
-  value       = module.api_gateway.production_url
+output "gateway_url" {
+  description = "URL for invoking API Gateway."
+  value       = module.api_gateway_shell.gateway_url
 }

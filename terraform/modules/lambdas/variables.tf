@@ -12,3 +12,8 @@ variable "table_arns" {
   description = "ARNs of the database this lambda will be interacting with"
   type        = list(string)
 }
+
+variable "gateway_url" {
+  description = "URL for invoking API Gateway."
+  type        = string
+}

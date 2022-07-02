@@ -4,8 +4,8 @@ from playwright.sync_api import Page, BrowserContext
 
 class GameSession:
 
-  # URL = "http://127.0.0.1:5500/src/index.html"
-  URL = "http://100percentofthetimehotspaghetti.com/dice.html"
+  URL = "http://127.0.0.1:5500/src/index.html"
+  # URL = "http://100percentofthetimehotspaghetti.com/dice.html"
   DEFAULT_TIMEOUT = 30000  # milliseconds
 
   def __init__(self, page: Page):
@@ -349,3 +349,27 @@ def test_three_player_tie(context: BrowserContext):
   session3.assert_result_text("AVERAGE_JOE Drink")
   session3.assert_result_text("AVERAGE_PETE Drink")
   session3.assert_result_text("AVERAGE_GREG (1) Winner")
+
+
+def test_two_player_instant_lose(context: BrowserContext):
+
+  session = GameSession(context.new_page())
+  session.assert_init()
+  session.set_name("AVERAGE_JOE")
+  session.create_game()
+  game_code = session.get_game_code()
+
+  session2 = GameSession(context.new_page())
+  session2.assert_init()
+  session2.set_name("SNAKE_EYES")
+  session2.join_game(game_code)
+
+  session2.new_round()
+  session2.roll_dice() # 1,1
+  session2.roll_dice() # 1,1,1
+
+  session2.assert_result_text("SNAKE_EYES Finish your drink")
+
+  session.roll_dice() # 1,2
+
+  session2.assert_result_text("AVERAGE_JOE (1) Winner")

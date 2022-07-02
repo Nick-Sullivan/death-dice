@@ -186,6 +186,17 @@ class TestGroupRollJudge:
     ),
     pytest.param(
       {
+        'A': [[1, 2]],
+        'B': [[1, 1], [1]],
+      },
+      {
+        'A': RollResult(RollResultNote.WINNER, RollResultType.WINNER, turn_finished=True),
+        'B': RollResult(RollResultNote.FINISH_DRINK, RollResultType.LOSER, turn_finished=True),
+      },
+      id='duo snake eyes',
+    ),
+    pytest.param(
+      {
         'A': [[3, 5]],
         'B': [[3, 5]],
         'C': [[5, 3]],

@@ -20,9 +20,10 @@ from model.roll_result import RollResult, RollResultNote, RollResultType
 class GameController:
   """Responsible for game logic and state change"""
 
-  client_notifier = ClientNotifier()
-  connection_dao = ConnectionDao()
-  game_dao = GameDao()
+  def __init__(self) -> None:
+    self.client_notifier = ClientNotifier()
+    self.connection_dao = ConnectionDao()
+    self.game_dao = GameDao()
 
   @staticmethod
   def create_unique_id():
@@ -289,6 +290,7 @@ class GameController:
     roll_result = IndividualRollJudge.calculate_result(prev_rolls + [new_roll], state.game.mr_eleven)
     
     player.finished = roll_result.turn_finished
+    player.outcome = roll_result.note.value
     state.rolls.append(
       RollItem(game_id=state.game.id, id=self.create_unique_id(), player_id=player.id, dice=new_roll.to_json())
     )

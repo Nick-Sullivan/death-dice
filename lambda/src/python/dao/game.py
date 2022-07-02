@@ -7,8 +7,10 @@ from model.dynamodb_item import DynamodbItem
 class GameDao:
   """Creates, updates and destroys entries in the Game table"""
 
-  table_name = os.environ['PROJECT']
   item_class = DynamodbItem
+
+  def __init__(self):
+    self.table_name = os.environ['PROJECT']
 
   def create(self, connection, item):
     assert isinstance(item, self.item_class)

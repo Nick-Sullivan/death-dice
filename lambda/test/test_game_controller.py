@@ -15,9 +15,9 @@ class TestGameController:
   @pytest.fixture(scope='function')
   def obj(self):
     with ExitStack() as stack:
-      stack.enter_context(patch.object(GameController, 'client_notifier'))
-      stack.enter_context(patch.object(GameController, 'connection_dao'))
-      stack.enter_context(patch.object(GameController, 'game_dao'))
+      stack.enter_context(patch("game_controller.ClientNotifier"))
+      stack.enter_context(patch("game_controller.ConnectionDao"))
+      stack.enter_context(patch("game_controller.GameDao"))
       yield GameController()
 
   @pytest.fixture(scope='class')

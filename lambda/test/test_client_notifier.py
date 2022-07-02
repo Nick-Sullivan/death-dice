@@ -15,7 +15,7 @@ class TestClientNotifier:
   @pytest.fixture(scope='function')
   def obj(self):
     with ExitStack() as stack:
-      stack.enter_context(patch.object(ClientNotifier, 'gatewayapi'))
+      stack.enter_context(patch('client_notifier.boto3'))
       yield ClientNotifier()
 
   def test_get_connection_id(self):

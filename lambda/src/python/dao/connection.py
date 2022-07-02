@@ -7,8 +7,10 @@ from model.game_items import ConnectionItem
 class ConnectionDao:
   """Creates, updates and destroys entries in the Connection table"""
   
-  table_name = os.environ['PROJECT'] + 'Connections'
   item_class = ConnectionItem
+
+  def __init__(self):
+    self.table_name = os.environ['PROJECT'] + 'Connections'
 
   def create(self, connection, item):
     assert isinstance(item, self.item_class)

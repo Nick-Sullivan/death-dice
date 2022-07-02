@@ -173,7 +173,7 @@ class GroupRollJudge:
     if len(self.contenders) != 3:
       return
 
-    roll_totals = {k: sum(get_values_from_rolls(v)) for k, v in self.player_rolls.items()}
+    roll_totals = self._get_contendor_roll_totals()
 
     max_value = max(roll_totals.values())
 
@@ -196,7 +196,7 @@ class GroupRollJudge:
 
   def _remove_mr_eleven_gets_eleven(self):
     """Removes players from contention if Mr Eleven rolled an 11"""
-    roll_totals = {k: sum(get_values_from_rolls(v)) for k, v in self.player_rolls.items()}
+    roll_totals = self._get_contendor_roll_totals()
 
     if roll_totals.get(self.mr_eleven) != 11:
       return
@@ -227,7 +227,7 @@ class GroupRollJudge:
     if not self.contenders:
       return
     
-    roll_totals = {k: sum(get_values_from_rolls(v)) for k, v in self.player_rolls.items()}
+    roll_totals = self._get_contendor_roll_totals()
 
     max_value = max(roll_totals.values())
 
@@ -252,7 +252,7 @@ class GroupRollJudge:
     if not self.contenders:
       return
 
-    roll_totals = {k: sum(get_values_from_rolls(v)) for k, v in self.player_rolls.items()}
+    roll_totals = self._get_contendor_roll_totals()
     max_value = max(roll_totals.values())
 
     for player, result in self.contenders.items():
@@ -270,6 +270,12 @@ class GroupRollJudge:
 
     self.contenders = {p: r for p, r in self.contenders.items() if p not in self.result}
 
+  def _get_contendor_roll_totals(self):
+    return {
+      p: sum(get_values_from_rolls(self.player_rolls[p]))
+      for p in self.contenders
+    }
+
   def calculate_new_mr_eleven(self) -> str:
     """Determine who is the new Mr Eleven"""
     roll_totals = {k: sum(get_values_from_rolls(v)) for k, v in self.player_rolls.items()}
@@ -282,7 +288,6 @@ class GroupRollJudge:
         return k
     
     return self.mr_eleven
-
 
 def get_values(roll_json):
   return Roll.from_json(roll_json).values

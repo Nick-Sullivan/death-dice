@@ -6,9 +6,11 @@ from botocore.exceptions import ClientError
 
 class ClientNotifier:
   """Responsible for sending messages to players"""
-  
-  url = os.environ['GATEWAY_URL'].replace('wss', 'https')
-  gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
+
+  def __init__(self) -> None:
+    url = os.environ['GATEWAY_URL'].replace('wss', 'https')
+    self.gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
+    print('hi')
 
   @staticmethod
   def get_connection_id(player_id):

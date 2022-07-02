@@ -112,6 +112,7 @@ def test_snake_eyes(page: Page):
   session.create_game()
   session.new_round()
   session.roll_dice() # 1,1
+  session.assert_result_text("SNAKE_EYES Uh oh")
   session.roll_dice() # 1,1,1
   session.assert_result_text("SNAKE_EYES Finish your drink")
 
@@ -123,6 +124,7 @@ def test_snake_eyes_safe(page: Page):
   session.create_game()
   session.new_round()
   session.roll_dice() # 1,1
+  session.assert_result_text("SNAKE_EYES_SAFE Uh oh")
   session.roll_dice() # 1,1,6
   session.assert_result_text("SNAKE_EYES_SAFE Drink")
 
@@ -135,6 +137,7 @@ def test_dual(page: Page):
   session.new_round()
   session.roll_dice() # 2,2
   session.roll_dice() # 2,2,2
+  session.assert_result_text("DUAL Uh oh")
   session.roll_dice() # 2,2,2,2
   session.assert_result_text("DUAL (1) Dual wield")
 
@@ -146,6 +149,7 @@ def test_shower(page: Page):
   session.create_game()
   session.new_round()
   session.roll_dice() # 3,3
+  session.assert_result_text("SHOWER Uh oh")
   session.roll_dice() # 3,3,3
   session.assert_result_text("SHOWER Go take a shower")
 
@@ -158,6 +162,7 @@ def test_head(page: Page):
   session.new_round()
   session.roll_dice() # 4,4
   session.roll_dice() # 4,4,4
+  session.assert_result_text("HEAD Uh oh")
   session.roll_dice() # 4,4,4,4
   session.assert_result_text("HEAD (1) Head on the table")
 
@@ -171,6 +176,7 @@ def test_wish(page: Page):
   session.roll_dice() # 5,5
   session.roll_dice() # 5,5,5
   session.roll_dice() # 5,5,5,5
+  session.assert_result_text("WISH Uh oh")
   session.roll_dice() # 5,5,5,5,5
   session.assert_result_text("WISH (1) Buy from wish.com")
 
@@ -185,6 +191,7 @@ def test_pool(page: Page):
   session.roll_dice() # 6,6,6
   session.roll_dice() # 6,6,6,6
   session.roll_dice() # 6,6,6,6,6
+  session.assert_result_text("POOL Uh oh")
   session.roll_dice() # 6,6,6,6,6,6
   session.assert_result_text("POOL Go jump in a pool")
 
@@ -365,11 +372,12 @@ def test_two_player_instant_lose(context: BrowserContext):
   session2.join_game(game_code)
 
   session2.new_round()
+  
   session2.roll_dice() # 1,1
-  session2.roll_dice() # 1,1,1
+  session.assert_result_text("SNAKE_EYES Uh oh")
 
+  session2.roll_dice() # 1,1,1
   session2.assert_result_text("SNAKE_EYES Finish your drink")
 
   session.roll_dice() # 1,2
-
   session2.assert_result_text("AVERAGE_JOE (1) Winner")

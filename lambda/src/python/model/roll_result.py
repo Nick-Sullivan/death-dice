@@ -13,6 +13,7 @@ class RollResultNote(Enum):
   SHOWER = 'SHOWER'
   THREE_WAY_TIE = 'THREE_WAY_TIE'
   TIE = 'TIE'
+  UH_OH = 'UH_OH'
   WINNER = 'WINNER'
   WISH_PURCHASE = 'WISH_PURCHASE'
 

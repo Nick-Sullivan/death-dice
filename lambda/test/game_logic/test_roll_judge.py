@@ -22,7 +22,7 @@ class TestIndividualRollJudge:
     ),
     pytest.param(
       [[2, 2], [2]],
-      RollResult(note=RollResultNote.NONE, type=RollResultType.NONE, turn_finished=False),
+      RollResult(note=RollResultNote.UH_OH, type=RollResultType.NONE, turn_finished=False),
       id='turn not finished',
     ),
     pytest.param(
@@ -67,7 +67,7 @@ class TestIndividualRollJudge:
     ),
     pytest.param(
       [[1, 1, 2]],
-      RollResult(note=RollResultNote.NONE, type=RollResultType.NONE, turn_finished=False),
+      RollResult(note=RollResultNote.UH_OH, type=RollResultType.NONE, turn_finished=False),
       id='snake eyes and extra with death dice',
     ),
     pytest.param(

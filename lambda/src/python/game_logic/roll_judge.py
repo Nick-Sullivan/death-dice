@@ -24,6 +24,8 @@ class IndividualRollJudge:
       type=RollResultType.NONE,
       turn_finished=True,
     )
+
+    # Instant fail or win cases
     if cls.is_roll_snake_eyes_fail(rolls):
       result.note = RollResultNote.FINISH_DRINK
     elif cls.is_roll_snake_eyes_safe(rolls):
@@ -43,6 +45,19 @@ class IndividualRollJudge:
       result.type = RollResultType.WINNER
     else:
       result.turn_finished = IndividualRollJudge._is_turn_finished(rolls)
+
+    # Notes, but not yet win or lose
+    if not result.turn_finished:
+      is_uh_oh = (
+        cls.is_roll_almost_snake_eyes(rolls)
+        or cls.is_roll_almost_dual_wield(rolls)
+        or cls.is_roll_almost_pool(rolls)
+        or cls.is_roll_almost_head_on_table(rolls)
+        or cls.is_roll_almost_wish_purchase(rolls)
+        or cls.is_roll_almost_shower(rolls)
+      )
+      if is_uh_oh:
+        result.note = RollResultNote.UH_OH
 
     if result.note in IndividualRollJudge.instant_loss_rolls:
       result.type = RollResultType.LOSER
@@ -69,6 +84,14 @@ class IndividualRollJudge:
   @staticmethod
   def _are_all_values_the_same(values):
     return len(set(values)) == 1
+
+  @staticmethod
+  def is_roll_almost_snake_eyes(rolls):
+    if not rolls:
+      return False
+
+    counter = Counter(rolls[0].values)
+    return counter.get(1, 0) == 2
 
   @staticmethod
   def is_roll_snake_eyes_fail(rolls):
@@ -105,10 +128,22 @@ class IndividualRollJudge:
     return rolls[1].values[0] in {4, 5, 6}
 
   @staticmethod
+  def is_roll_almost_dual_wield(rolls):
+    values = get_values_from_rolls(rolls)
+    counter = Counter(values)
+    return counter.get(2, 0) == 3
+
+  @staticmethod
   def is_roll_dual_wield(rolls):
     values = get_values_from_rolls(rolls)
     counter = Counter(values)
     return counter.get(2, 0) >= 4
+
+  @staticmethod
+  def is_roll_almost_pool(rolls):
+    values = get_values_from_rolls(rolls)
+    counter = Counter(values)
+    return counter.get(6, 0) == 5
 
   @staticmethod
   def is_roll_pool(rolls):
@@ -117,17 +152,35 @@ class IndividualRollJudge:
     return counter.get(6, 0) >= 6
 
   @staticmethod
+  def is_roll_almost_head_on_table(rolls):
+    values = get_values_from_rolls(rolls)
+    counter = Counter(values)
+    return counter.get(4, 0) == 3
+
+  @staticmethod
   def is_roll_head_on_table(rolls):
     values = get_values_from_rolls(rolls)
     counter = Counter(values)
     return counter.get(4, 0) >= 4
 
   @staticmethod
+  def is_roll_almost_wish_purchase(rolls):
+    values = get_values_from_rolls(rolls)
+    counter = Counter(values)
+    return counter.get(5, 0) == 4
+
+  @staticmethod
   def is_roll_wish_purchase(rolls):
     values = get_values_from_rolls(rolls)
     counter = Counter(values)
     return counter.get(5, 0) >= 5
-    
+  
+  @staticmethod
+  def is_roll_almost_shower(rolls):
+    values = get_values_from_rolls(rolls)
+    counter = Counter(values)
+    return counter.get(3, 0) == 2
+
   @staticmethod
   def is_roll_shower(rolls):
     values = get_values_from_rolls(rolls)

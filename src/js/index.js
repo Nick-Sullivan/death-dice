@@ -1,4 +1,4 @@
-const url = "wss://f85xu0kt2k.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://a8p8mo8j95.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 var prevState = {"players": []};
@@ -260,6 +260,7 @@ function getRollResultHtml(rollResult){
     "SHOWER": "Go take a shower",
     "TIE": "Tie, everyone drinks",
     "THREE_WAY_TIE": "Freeway, roll again",
+    "UH_OH": "Uh oh",
     "WINNER": "Winner",
     "WISH_PURCHASE": "Buy from wish.com",
     "": "",
@@ -282,6 +283,7 @@ function getBackgroundColor(rollResult){
     "HEAD_ON_TABLE": "#fffcb3",
     "WISH_PURCHASE": "#fffcb3",
     
+    "UH_OH": "#c8c9ce",
     "THREE_WAY_TIE": "#c8c9ce",
     "": "#c8c9ce",
   }[rollResult];

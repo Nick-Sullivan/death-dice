@@ -1,0 +1,48 @@
+import pytest
+from unittest.mock import patch
+
+from model import ConnectionItem, GameState, Player, RollResultNote
+from new_round import new_round
+
+path = 'new_round'
+
+
+@pytest.fixture(autouse=True)
+def client_notifier():
+  with patch(f'{path}.client_notifier') as mock:
+    yield mock
+
+
+@pytest.fixture(autouse=True)
+def connection_dao():
+  with patch(f'{path}.connection_dao') as mock:
+    yield mock 
+
+
+@pytest.fixture(autouse=True)
+def game_dao():
+  with patch(f'{path}.game_dao') as mock:
+    yield mock 
+
+
+def test_new_round(connection_dao, game_dao, client_notifier):
+  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='ABCD')
+  game_dao.get.return_value = GameState(
+    id='ABCD',
+    mr_eleven='',
+    round_finished=True,
+    players=[Player(id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)]
+  )
+
+  new_round({
+    'requestContext': {
+      'connectionId': 'nicks_connection_id'
+    },
+  }, None)
+
+  new_state = game_dao.set.call_args.args[0]
+  assert not new_state.round_finished
+  assert new_state.players[0].finished == False
+  assert new_state.players[0].outcome == RollResultNote.NONE
+  assert new_state.players[0].rolls == []
+  client_notifier.send_game_state_update.assert_called_once()

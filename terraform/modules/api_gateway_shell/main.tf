@@ -19,8 +19,7 @@ resource "aws_apigatewayv2_stage" "production" {
   name        = "production"
   auto_deploy = true  # needed, otherwise it requires a manual deploy to overcome 403 error
   default_route_settings {
-    data_trace_enabled     = true
-    logging_level          = "INFO"
+    data_trace_enabled     = false
     throttling_burst_limit = 5000
     throttling_rate_limit  = 10000
   }

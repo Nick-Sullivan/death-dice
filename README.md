@@ -14,7 +14,7 @@ Rules:
    - Two 1's: Your score is 0. Roll again - if it's 1, 2, or 3, finish your drink. 
    - Four 2's: Hold one drink in each hand until your drink is finished. All drinking from one must be done to the other.
    - Three 3's: Stop playing, go have a shower (take your drink).
-   - Five 4's: Put your head on the table until your drink is finished.
+   - Four 4's: Put your head on the table until your drink is finished.
    - Five 5's: Buy something from Wish.com, and give it to Mr Eleven.
    - Six 6's: Stop playing, jump into the nearest body of water you can find.
  - If a player has a final score of 11, they are known as Mr Eleven. They have always, and will always be known as Mr Eleven.
@@ -45,9 +45,9 @@ To run locally, I use VSCode with extensions `Playwright Test`, `Live Server`, `
 Install required things
 
 ```
-python3 -m venv venv
-./venv/Scripts/activate
-pip install pytest boto3 playwright pytest-playwright pytest-xdist
+python3 -m venv .venv
+./.venv/Scripts/activate
+pip install pytest boto3 playwright pytest-playwright pytest-xdist decorator
 playwright install
 ```
 
@@ -68,14 +68,13 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 # Files
 
 - `lambda` contains the contents of the Lambda functions, along with unit tests.
-- `src` contains the website html, css, javascript and images
+- `website` contains the website html, css, javascript and images
 - `terraform` contains infrastructure as code
-- `tests` contains Playwright browser testing
+- `browser_tests` contains Playwright browser testing
 
 
 # TODO
 
-- show result for shower/finish drink before round ends
 - steal with single dice
 - order gamestate by join datetime
 - clean up logging
@@ -85,3 +84,46 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 - Airhorn people that take too long
 - 4 4 1 1 should be death dice
 - death dice upgrade on 3 wins with two players
+
+
+
+
+
+# resource "aws_cloudwatch_log_group" "all" {
+#   name              = "/aws/apigateway/${var.name}"
+#   retention_in_days = 90
+# }
+
+# Permissions 
+
+# resource "aws_api_gateway_account" "demo" {
+#   # (TODO - only need this for production)
+#   cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
+# }
+
+# data "aws_iam_policy_document" "assume_role" {
+#   statement {
+#     actions = ["sts:AssumeRole"]
+#     effect  = "Allow"
+#     principals {
+#       type        = "Service"
+#       identifiers = ["apigateway.amazonaws.com"]
+#     }
+#   }
+# }
+
+# resource "aws_iam_role" "cloudwatch" {
+#   name                = "${var.name}ApiGatewayRole"
+#   description         = "Allows API Gateway to write to Cloudwatch"
+#   assume_role_policy  = data.aws_iam_policy_document.assume_role.json
+#   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"]
+# }
+
+
+  # Only-redeploy if an integration or route changes
+  # triggers = {
+  #   redeployment = sha1(jsonencode([
+  #     aws_apigatewayv2_integration.all,
+  #     aws_apigatewayv2_route.all,
+  #   ]))
+  # }

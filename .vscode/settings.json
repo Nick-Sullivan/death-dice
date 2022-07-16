@@ -1,14 +1,16 @@
 {
   "python.analysis.extraPaths": [
-    "./lambda/src/python"
+    "./lambda/handler",
+    "./lambda/layer/python"
   ],
   "python.testing.pytestArgs": [
     "-n", "auto",
     // "--headed",
     "--browser=firefox",
-    "--browser=chromium",
-    "--browser=webkit"
+    // "--browser=chromium",
+    // "--browser=webkit"
   ],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "python.envFile": "${workspaceFolder}/.env"
 }

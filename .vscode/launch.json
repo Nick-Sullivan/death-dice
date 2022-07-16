@@ -3,5 +3,62 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": []
+  "configurations": [
+    {
+      "name": "connect",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/connect.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "create_game",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/create_game.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "disconnect",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/disconnect.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "join_game",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/join_game.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "new_round",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/new_round.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "roll_dice",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/roll_dice.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "set_nickname",
+      "type": "python",
+      "request": "launch",
+      "program": "lambda/handler/set_nickname.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
 }

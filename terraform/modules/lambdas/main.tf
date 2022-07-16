@@ -11,38 +11,45 @@ terraform {
 locals {
   lambdas = {
     "Connect" = {
-      name    = "${var.prefix}Connect"
-      handler = "index.connect"
+      name    = "${var.prefix}-Connect"
+      filename = "connect"
+      handler = "connect.connect"
       route   = "$connect"
     },
     "Disconnect" = {
-      name    = "${var.prefix}Disconnect"
-      handler = "index.disconnect"
+      name    = "${var.prefix}-Disconnect"
+      filename = "disconnect"
+      handler = "disconnect.disconnect"
       route   = "$disconnect"
     },
     "CreateGame" = {
-      name    = "${var.prefix}CreateGame"
-      handler = "index.create_game"
+      name    = "${var.prefix}-CreateGame"
+      filename = "create_game"
+      handler = "create_game.create_game"
       route   = "createGame"
     },
     "JoinGame" = {
-      name    = "${var.prefix}JoinGame"
-      handler = "index.join_game"
+      name    = "${var.prefix}-JoinGame"
+      filename = "join_game"
+      handler = "join_game.join_game"
       route   = "joinGame"
     },
     "NewRound" = {
-      name    = "${var.prefix}NewRound"
-      handler = "index.new_round"
+      name    = "${var.prefix}-NewRound"
+      filename = "new_round"
+      handler = "new_round.new_round"
       route   = "newRound"
     },
     "RollDice" = {
-      name    = "${var.prefix}RollDice"
-      handler = "index.roll_dice"
+      name    = "${var.prefix}-RollDice"
+      filename = "roll_dice"
+      handler = "roll_dice.roll_dice"
       route   = "rollDice"
     },
     "SetNickname" = {
-      name    = "${var.prefix}SetNickname"
-      handler = "index.set_nickname"
+      name    = "${var.prefix}-SetNickname"
+      filename = "set_nickname"
+      handler = "set_nickname.set_nickname"
       route   = "setNickname"
     }
   }
@@ -60,34 +67,35 @@ resource "aws_cloudwatch_log_group" "all" {
 
 data "archive_file" "layer" {
   type        = "zip"
-  source_dir  = "${var.lambda_folder}/src"
-  excludes    = ["index.py"]
-  output_path = "${var.lambda_folder}/layer.zip"
+  source_dir  = "${var.lambda_folder}/layer"
+  excludes    = ["__pycache__.py"]
+  output_path = "${var.lambda_folder}/zip/layer.zip"
 }
 
-data "archive_file" "index" {
+data "archive_file" "all" {
+  for_each = local.lambdas
   type        = "zip"
-  source_file = "${var.lambda_folder}/src/index.py"
-  output_path = "${var.lambda_folder}/index.zip"
+  source_file = "${var.lambda_folder}/handler/${each.value.filename}.py"
+  output_path = "${var.lambda_folder}/zip/${each.value.filename}.zip"
 }
 
 resource "aws_lambda_layer_version" "layer" {
-  filename            = "${var.lambda_folder}/layer.zip"
-  layer_name          = "${var.prefix}Logic"
+  filename            = "${var.lambda_folder}/zip/layer.zip"
+  layer_name          = "${var.prefix}-Logic"
   compatible_runtimes = ["python3.9"]
   source_code_hash    = data.archive_file.layer.output_base64sha256
 }
 
 resource "aws_lambda_function" "all" {
   for_each         = local.lambdas
-  filename         = "${var.lambda_folder}/index.zip"
+  filename         = "${var.lambda_folder}/zip/${each.value.filename}.zip"
   function_name    = each.value.name
   handler          = each.value.handler
   layers           = [aws_lambda_layer_version.layer.arn]
   role             = aws_iam_role.role.arn
   runtime          = "python3.9"
   timeout          = 10
-  source_code_hash = data.archive_file.index.output_base64sha256
+  source_code_hash = data.archive_file.all[each.key].output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
   environment {
     variables = {

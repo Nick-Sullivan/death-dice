@@ -1,7 +1,7 @@
 
 
-from model.dice import D4, D6, D8, D10, D12, D20, D10Percentile
-from model.game_items import Roll
+from model import D4, D6, D8, D10, D12, D20, D10Percentile, Roll
+
 
 class DiceRoller:
   SPECIAL_NAMES = {

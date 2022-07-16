@@ -32,7 +32,8 @@ def transaction_mock():
 
 
 def test_disconnect_no_game(connection_dao):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id')
+  connection = ConnectionItem(id='nicks_connection_id')
+  connection_dao.get.return_value = connection
 
   disconnect({
     'requestContext': {
@@ -40,12 +41,14 @@ def test_disconnect_no_game(connection_dao):
     }
   }, None)
 
-  connection_dao.delete.assert_called_once_with('nicks_connection_id')
+  connection_dao.delete.assert_called_once_with(connection)
 
 
 def test_disconnect_only_player(connection_dao, game_dao, transaction_mock):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='game_id')
-  game_dao.get.return_value = GameState(id='game_id', mr_eleven='', round_finished=False, players=[0])
+  connection = ConnectionItem(id='nicks_connection_id', game_id='game_id')
+  connection_dao.get.return_value = connection
+  game = GameState(id='game_id', mr_eleven='', round_finished=False, players=[0])
+  game_dao.get.return_value = game
 
   disconnect({
     'requestContext': {
@@ -53,8 +56,8 @@ def test_disconnect_only_player(connection_dao, game_dao, transaction_mock):
     }
   }, None)
 
-  connection_dao.delete.assert_called_once_with('nicks_connection_id', transaction_mock().__enter__())
-  game_dao.delete.assert_called_once_with('game_id', transaction_mock().__enter__())
+  connection_dao.delete.assert_called_once_with(connection, transaction_mock().__enter__())
+  game_dao.delete.assert_called_once_with(game, transaction_mock().__enter__())
 
 
 @pytest.mark.skip

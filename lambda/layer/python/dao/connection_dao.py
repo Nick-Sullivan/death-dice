@@ -1,30 +1,13 @@
 import os
 import boto3
 from datetime import datetime, timezone
-from dao.db_wrapper import TransactionWriter
-from model.game_items import ConnectionItem
+
+from dao.transaction_writer import default_transaction
+from model import ConnectionItem
 
 
 class ConnectionNotFoundException(Exception):
   pass
-
-
-def default_transaction(func):
-  """Decorator, provides a transaction if not provided"""
-  def wrapper(*args, **kwargs):
-    fill_kwargs_with_args(func, args, kwargs)
-
-    if kwargs.get('transaction') is not None:
-      return func(**kwargs)
-
-    with TransactionWriter() as kwargs['transaction']:
-      return func(**kwargs)
-
-  return wrapper
-
-
-def fill_kwargs_with_args(func, args, kwargs):
-  kwargs.update(zip(func.__code__.co_varnames, args))
 
 
 class ConnectionDao:
@@ -66,39 +49,26 @@ class ConnectionDao:
     assert item.id is not None
 
     item.version += 1
-
-    query = ConnectionItem.serialise(item)
-
-    expressions = []
-    values = {}
-    for i, (key, value) in enumerate(query.items()):
-      if key == 'id':
-        continue
-      expressions.append(f'{key} = :{i}')
-      values[f':{i}'] = value
-
-    update_expression = f'SET ' + ', '.join(expressions)
-
-    values[':v'] = {'N': str(item.version-1)}
-
     transaction.write({
-      'Update': {
+      'Put': {
         'TableName': self.table_name,
-        'Key': {'id': {'S': item.id}},
+        'Item': ConnectionItem.serialise(item),
         'ConditionExpression': f'attribute_exists(id) AND version = :v',
-        'UpdateExpression': update_expression,
-        'ExpressionAttributeValues': values,
+        'ExpressionAttributeValues': {':v': {'N': str(item.version-1)}},
       }
     })
 
   @default_transaction
-  def delete(self, id, transaction=None):
-    assert isinstance(id, str)
+  def delete(self, item, transaction=None):
+    assert isinstance(item, ConnectionItem)
     transaction.write({
       'Delete': {
         'TableName': self.table_name,
-        'Key': {'id': {'S': id}},
-        'ConditionExpression': f'attribute_exists(id)',
+        'Key': {'id': {'S': item.id}},
+        'ConditionExpression': 'attribute_exists(id) AND version = :v',
+        'ExpressionAttributeValues': {
+          ':v': {'N': str(item.version)},
+        },
       }
     })
   
@@ -108,3 +78,4 @@ class ConnectionDao:
       2 <= len(nickname) <= 20
       and nickname.upper not in invalid_names
     )
+  

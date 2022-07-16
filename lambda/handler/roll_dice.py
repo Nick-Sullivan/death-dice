@@ -2,8 +2,7 @@
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, concurrency_retry
-from game_controller import calculate_turn_results
-from game_logic import DiceRoller, IndividualRollJudge
+from game_logic import DiceRoller, IndividualRollJudge, calculate_turn_results
 from model import GameState
 
 client_notifier = ClientNotifier()

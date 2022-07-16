@@ -1,36 +1,13 @@
 """Models representing items stored in the Game database"""
 
-from dateutil import parser
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
-from datetime import datetime
 from dataclasses import dataclass, asdict
-from model.dice import Dice
+from datetime import datetime
+from dateutil import parser
 from typing import List
 
+from model.dice import Dice
 from model.roll_result import RollResultNote
-
-
-@dataclass
-class ConnectionItem:
-  id: str
-  nickname: str = None
-  game_id: str = None
-  version: int = None
-  created_on: datetime = None
-
-  @staticmethod
-  def serialise(obj):
-    serialiser = TypeSerializer()
-    item_dict = asdict(obj)
-    item_dict['created_on'] = str(item_dict['created_on'])
-    return serialiser.serialize(item_dict)['M']
-
-  @staticmethod
-  def deserialise(items):
-    deserialiser = TypeDeserializer()
-    item_dict = deserialiser.deserialize({'M': items})
-    item_dict['created_on'] = parser.parse(item_dict['created_on'])
-    return ConnectionItem(**item_dict)
 
 
 @dataclass

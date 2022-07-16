@@ -1,7 +1,7 @@
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, TransactionWriter, concurrency_retry
-from game_controller import calculate_turn_results
+from game_logic import calculate_turn_results
 from model import GameState
 
 client_notifier = ClientNotifier()
@@ -16,7 +16,7 @@ def disconnect(connection_id, request):
   connection = connection_dao.get(connection_id)
 
   if connection.game_id is None:
-    return connection_dao.delete(connection_id)
+    return connection_dao.delete(connection)
 
   game = _disconnect(connection)
 
@@ -31,8 +31,8 @@ def _disconnect(connection) -> GameState:
 
   if len(game.players) <= 1:
     with TransactionWriter() as transaction:
-      connection_dao.delete(connection.id, transaction)
-      game_dao.delete(game.id, transaction)
+      connection_dao.delete(connection, transaction)
+      game_dao.delete(game, transaction)
       return None
   
   game.players = [p for p in game.players if p.id != connection.id]
@@ -42,7 +42,7 @@ def _disconnect(connection) -> GameState:
     game = calculate_turn_results(game)
 
   with TransactionWriter() as transaction:
-    connection_dao.delete(connection.id, transaction)
+    connection_dao.delete(connection, transaction)
     game_dao.set(game, transaction)
 
   return game

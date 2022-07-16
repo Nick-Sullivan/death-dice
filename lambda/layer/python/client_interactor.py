@@ -3,7 +3,7 @@ import json
 import os
 from botocore.exceptions import ClientError
 
-from model.game_items import GameState
+from model import GameState
 
 
 class ClientNotifier:
@@ -11,7 +11,7 @@ class ClientNotifier:
 
   def __init__(self) -> None:
     url = os.environ['GATEWAY_URL'].replace('wss', 'https')
-    self.gatewayapi = None
+    self.gatewayapi = None  # Disables notifications in local execution
     if url:
       self.gatewayapi = boto3.client("apigatewaymanagementapi", endpoint_url=url)
 

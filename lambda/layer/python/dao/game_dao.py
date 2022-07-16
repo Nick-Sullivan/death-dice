@@ -3,8 +3,9 @@ import os
 import random
 import string
 from datetime import datetime, timezone
-from dao.connection import default_transaction
-from model.game_items import GameState
+
+from dao.transaction_writer import default_transaction
+from model import GameState
 
 
 class GameNotFoundException(Exception):
@@ -65,24 +66,19 @@ class GameDao:
     })
 
   @default_transaction
-  def delete(self, id, transaction=None):
-    assert isinstance(id, str)
+  def delete(self, item, transaction=None):
+    assert isinstance(item, GameState)
     transaction.write({
       'Delete': {
         'TableName': self.table_name,
-        'Key': {'id': {'S': id}},
-        'ConditionExpression': f'attribute_exists(id)',
+        'Key': {'id': {'S': item.id}},
+        'ConditionExpression': f'attribute_exists(id) AND version = :v',
+        'ExpressionAttributeValues': {
+          ':v': {'N': str(item.version)},
+        },
       }
     })
   
-  def get_items_with_game_id(self, connection, game_id):
-    assert isinstance(game_id, str)
-    return connection.query({
-      'TableName': self.table_name,
-      'KeyConditionExpression': f'game_id = :id',
-      'ExpressionAttributeValues': {':id': {'S': game_id}},
-    }, self.item_class)
-
   def create_unique_game_id(self) -> str:
     items = self.client.scan(**{
       'TableName': self.table_name,

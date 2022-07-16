@@ -2,8 +2,7 @@
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, GameNotFoundException, TransactionWriter, concurrency_retry
-from model import Player, RollResultNote
-from model.game_items import GameState
+from model import GameState, Player, RollResultNote
 
 client_notifier = ClientNotifier()
 connection_dao = ConnectionDao()

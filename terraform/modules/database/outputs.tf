@@ -1,7 +1,4 @@
-output "table_arns" {
+output "table_arn" {
   description = "ARN tables"
-  value = [
-    aws_dynamodb_table.death_dice.arn,
-    # aws_dynamodb_table.connections.arn,
-  ]
+  value       = aws_dynamodb_table.death_dice.arn
 }

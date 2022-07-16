@@ -18,17 +18,6 @@ resource "aws_dynamodb_table" "death_dice" {
   }
 }
 
-# resource "aws_dynamodb_table" "connections" {
-#   name         = "${var.prefix}Connections"
-#   hash_key     = "id"
-#   billing_mode = "PAY_PER_REQUEST"
-#   attribute {
-#     name = "id"
-#     type = "S"
-#   }
-# }
-
-
 # Permissions
 # note - if you make a change to this, you will need to destroy & reapply
 
@@ -39,11 +28,3 @@ data "aws_iam_policy_document" "death_dice" {
     resources = [aws_dynamodb_table.death_dice.arn]
   }
 }
-
-# data "aws_iam_policy_document" "connections" {
-#   statement {
-#     actions   = ["dynamodb:PutItem"]
-#     effect    = "Allow"
-#     resources = [aws_dynamodb_table.connections.arn]
-#   }
-# }

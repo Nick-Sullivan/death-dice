@@ -8,9 +8,9 @@ variable "lambda_folder" {
   type        = string
 }
 
-variable "table_arns" {
-  description = "ARNs of the database this lambda will be interacting with"
-  type        = list(string)
+variable "table_arn" {
+  description = "ARN of the database this lambda will be interacting with"
+  type        = string
 }
 
 variable "gateway_url" {

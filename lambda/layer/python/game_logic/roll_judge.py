@@ -3,8 +3,7 @@ import itertools
 from collections import Counter
 from typing import Dict, List
 
-from model.game_items import Roll
-from model.roll_result import RollResult, RollResultNote, RollResultType
+from model import RollResult, RollResultNote, RollResultType
 
 
 class IndividualRollJudge:
@@ -342,12 +341,6 @@ class GroupRollJudge:
     
     return self.mr_eleven
 
-def get_values(roll_json):
-  return Roll.from_json(roll_json).values
-
-
-def get_roll(roll_json):
-  return Roll.from_json(roll_json)
 
 def get_values_from_rolls(rolls) -> List[int]:
   values = []

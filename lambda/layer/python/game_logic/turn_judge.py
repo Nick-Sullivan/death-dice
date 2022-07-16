@@ -1,8 +1,7 @@
 
 
 from game_logic.roll_judge import GroupRollJudge
-from model.game_items import GameState
-from model.roll_result import RollResultType
+from model import GameState, RollResultType
 
 
 def calculate_turn_results(game) -> GameState:

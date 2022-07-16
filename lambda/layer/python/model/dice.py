@@ -1,7 +1,6 @@
 """Models representing physical dice, for use in rolling logic"""
 
 from dataclasses import dataclass
-import json
 from random import randint
 from typing import List
 
@@ -13,6 +12,7 @@ class Dice:
 
 
 class DiceFactory:
+  """Inherited by specific dice (D4, D6 etc), instantiating creates a Dice object"""
   id = None
   options = None
 

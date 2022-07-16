@@ -132,7 +132,7 @@ data "aws_iam_policy_document" "access_dynamodb" {
       "dynamodb:UpdateItem",
     ]
     effect    = "Allow"
-    resources = var.table_arns
+    resources = [var.table_arn]
   }
 }
 

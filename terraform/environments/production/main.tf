@@ -46,7 +46,7 @@ module "lambdas" {
   source        = "./../../modules/lambdas"
   prefix        = local.prefix
   lambda_folder = "${path.root}/../../../lambda"
-  table_arns    = module.database.table_arns
+  table_arn     = module.database.table_arn
   gateway_url   = module.api_gateway_shell.gateway_url
 }
 
@@ -62,6 +62,7 @@ module "api_gateway_integration" {
 # Create a dashboard for observing correct behaviour
 
 module "cloudwatch" {
-  source = "./../../modules/cloudwatch"
-  name   = local.prefix
+  source  = "./../../modules/cloudwatch"
+  name    = local.prefix
+  project = local.tags.Project
 }

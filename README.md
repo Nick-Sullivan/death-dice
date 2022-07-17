@@ -32,7 +32,7 @@ terraform init
 terraform apply
 ```
 
-- Update the URL in `src/js/index.js`, and `lambda/src/python/client_notifier.py`
+- Update the URL in `src/js/index.js`
 
 ```
 terraform apply
@@ -47,7 +47,7 @@ Install required things
 ```
 python3 -m venv .venv
 ./.venv/Scripts/activate
-pip install pytest boto3 playwright pytest-playwright pytest-xdist decorator
+pip install pytest boto3 playwright pytest-playwright pytest-xdist snakeviz
 playwright install
 ```
 
@@ -71,6 +71,11 @@ Website -> API Gateway -> Lambdas -> DynamoDB
 - `website` contains the website html, css, javascript and images
 - `terraform` contains infrastructure as code
 - `browser_tests` contains Playwright browser testing
+
+
+# Profiling
+
+Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profile.prof`.
 
 
 # TODO

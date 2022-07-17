@@ -1,6 +1,7 @@
 """Wrappers for writing to DynamoDB in transactions"""
-import boto3
 from botocore.exceptions import ClientError
+
+from dao.db_client import get_client
 
 
 class TransactionWriter:
@@ -15,9 +16,9 @@ class TransactionWriter:
     # both are now executed
   """
   MAX_ITEMS = 25
-  client = boto3.client('dynamodb', region_name='ap-southeast-2')
   
   def __init__(self):
+    self.client = get_client()
     self.items = []
 
   def __enter__(self):

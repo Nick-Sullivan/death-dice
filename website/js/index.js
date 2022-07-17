@@ -1,4 +1,4 @@
-const url = "wss://wtgvwitgbe.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://w2jgqn4tc8.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 var prevState = {"players": []};

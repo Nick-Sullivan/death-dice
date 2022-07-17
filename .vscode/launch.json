@@ -8,57 +8,64 @@
       "name": "connect",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/connect.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/connect.py"]
     },
     {
       "name": "create_game",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/create_game.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/create_game.py"]
     },
     {
       "name": "disconnect",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/disconnect.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/disconnect.py"]
     },
     {
       "name": "join_game",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/join_game.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/join_game.py"]
     },
     {
       "name": "new_round",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/new_round.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/new_round.py"]
     },
     {
       "name": "roll_dice",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/roll_dice.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/roll_dice.py"]
     },
     {
       "name": "set_nickname",
       "type": "python",
       "request": "launch",
-      "program": "lambda/handler/set_nickname.py",
+      "module": "cProfile",
       "console": "integratedTerminal",
-      "justMyCode": true
-    }
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/set_nickname.py"]
+    },
   ]
 }

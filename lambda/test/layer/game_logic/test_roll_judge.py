@@ -103,6 +103,11 @@ class TestIndividualRollJudge:
       RollResult(note=RollResultNote.WINNER, type=RollResultType.WINNER, turn_finished=True),
       id='rolls 11',
     ),
+    pytest.param(
+      [[3, 3, 5]],
+      RollResult(note=RollResultNote.UH_OH, type=RollResultType.NONE, turn_finished=False),
+      id='incomplete roll that adds up to 11',
+    ),
   ])
   def test_calculate_result_mr_eleven(self, obj, roll_values, expected):
     rolls = self._create_rolls_from_values(roll_values)

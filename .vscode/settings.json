@@ -7,8 +7,8 @@
     "-n", "auto",
     // "--headed",
     "--browser=firefox",
-    // "--browser=chromium",
-    // "--browser=webkit"
+    "--browser=chromium",
+    "--browser=webkit"
   ],
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,

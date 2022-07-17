@@ -21,29 +21,34 @@ class IndividualRollJudge:
     result = RollResult(
       note=RollResultNote.NONE,
       type=RollResultType.NONE,
-      turn_finished=True,
+      turn_finished=IndividualRollJudge._is_turn_finished(rolls),
     )
 
     # Instant fail or win cases
     if cls.is_roll_snake_eyes_fail(rolls):
       result.note = RollResultNote.FINISH_DRINK
+      result.turn_finished = True
     elif cls.is_roll_snake_eyes_safe(rolls):
       result.note = RollResultNote.SIP_DRINK
+      result.turn_finished = True
     elif cls.is_roll_shower(rolls):
       result.note = RollResultNote.SHOWER
+      result.turn_finished = True
     elif cls.is_roll_pool(rolls):
       result.note = RollResultNote.POOL
+      result.turn_finished = True
     elif cls.is_roll_dual_wield(rolls):
       result.note = RollResultNote.DUAL_WIELD
+      result.turn_finished = True
     elif cls.is_roll_head_on_table(rolls):
       result.note = RollResultNote.HEAD_ON_TABLE
+      result.turn_finished = True
     elif cls.is_roll_wish_purchase(rolls):
       result.note = RollResultNote.WISH_PURCHASE
-    elif is_mr_eleven and sum(get_values_from_rolls(rolls)) == 11:
+      result.turn_finished = True
+    elif result.turn_finished and is_mr_eleven and sum(get_values_from_rolls(rolls)) == 11:
       result.note = RollResultNote.WINNER
       result.type = RollResultType.WINNER
-    else:
-      result.turn_finished = IndividualRollJudge._is_turn_finished(rolls)
 
     # Notes, but not yet win or lose
     if not result.turn_finished:

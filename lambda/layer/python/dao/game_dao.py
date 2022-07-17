@@ -1,11 +1,12 @@
-import boto3
 import os
 import random
 import string
 from datetime import datetime, timezone
 
+from dao.db_client import get_client
 from dao.transaction_writer import default_transaction
 from model import GameState
+
 
 
 class GameNotFoundException(Exception):
@@ -15,9 +16,8 @@ class GameNotFoundException(Exception):
 class GameDao:
   """Creates, updates and destroys entries in the Game table"""
 
-  client = boto3.client('dynamodb', region_name='ap-southeast-2')
-
   def __init__(self):
+    self.client = get_client()
     self.table_name = os.environ['PROJECT']
 
   @default_transaction

@@ -1,7 +1,7 @@
 import os
-import boto3
 from datetime import datetime, timezone
 
+from dao.db_client import get_client
 from dao.transaction_writer import default_transaction
 from model import ConnectionItem
 
@@ -13,9 +13,8 @@ class ConnectionNotFoundException(Exception):
 class ConnectionDao:
   """Creates, updates and destroys entries in the Connection table"""
   
-  client = boto3.client('dynamodb', region_name='ap-southeast-2')
-
   def __init__(self):
+    self.client = get_client()
     self.table_name = os.environ['PROJECT']
 
   def create(self, item):

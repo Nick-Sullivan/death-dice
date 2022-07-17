@@ -40,7 +40,7 @@ class TransactionWriter:
     self.items.append(item)
 
 
-def concurrency_retry(func, max_attempts=5):
+def concurrency_retry(func, max_attempts=30):
   """Decorator, reattempts processing if a transaction fails because the data was changed"""
 
   def inner(*args, **kwargs):

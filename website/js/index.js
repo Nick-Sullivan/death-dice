@@ -1,4 +1,4 @@
-const url = "wss://w2jgqn4tc8.execute-api.ap-southeast-2.amazonaws.com/production";
+const url = "wss://x0dv1fhkd3.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 var prevState = {"players": []};
@@ -163,7 +163,8 @@ function newRound() {
 }
 
 audio_files = { // Add up to 100%
-  "real-crack-01": 60,
+  "real-crack-01": 50,
+  "real-crack-02": 10,
   "mish-crack-01": 7,  // immitating crack
   "mish-crack-03": 7,  // saying tinnies
   "mish-crack-04": 7,  // saying crack

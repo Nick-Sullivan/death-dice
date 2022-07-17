@@ -99,9 +99,9 @@ class GameSession:
     assert self.new_round_btn.is_disabled()
     assert self.roll_dice_btn.is_disabled()
 
-  def assert_result_text(self, text):
+  def assert_result_text(self, text, count=1):
     result = self.page.locator(f"text={text}")
-    assert result.is_enabled()
+    assert result.count() == count
 
 
 def test_snake_eyes(page: Page):
@@ -380,3 +380,28 @@ def test_two_player_instant_lose(context: BrowserContext):
 
   session.roll_dice() # 1,2
   session2.assert_result_text("AVERAGE_JOE (1) Winner")
+
+
+def test_many_players(context: BrowserContext):
+  num_players = 10
+
+  sessions = []
+  for i in range(num_players):
+    session = GameSession(context.new_page())
+    session.assert_init()
+    session.set_name("AVERAGE_JOE")
+
+    if i == 0:
+      session.create_game()
+      game_code = session.get_game_code()
+    else:
+      session.join_game(game_code)
+    
+    sessions.append(session)
+
+  sessions[0].new_round()
+  for session in sessions:
+    session.roll_dice() # 1,2
+
+  for session in sessions:  
+    session.assert_result_text("AVERAGE_JOE Tie, everyone drinks", count=num_players)

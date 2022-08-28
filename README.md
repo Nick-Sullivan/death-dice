@@ -62,7 +62,7 @@ pytest --headed // to see the browser
 
 # Architecture
 
-Website -> API Gateway -> Lambdas -> DynamoDB
+![Architecture](architecture.png)
 
 
 # Files
@@ -89,46 +89,3 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 - Airhorn people that take too long
 - 4 4 1 1 should be death dice
 - death dice upgrade on 3 wins with two players
-
-
-
-
-
-# resource "aws_cloudwatch_log_group" "all" {
-#   name              = "/aws/apigateway/${var.name}"
-#   retention_in_days = 90
-# }
-
-# Permissions 
-
-# resource "aws_api_gateway_account" "demo" {
-#   # (TODO - only need this for production)
-#   cloudwatch_role_arn = aws_iam_role.cloudwatch.arn
-# }
-
-# data "aws_iam_policy_document" "assume_role" {
-#   statement {
-#     actions = ["sts:AssumeRole"]
-#     effect  = "Allow"
-#     principals {
-#       type        = "Service"
-#       identifiers = ["apigateway.amazonaws.com"]
-#     }
-#   }
-# }
-
-# resource "aws_iam_role" "cloudwatch" {
-#   name                = "${var.name}ApiGatewayRole"
-#   description         = "Allows API Gateway to write to Cloudwatch"
-#   assume_role_policy  = data.aws_iam_policy_document.assume_role.json
-#   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs"]
-# }
-
-
-  # Only-redeploy if an integration or route changes
-  # triggers = {
-  #   redeployment = sha1(jsonencode([
-  #     aws_apigatewayv2_integration.all,
-  #     aws_apigatewayv2_route.all,
-  #   ]))
-  # }

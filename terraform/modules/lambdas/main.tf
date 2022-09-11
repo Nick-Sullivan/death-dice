@@ -11,46 +11,46 @@ terraform {
 locals {
   lambdas = {
     "Connect" = {
-      name    = "${var.prefix}-Connect"
+      name     = "${var.prefix}-Connect"
       filename = "connect"
-      handler = "connect.connect"
-      route   = "$connect"
+      handler  = "connect.connect"
+      route    = "$connect"
     },
     "Disconnect" = {
-      name    = "${var.prefix}-Disconnect"
+      name     = "${var.prefix}-Disconnect"
       filename = "disconnect"
-      handler = "disconnect.disconnect"
-      route   = "$disconnect"
+      handler  = "disconnect.disconnect"
+      route    = "$disconnect"
     },
     "CreateGame" = {
-      name    = "${var.prefix}-CreateGame"
+      name     = "${var.prefix}-CreateGame"
       filename = "create_game"
-      handler = "create_game.create_game"
-      route   = "createGame"
+      handler  = "create_game.create_game"
+      route    = "createGame"
     },
     "JoinGame" = {
-      name    = "${var.prefix}-JoinGame"
+      name     = "${var.prefix}-JoinGame"
       filename = "join_game"
-      handler = "join_game.join_game"
-      route   = "joinGame"
+      handler  = "join_game.join_game"
+      route    = "joinGame"
     },
     "NewRound" = {
-      name    = "${var.prefix}-NewRound"
+      name     = "${var.prefix}-NewRound"
       filename = "new_round"
-      handler = "new_round.new_round"
-      route   = "newRound"
+      handler  = "new_round.new_round"
+      route    = "newRound"
     },
     "RollDice" = {
-      name    = "${var.prefix}-RollDice"
+      name     = "${var.prefix}-RollDice"
       filename = "roll_dice"
-      handler = "roll_dice.roll_dice"
-      route   = "rollDice"
+      handler  = "roll_dice.roll_dice"
+      route    = "rollDice"
     },
     "SetNickname" = {
-      name    = "${var.prefix}-SetNickname"
+      name     = "${var.prefix}-SetNickname"
       filename = "set_nickname"
-      handler = "set_nickname.set_nickname"
-      route   = "setNickname"
+      handler  = "set_nickname.set_nickname"
+      route    = "setNickname"
     }
   }
 }
@@ -73,7 +73,7 @@ data "archive_file" "layer" {
 }
 
 data "archive_file" "all" {
-  for_each = local.lambdas
+  for_each    = local.lambdas
   type        = "zip"
   source_file = "${var.lambda_folder}/handler/${each.value.filename}.py"
   output_path = "${var.lambda_folder}/zip/${each.value.filename}.zip"
@@ -138,7 +138,6 @@ data "aws_iam_policy_document" "access_dynamodb" {
 
 data "aws_iam_policy_document" "api_connections" {
   # Allow Lambda to send messages to API gateway connections
-  # TODO - restrict resources. We don't know the Gateway ARN because it's not made yet :(
   statement {
     actions = [
       "execute-api:ManageConnections",

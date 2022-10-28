@@ -163,15 +163,36 @@ function newRound() {
 }
 
 audio_files = { // Add up to 100%
-  "real-crack-01": 50,
-  "real-crack-02": 10,
-  "mish-crack-01": 7,  // immitating crack
-  "mish-crack-03": 7,  // saying tinnies
-  "mish-crack-04": 7,  // saying crack
-  "mish-crack-05": 7,  // immitating crack
-  "mish-crack-06": 7,  // saying i'm a beer
-  "mish-crack-02": 4.9,  // vomitting
-  "eyes-of-a-panther": 0.1, // oath
+  // 50% real cracks
+  "real-crack-01": 30,
+  "real-crack-02": 20,
+  // 25% crack imitations
+  "mish-crack-01": 4.4,  // immitating crack
+  "mish-crack-03": 4.4,  // saying tinnies
+  "mish-crack-04": 4.4,  // saying crack
+  "mish-crack-05": 4.4,  // immitating crack
+  "mish-crack-06": 4.4,  // saying i'm a beer
+  "mish-crack-02": 3,    // vomitting
+  // 20% I think you should leave, short
+  "burger-gimme-dat": 1.8,
+  "burger-gimme-dat2": 1.8,
+  "burger-im-jokin3": 1.8,
+  "burger-im-jokin": 1.8,
+  "burger-i-shouldve-got-that": 1.8,
+  "burger-im-jokin2": 1.8,
+  "burger-im-jokin5": 1.8,
+  "burger-i-shouldve-got-that2": 1.8,
+  "burger-are-you-gonna-tell-people-i-did-that": 1.8,
+  "burger-that-looks-really-good": 1.8,
+  "burger-im-gonna-eat-the-whole-thing": 2,
+  // 4.9% I think you should leave, long
+  "burger-i-would-like-to-try": 1,
+  "burger-kill-the-president": 1,
+  "burger-im-jokin4": 1,
+  "burger-im-just-a-scared-little-boy": 0.9,
+  "burger-its-no-big-deal": 1,
+  // 0.1% amazing
+  "eyes-of-a-panther": 0.1,
 }
 
 function playRandomCrackSound(){

@@ -234,7 +234,7 @@ class GroupRollJudge:
 
     max_value = max(roll_totals.values())
 
-    is_tie = sum([v == max_value for v in roll_totals.values()]) > 1
+    is_tie = sum([v == max_value for v in roll_totals.values()]) == 3
 
     if not is_tie:
       return

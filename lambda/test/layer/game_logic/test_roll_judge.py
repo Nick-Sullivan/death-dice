@@ -305,6 +305,19 @@ class TestGroupRollJudge:
       },
       id='matching mr eleven still loses if theres a higher value',
     ),
+    pytest.param(
+      {
+        'A': [[5, 4]],
+        'B': [[3, 2, 4]],
+        'MrEleven': [[6, 2]],
+      },
+      {
+        'A': RollResult(RollResultNote.TIE, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.TIE, RollResultType.LOSER, turn_finished=True),
+        'MrEleven': RollResult(RollResultNote.TIE, RollResultType.LOSER, turn_finished=True),
+      },
+      id='almost three way tie with death dice',
+    ),
   ])
   def test_calculate_result(self, player_roll_values, expected):
     player_rolls = self._create_rolls_from_values(player_roll_values)

@@ -39,4 +39,8 @@ keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -key
 - Upload bundle ([project]\build\app\outputs\bundle\release)
 - Release, copy link for testers
 
+Subsequent releases
+- edit pubspec.yaml release version (the + is used by google)
+- flutter build appbundle
+- in play.google.com/console, select internal testing, edit release
 

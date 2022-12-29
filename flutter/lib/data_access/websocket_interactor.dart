@@ -29,7 +29,7 @@ class WebsocketInteractor {
   }
 
   void connect() {
-    channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl));
+    channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl), pingInterval: const Duration(minutes: 1));
     channel.stream.listen(_listen);
   }
 
@@ -60,6 +60,13 @@ class WebsocketInteractor {
     actionDispatch[GameAction.setNickname] = (message) {
       cache.playerId = message['data']['playerId'];
       func(cache.playerId!);
+    };
+  }
+
+  void listenToPlayerError(Function(String) func){
+    errorDispatch[GameAction.setNickname] = (message) {
+      var error = message['error'];
+      func(error);
     };
   }
 

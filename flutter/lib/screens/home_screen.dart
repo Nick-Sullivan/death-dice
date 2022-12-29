@@ -180,8 +180,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void connect() {
     websocket.connect();
     websocket.listenToPlayerId(onPlayerCreated);
+    websocket.listenToPlayerError(onError);
     websocket.listenToGameId(onGameJoined);
-    websocket.listenToGameError(onGameJoinedError);
+    websocket.listenToGameError(onError);
     websocket.listenToGameState(onGameStateUpdated);
     websocket.createPlayer(nameController.text);
   }
@@ -199,16 +200,6 @@ class _HomeScreenState extends State<HomeScreen> {
     debugPrint('Game joined');
   }
 
-  void onGameJoinedError(String error) {
-    debugPrint(error);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error))
-    );
-    websocket.close();
-    setState(() => isLoading = false);
-
-  }
-
   void onGameStateUpdated(GameState gamestate) {
     debugPrint('Game updated');
     websocket.clearListeners();
@@ -217,6 +208,15 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (context) => const GameScreen()),
     );
 
+  }
+
+  void onError(String error) {
+    debugPrint(error);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error))
+    );
+    websocket.close();
+    setState(() => isLoading = false);
   }
 
 }

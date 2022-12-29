@@ -10,6 +10,7 @@ from dateutil import parser
 class ConnectionItem:
   id: str
   nickname: str = None
+  account_id: str = None
   game_id: str = None
   version: int = None
   created_on: datetime = None

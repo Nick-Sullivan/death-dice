@@ -63,7 +63,8 @@ class _LoginLoadingScreenState extends State<LoginLoadingScreen> {
     var username = database.read(usernameKey);
     var password = database.read(passwordKey);
     try {
-      await cognito.authenticate(username, password);
+      var accountId = await cognito.authenticate(username, password);
+      await database.write(accountIdKey, accountId);
     } on CognitoUserException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? ""))
@@ -239,9 +240,10 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Future<bool> logIn() async {
     try {
-      await cognito.authenticate(emailController.text, passwordController.text);
+      var accountId = await cognito.authenticate(emailController.text, passwordController.text);
       await database.write(usernameKey, emailController.text);
       await database.write(passwordKey, passwordController.text);
+      await database.write(accountIdKey, accountId);
       return true;
 
     } on CognitoUserException catch (e) {

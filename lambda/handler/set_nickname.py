@@ -10,7 +10,8 @@ connection_dao = ConnectionDao()
 def set_nickname(connection_id, request):
   """Called by the WebSocketAPI when a player wants to set their display name"""
 
-  nickname = request['data']
+  nickname = request['data']['nickname']
+  account_id = request['data'].get('accountId')
 
   if not connection_dao.is_valid_nickname(nickname):
     client_notifier.send_notification(
@@ -21,6 +22,7 @@ def set_nickname(connection_id, request):
 
   connection = connection_dao.get(connection_id)
   connection.nickname = nickname
+  connection.account_id = account_id
   connection_dao.set(connection)
 
   client_notifier.send_notification([connection_id], {

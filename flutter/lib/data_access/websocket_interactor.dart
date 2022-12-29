@@ -96,8 +96,8 @@ class WebsocketInteractor {
     cache = GameCache();
   }
 
-  void createPlayer(String name) {
-    var message = "{\"action\": \"setNickname\", \"data\": \"$name\"}";
+  void createPlayer(String name, String accountId) {
+    var message = "{\"action\": \"setNickname\", \"data\": {\"nickname\": \"$name\", \"accountId\": \"$accountId\"}}";
     channel.sink.add(message);
   }
 

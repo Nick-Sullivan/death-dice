@@ -105,7 +105,9 @@ function setNickname() {
 
   var message = {
     action: "setNickname",
-    data: document.getElementById("textSetNickname").value,
+    data: {
+      'nickname': document.getElementById("textSetNickname").value,
+    },
   };
 
   socket.send(JSON.stringify(message));

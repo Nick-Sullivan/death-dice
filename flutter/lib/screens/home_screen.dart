@@ -1,5 +1,6 @@
 import 'package:death_dice/data_access/database_interactor.dart';
 import 'package:death_dice/data_access/websocket_interactor.dart';
+import 'package:death_dice/model/constants.dart';
 import 'package:death_dice/model/game_state.dart';
 import 'package:death_dice/screens/game_screen.dart';
 import 'package:death_dice/screens/log_in_screen.dart';
@@ -19,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final WebsocketInteractor websocket = getIt<WebsocketInteractor>();
   late final TextEditingController nameController;
   late final TextEditingController gameCodeController;
+  late final String accountId;
   late bool isCreatingGame;
   bool isLoading = false;
 
@@ -33,7 +35,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     nameController = TextEditingController(text: 'Roib');
     gameCodeController = TextEditingController();
-    database.init();
+    database.init()
+      .then((_) => accountId = database.read(accountIdKey));
     websocket.init();
     super.initState();
   }
@@ -84,8 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           onSelected: ((value) {
             if (value == 0){
-              database.delete('USERNAME');
-              database.delete('PASSWORD');
+              database.delete(usernameKey);
+              database.delete(passwordKey);
+              database.delete(accountIdKey);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(builder: (context) => const LogInScreen())
@@ -184,7 +188,7 @@ class _HomeScreenState extends State<HomeScreen> {
     websocket.listenToGameId(onGameJoined);
     websocket.listenToGameError(onError);
     websocket.listenToGameState(onGameStateUpdated);
-    websocket.createPlayer(nameController.text);
+    websocket.createPlayer(nameController.text, accountId);
   }
   
   void onPlayerCreated(String playerId) {

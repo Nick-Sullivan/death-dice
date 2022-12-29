@@ -147,8 +147,7 @@ class _GameScreenState extends State<GameScreen> {
       for (var roll in player.diceRolls){
         values.add(roll.value.toString());
       }
-      text += "${player.nickname}: ${values.join(',')}";
-      text += '\r\n';
+      text += "${player.nickname}(${player.winCount}): ${values.join(',')} ${player.rollResult!.value}\r\n";
     }
     return Text(
       text,

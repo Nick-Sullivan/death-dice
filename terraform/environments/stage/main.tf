@@ -78,7 +78,7 @@ module "cognito" {
   domain       = local.auth_domain
 }
 
-# Save output for use in javascript
+# Save output for use website/app
 
 resource "local_file" "website" {
   content  = <<-EOT

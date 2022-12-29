@@ -21,3 +21,22 @@ https://docs.amplify.aws/start/q/integration/flutter/
 
 flutter packages pub run flutter_launcher_icons:main
 flutter pub pub run flutter_native_splash:create
+
+
+To upload to google play store
+- Install java JDK for access to keystore (https://www.oracle.com/java/technologies/downloads/#jdk19-windows)
+- Add the path to the PATH environment variable (C:\Program Files\Java\jdk-19\bin)
+- Create keystore (https://docs.flutter.dev/deployment/android#create-an-upload-keystore):
+```
+cd ~
+keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+```
+- Reference keystore at [project]/android/key.properties, (no backslashes, only forward slahes, no quotes) (https://docs.flutter.dev/deployment/android#reference-the-keystore-from-the-app)
+- Update build.gradle (applicationId can't use com.example)
+- flutter build appbundle
+- in play.google.com/console, create a new App
+- Testing -> internal Testing -> Create new release
+- Upload bundle ([project]\build\app\outputs\bundle\release)
+- Release, copy link for testers
+
+

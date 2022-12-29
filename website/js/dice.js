@@ -1,9 +1,10 @@
-const url = "wss://x0dv1fhkd3.execute-api.ap-southeast-2.amazonaws.com/production";
 var socket;
 var playerId;
 var prevState = {"players": []};
 var cardIdCounter = 0;
 var playerIdToCardId = {};
+var accessToken;
+var isLoggedIn;
 
 
 var callback_lookup = {
@@ -16,6 +17,7 @@ var callback_lookup = {
 document.addEventListener("DOMContentLoaded", function() {
   linkTextToButton("textSetNickname", "btnSetNickname");
   linkTextToButton("textJoinGame", "btnJoinGame");
+  extractAccessToken();
   connect();
 });
 
@@ -29,11 +31,32 @@ function linkTextToButton(textName, buttonName) {
   });
 }
 
+function extractAccessToken(){
+  const headers = parseHeaders(window.location.hash)
+  if ('access_token' in headers){
+    isLoggedIn = true;
+    $("#containerLogin").hide()
+    $("#containerNickname").show()
+  } else {
+    isLoggedIn = false;
+  }
+}
+
+function parseHeaders(headerString){
+  const pairs = headerString.replace('#', '').split('&');
+  let headers = {};
+  for (const pair of pairs){
+    const header = pair.split('=');
+    headers[header[0]] = header[1];
+  }
+  console.log(headers)
+  return headers;
+}
 
 // Set up / tear down websocket connections
 
 function connect() {
-  socket = new WebSocket(url);
+  socket = new WebSocket(gatewayUrl);
   setupWebsocket();
 }
 
@@ -203,7 +226,11 @@ function playRandomCrackSound(){
   index = weightedRandom(weights);
 
   audio = document.getElementById(files[index]);
-  audio.volume = 0.4;
+  if (files[[index]].startsWith('burger')){
+    audio.volume = 1.0;
+  } else {
+    audio.volume = 0.4;
+  }
   audio.play();
 }
 

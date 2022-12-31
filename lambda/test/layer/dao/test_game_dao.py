@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from model import D6, GameState, Player, Roll, RollResultNote
+from model import D6, GameAction, GameState, Player, Roll, RollResultNote
 from dao import GameDao, GameNotFoundException
 
 path = 'dao.game_dao'
@@ -35,6 +35,8 @@ class TestGameDao:
       id='test', 
       mr_eleven='nick',
       round_finished=False,
+      last_action=GameAction.CREATE_GAME,
+      last_action_by='nick',
       players=[
         Player(
           id='pid',
@@ -72,6 +74,9 @@ class TestGameDao:
           }}]},
           'version': {'N': '0'},
           'created_on': {'S': '2022-01-01 00:00:00+00:00'},
+          'last_action': {'S': 'CREATE_GAME'},
+          'last_action_by': {'S': 'nick'},
+          'table': {'S': 'Game'},
         },
         'ConditionExpression': 'attribute_not_exists(id)',
       }
@@ -84,6 +89,8 @@ class TestGameDao:
           id='test',
           mr_eleven=None,
           round_finished=None,
+          last_action=GameAction.CREATE_GAME,
+          last_action_by='nick',
           players=[],
           created_on=datetime_mock.now(),
           version=2,
@@ -114,6 +121,8 @@ class TestGameDao:
       mr_eleven='nick',
       round_finished=False,
       created_on=datetime_mock.now(),
+      last_action=GameAction.CREATE_GAME,
+      last_action_by='nick',
       players=[
         Player(
           id='pid',
@@ -151,6 +160,9 @@ class TestGameDao:
           }}]},
           'version': {'N': '3'},
           'created_on': {'S': '2022-01-01 00:00:00+00:00'},
+          'last_action': {'S': 'CREATE_GAME'},
+          'last_action_by': {'S': 'nick'},
+          'table': {'S': 'Game'},
         },
         'ConditionExpression': 'attribute_exists(id) AND version = :v',
         'ExpressionAttributeValues': {':v': {'N': '2'}},
@@ -162,6 +174,8 @@ class TestGameDao:
       id='test',
       mr_eleven=None,
       round_finished=None,
+      last_action=GameAction.NEW_ROUND,
+      last_action_by='nick',
       players=[],
       version=2,
     )

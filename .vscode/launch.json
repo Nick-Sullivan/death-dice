@@ -5,6 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "extract",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/handler/extract.py"]
+    },
+    {
       "name": "connect",
       "type": "python",
       "request": "launch",

@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from model import ConnectionItem, GameState, Player, RollResultNote
+from model import ConnectionAction, ConnectionItem, GameAction, GameState, Player, RollResultNote
 from new_round import new_round
 
 path = 'new_round'
@@ -26,12 +26,14 @@ def game_dao():
 
 
 def test_new_round(connection_dao, game_dao, client_notifier):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='ABCD')
+  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='ABCD', last_action=ConnectionAction.CREATE_CONNECTION)
   game_dao.get.return_value = GameState(
     id='ABCD',
     mr_eleven='',
     round_finished=True,
-    players=[Player(id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)]
+    players=[Player(id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)],
+    last_action=GameAction.CREATE_GAME,
+    last_action_by='nick',
   )
 
   new_round({
@@ -42,6 +44,8 @@ def test_new_round(connection_dao, game_dao, client_notifier):
 
   new_state = game_dao.set.call_args.args[0]
   assert not new_state.round_finished
+  assert new_state.last_action == GameAction.NEW_ROUND
+  assert new_state.last_action_by == 'nicks_connection_id'
   assert new_state.players[0].finished == False
   assert new_state.players[0].outcome == RollResultNote.NONE
   assert new_state.players[0].rolls == []

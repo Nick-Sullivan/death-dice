@@ -2,7 +2,7 @@
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, concurrency_retry
-from model import GameState, RollResultNote
+from model import GameAction, GameState, RollResultNote
 
 client_notifier = ClientNotifier()
 connection_dao = ConnectionDao()
@@ -26,6 +26,8 @@ def _new_round(connection) -> GameState:
   game = game_dao.get(connection.game_id)
 
   game.round_finished = False
+  game.last_action = GameAction.NEW_ROUND
+  game.last_action_by = connection.id
 
   for player in game.players:
     player.outcome = RollResultNote.NONE

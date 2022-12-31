@@ -9,9 +9,9 @@ terraform {
 }
 
 resource "aws_dynamodb_table" "death_dice" {
-  name         = var.prefix
-  hash_key     = "id"
-  billing_mode = "PAY_PER_REQUEST"
+  name             = var.prefix
+  hash_key         = "id"
+  billing_mode     = "PAY_PER_REQUEST"
   attribute {
     name = "id"
     type = "S"
@@ -23,7 +23,9 @@ resource "aws_dynamodb_table" "death_dice" {
 
 data "aws_iam_policy_document" "death_dice" {
   statement {
-    actions   = ["dynamodb:PutItem"]
+    actions   = [
+      "dynamodb:PutItem",
+    ]
     effect    = "Allow"
     resources = [aws_dynamodb_table.death_dice.arn]
   }

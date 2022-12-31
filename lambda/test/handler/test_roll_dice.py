@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import patch
 
-from model import ConnectionItem, D6, GameState, Player, Roll, RollResult, RollResultNote, RollResultType
+from model import ConnectionAction, ConnectionItem, D6, GameAction, GameState, Player, Roll, RollResult, RollResultNote, RollResultType
 from roll_dice import roll_dice
 
 path = 'roll_dice'
@@ -46,7 +46,7 @@ def individual_roll_judge():
 
 
 def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, individual_roll_judge):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='ABCD')
+  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', game_id='ABCD', last_action=ConnectionAction.CREATE_CONNECTION)
   game_dao.get.return_value = GameState(
     id='ABCD',
     mr_eleven='', 
@@ -59,6 +59,8 @@ def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, indiv
       outcome=None,
       rolls=[Roll([D6(3)])]
     )],
+    last_action=GameAction.NEW_ROUND,
+    last_action_by='nick',
   )
   dice_roller.roll.return_value = Roll([D6(3), D6(3)])
   individual_roll_judge.calculate_result.return_value = RollResult(RollResultNote.POOL, RollResultType.LOSER, turn_finished=True)
@@ -70,6 +72,8 @@ def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, indiv
   }, None)
 
   new_state = game_dao.set.call_args.args[0]
+  assert new_state.last_action == GameAction.ROLL_DICE
+  assert new_state.last_action_by == 'nicks_connection_id'
   assert new_state.players[0].finished == True
   assert new_state.players[0].outcome == RollResultNote.POOL
   assert len(new_state.players[0].rolls) == 2

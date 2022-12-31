@@ -2,7 +2,7 @@
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, GameNotFoundException, TransactionWriter, concurrency_retry
-from model import GameState, Player, RollResultNote
+from model import ConnectionAction, GameAction, GameState, Player, RollResultNote
 
 client_notifier = ClientNotifier()
 connection_dao = ConnectionDao()
@@ -39,8 +39,11 @@ def join_game(connection_id, request):
 def _join_game(connection, game_id) -> GameState:
 
   game = game_dao.get(game_id)
-
+  game.last_action = GameAction.JOIN_GAME
+  game.last_action_by = connection.id
+  
   connection.game_id = game_id
+  connection.last_action = ConnectionAction.JOIN_GAME
   
   game.players.append(Player(
     id=connection.id,

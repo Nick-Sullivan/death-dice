@@ -2,7 +2,7 @@ import json
 import pytest
 from unittest.mock import patch
 
-from model import ConnectionItem, D6, GameState, Player, Roll, RollResult, RollResultNote, RollResultType
+from model import ConnectionAction, ConnectionItem
 from set_nickname import set_nickname
 
 path = 'set_nickname'
@@ -21,29 +21,30 @@ def connection_dao():
 
 
 def test_set_nickname(client_notifier, connection_dao):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id')
+  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', last_action=ConnectionAction.CREATE_CONNECTION)
   connection_dao.is_valid_nickname.return_value = True
 
   set_nickname({
     'requestContext': {
       'connectionId': 'nicks_connection_id'
     },
-    'body': json.dumps({'data': 'nick_name'})
+    'body': json.dumps({'data': {'nickname': 'nick_name'}})
   }, None)
 
   assert connection_dao.set.call_args.args[0].nickname == 'nick_name'
+  assert connection_dao.set.call_args.args[0].last_action == ConnectionAction.SET_NICKNAME
   client_notifier.send_notification.assert_called_once()
 
 
 def test_set_nickname_invalid(client_notifier, connection_dao):
-  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id')
+  connection_dao.get.return_value = ConnectionItem(id='nicks_connection_id', last_action=ConnectionAction.CREATE_CONNECTION)
   connection_dao.is_valid_nickname.return_value = False
 
   set_nickname({
     'requestContext': {
       'connectionId': 'nicks_connection_id'
     },
-    'body': json.dumps({'data': 'nick_name'})
+    'body': json.dumps({'data': {'nickname': 'nick_name'}})
   }, None)
 
   assert not connection_dao.set.called

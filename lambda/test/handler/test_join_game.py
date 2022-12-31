@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from dao import GameNotFoundException
 from join_game import join_game
-from model import ConnectionItem, GameState
+from model import ConnectionAction, ConnectionItem, GameAction, GameState
 
 path = 'join_game'
 
@@ -51,8 +51,15 @@ def test_join_game_invalid_code(game_dao, client_notifier):
 
 
 def test_join_game(connection_dao, game_dao, client_notifier, transaction_mock):
-  connection_dao.get.return_value = ConnectionItem('nicks_connection_id')
-  game_dao.get.return_value = GameState(id='ABCD', mr_eleven='', round_finished=True, players=[])
+  connection_dao.get.return_value = ConnectionItem('nicks_connection_id', last_action=ConnectionAction.CREATE_CONNECTION)
+  game_dao.get.return_value = GameState(
+    id='ABCD',
+    mr_eleven='',
+    round_finished=True,
+    players=[],
+    last_action=GameAction.CREATE_GAME,
+    last_action_by='nick',
+  )
 
   join_game({
     'requestContext': {
@@ -62,9 +69,12 @@ def test_join_game(connection_dao, game_dao, client_notifier, transaction_mock):
   }, None)
 
   assert connection_dao.set.call_args.args[0].game_id == 'ABCD'
+  assert connection_dao.set.call_args.args[0].last_action == ConnectionAction.JOIN_GAME
   assert connection_dao.set.call_args.args[1] == transaction_mock().__enter__()
   assert game_dao.set.call_args.args[0].players[0].id == 'nicks_connection_id'
   assert game_dao.set.call_args.args[1] == transaction_mock().__enter__()
+  assert game_dao.set.call_args.args[0].last_action == GameAction.JOIN_GAME
+  assert game_dao.set.call_args.args[0].last_action_by == 'nicks_connection_id'
   assert client_notifier.send_notification.call_args.args[0] == ['nicks_connection_id']
   assert client_notifier.send_notification.call_args.args[1] == {
     'action': 'joinGame',

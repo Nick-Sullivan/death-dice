@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 from connect import connect
+from model import ConnectionAction
 
 path = 'connect'
 
@@ -15,3 +16,4 @@ def test_connect(connection_dao):
 
   connection_dao.create.assert_called_once()
   assert connection_dao.create.call_args.args[0].id == 'nicks_connection_id'
+  assert connection_dao.create.call_args.args[0].last_action == ConnectionAction.CREATE_CONNECTION

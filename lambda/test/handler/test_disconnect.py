@@ -2,7 +2,7 @@ import pytest
 from unittest.mock import patch
 
 from disconnect import disconnect
-from model import ConnectionItem, GameState
+from model import ConnectionAction, ConnectionItem, GameAction, GameState
 
 path = 'disconnect'
 
@@ -32,7 +32,7 @@ def transaction_mock():
 
 
 def test_disconnect_no_game(connection_dao):
-  connection = ConnectionItem(id='nicks_connection_id')
+  connection = ConnectionItem(id='nicks_connection_id', last_action=ConnectionAction.CREATE_CONNECTION)
   connection_dao.get.return_value = connection
 
   disconnect({
@@ -45,9 +45,16 @@ def test_disconnect_no_game(connection_dao):
 
 
 def test_disconnect_only_player(connection_dao, game_dao, transaction_mock):
-  connection = ConnectionItem(id='nicks_connection_id', game_id='game_id')
+  connection = ConnectionItem(id='nicks_connection_id', game_id='game_id', last_action=ConnectionAction.CREATE_CONNECTION)
   connection_dao.get.return_value = connection
-  game = GameState(id='game_id', mr_eleven='', round_finished=False, players=[0])
+  game = GameState(
+    id='game_id',
+    mr_eleven='',
+    round_finished=False,
+    players=[0],
+    last_action=GameAction.NEW_ROUND,
+    last_action_by='nick',
+  )
   game_dao.get.return_value = game
 
   disconnect({

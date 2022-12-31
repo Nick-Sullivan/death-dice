@@ -4,10 +4,19 @@ from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from dateutil import parser
+from enum import Enum
 from typing import List
 
 from model.dice import Dice
 from model.roll_result import RollResultNote
+
+
+class GameAction(Enum):
+  CREATE_GAME = 'CREATE_GAME'
+  JOIN_GAME = 'JOIN_GAME'
+  LEAVE_GAME = 'LEAVE_GAME'
+  NEW_ROUND = 'NEW_ROUND'
+  ROLL_DICE = 'ROLL_DICE'
 
 
 @dataclass
@@ -41,9 +50,12 @@ class GameState:
   id: str
   mr_eleven: str
   round_finished: bool
+  last_action: GameAction
+  last_action_by: str
   players: List[Player]
   version: int = None
   created_on: datetime = None
+  table: str = 'Game'
 
   @staticmethod
   def serialise(obj):
@@ -53,6 +65,8 @@ class GameState:
     game_dict = asdict(obj)
     for p in game_dict['players']:
       p['outcome'] = p['outcome'].value
+    
+    game_dict['last_action'] = game_dict['last_action'].value
     
     # Datetimes
     game_dict['created_on'] = str(game_dict['created_on'])
@@ -68,6 +82,8 @@ class GameState:
     # Enums
     for p in game_dict['players']:
       p['outcome'] = RollResultNote(p['outcome'])
+    
+    game_dict['last_action'] = GameAction(game_dict['last_action'])
 
     # Datetimes
     game_dict['created_on'] = parser.parse(game_dict['created_on'])

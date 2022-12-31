@@ -3,7 +3,7 @@ import pytest
 from datetime import datetime, timezone
 from unittest.mock import MagicMock, patch
 
-from model import ConnectionItem
+from model import ConnectionAction, ConnectionItem
 from dao import ConnectionDao, ConnectionNotFoundException
 
 path = 'dao.connection_dao'
@@ -31,15 +31,18 @@ class TestConnectionDao:
     assert isinstance(obj, ConnectionDao)
 
   def test_create(self, obj):
-    obj.create(ConnectionItem(id='test'))
+    obj.create(ConnectionItem(id='test', last_action=ConnectionAction.CREATE_CONNECTION))
     obj.client.put_item.assert_called_once_with(**{
       'TableName': 'DeathDiceStage',
       'Item': {
         'id': {'S': 'test'},
         'nickname': {'NULL': True},
+        'account_id': {'NULL': True},
         'game_id': {'NULL': True},
+        'last_action': {'S': 'CREATE_CONNECTION'},
         'version': {'N': '0'},
         'created_on': {'S': '2022-01-01 00:00:00+00:00'},
+        'table': {'S': 'Connection'},
       },
       'ConditionExpression': 'attribute_not_exists(id)',
     })
@@ -49,7 +52,8 @@ class TestConnectionDao:
       'Item': ConnectionItem.serialise(
         ConnectionItem(
           id='test',
-          created_on=datetime_mock.now()
+          created_on=datetime_mock.now(),
+          last_action=ConnectionAction.SET_NICKNAME,
         )
       )
     }
@@ -67,7 +71,17 @@ class TestConnectionDao:
       obj.get('id')
 
   def test_set(self, obj, transaction, datetime_mock):
-    obj.set(ConnectionItem(id='id', game_id='game_id', version=2, created_on=datetime_mock.now()), transaction)
+    obj.set(
+      ConnectionItem(
+        id='id',
+        last_action=ConnectionAction.SET_NICKNAME,
+        account_id='account_id',
+        game_id='game_id',
+        version=2,
+        created_on=datetime_mock.now()
+      ),
+      transaction,
+    )
 
     transaction.write.assert_called_once_with({
       'Put': {
@@ -75,9 +89,12 @@ class TestConnectionDao:
         'Item': {
           'id': {'S': 'id'},
           'nickname': {'NULL': True},
+          'account_id': {'S': 'account_id'},
           'game_id': {'S': 'game_id'},
+          'last_action': {'S': 'SET_NICKNAME'},
           'version': {'N': '3'},
           'created_on': {'S': '2022-01-01 00:00:00+00:00'},
+          'table': {'S': 'Connection'},
         },
         'ConditionExpression': 'attribute_exists(id) AND version = :v',
         'ExpressionAttributeValues': {':v': {'N': '2'}},
@@ -85,7 +102,7 @@ class TestConnectionDao:
     })
 
   def test_delete(self, obj, transaction):
-    obj.delete(ConnectionItem(id="id", game_id="game_id", version=2), transaction)
+    obj.delete(ConnectionItem(id="id", game_id="game_id", version=2, last_action=ConnectionAction.SET_NICKNAME), transaction)
     transaction.write.assert_called_once_with({
       'Delete': {
         'TableName': 'DeathDiceStage',

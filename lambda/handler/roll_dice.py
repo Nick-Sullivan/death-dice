@@ -3,7 +3,7 @@
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, concurrency_retry
 from game_logic import DiceRoller, IndividualRollJudge, calculate_turn_results
-from model import GameState
+from model import GameAction, GameState
 
 client_notifier = ClientNotifier()
 connection_dao = ConnectionDao()
@@ -25,6 +25,8 @@ def roll_dice(connection_id, request):
 def _roll_dice(connection) -> GameState:
 
   game = game_dao.get(connection.game_id)
+  game.last_action = GameAction.ROLL_DICE
+  game.last_action_by = connection.id
 
   player = next(p for p in game.players if p.id == connection.id)
 

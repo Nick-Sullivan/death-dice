@@ -1,7 +1,7 @@
 
 from client_interactor import lambda_handler
 from dao import ConnectionDao
-from model import ConnectionItem
+from model import ConnectionAction, ConnectionItem
 
 connection_dao = ConnectionDao()
 
@@ -9,8 +9,11 @@ connection_dao = ConnectionDao()
 @lambda_handler
 def connect(connection_id, request):
   """Called by the WebSocketAPI when a new connection is established. Creates a new connection object."""
-
-  connection_dao.create(ConnectionItem(id=connection_id))
+  connection = ConnectionItem(
+    id=connection_id,
+    last_action=ConnectionAction.CREATE_CONNECTION,
+  )
+  connection_dao.create(connection)
 
 
 if __name__ == '__main__':

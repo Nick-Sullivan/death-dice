@@ -14,6 +14,7 @@ terraform {
 
 locals {
   prefix            = "DeathDiceStage"
+  prefix_lower      = "death-dice-stage"
   auth_callback_url = "http://localhost:5500/website/"
   auth_domain       = lower(local.prefix)
   tags = {
@@ -100,3 +101,71 @@ resource "local_file" "flutter" {
   EOT
   filename = "../../../flutter/.env"
 }
+
+# Store a database history for analytics
+
+module "kinesis" {
+  source        = "./../../modules/kinesis"
+  prefix        = local.prefix
+  prefix_lower  = local.prefix_lower
+  table_name    = module.database.table_name
+  lambda_folder = "${path.root}/../../../lambda"
+}
+
+
+# # # Store long-term data in a column-based database
+
+# # resource "aws_redshiftserverless_namespace" "example" {
+# #   namespace_name = "tf-namespace"
+# #   # admin_username = "admin"
+# #   # admin_user_password = "admin"
+# #   # db_name = "tf-db"
+# # }
+
+# # resource "aws_redshiftserverless_workgroup" "example" {
+# #   depends_on = [aws_redshiftserverless_namespace.example]
+# #   namespace_name = "tf-namespace"
+# #   workgroup_name = "tf-workgroup"
+
+# #   # Applying any of these parameters screws it up :/ 
+# #   # config_parameter {
+# #   #   parameter_key = "auto_mv"
+# #   #   parameter_value = true
+# #   # }
+# #   # config_parameter {
+# #   #   parameter_key = "datestyle"
+# #   #   parameter_value = "ISO, MDY"
+# #   # }
+# #   # # config_parameter {
+# #   # #   parameter_key = "enable_case_sensitive_identifier"
+# #   # #   parameter_value = "false"
+# #   # # }
+# #   # config_parameter {
+# #   #   parameter_key = "enable_user_activity_logging"
+# #   #   parameter_value = "true"
+# #   # }
+# #   # config_parameter {
+# #   #   parameter_key = "query_group"
+# #   #   parameter_value = "default"
+# #   # }
+# #   # config_parameter {
+# #   #   parameter_key = "search_path"
+# #   #   parameter_value = "$user, public"
+# #   # }
+# #   # config_parameter {
+# #   #   # {
+# #   #     parameter_key = "max_query_execution_time"
+# #   #     parameter_value = 10  # seconds
+# #   #   # }
+# #   # }
+# # }
+
+# # resource "aws_redshiftserverless_usage_limit" "example" {
+# #   resource_arn = aws_redshiftserverless_workgroup.example.arn
+# #   usage_type   = "serverless-compute"
+# #   amount       = 1  # hours
+# #   period       = "monthly"
+# #   breach_action = "deactivate"  # perpetually applies :/ 
+# # }
+
+

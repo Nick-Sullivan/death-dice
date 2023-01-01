@@ -180,8 +180,8 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_stream" {
     bucket_arn = aws_s3_bucket.kinesis.arn
     buffer_size        = 64   # MB (minimum 64)
     buffer_interval    = 60  # seconds
-    prefix = "data/table=!{partitionKeyFromLambda:table}/"
-    error_output_prefix = "errors/!{firehose:error-output-type}/"
+    prefix = "data/table=!{partitionKeyFromLambda:table}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/"
+    error_output_prefix = "errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/!{firehose:error-output-type}/"
 
     # s3_backup_mode = "Enabled"
     # s3_backup_configuration = {
@@ -230,5 +230,3 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_stream" {
     ]
   }
 }
-
-

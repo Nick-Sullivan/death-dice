@@ -1,6 +1,6 @@
 output "gateway_url" {
   description = "URL for invoking API Gateway."
-  value       = module.api_gateway_shell.gateway_url
+  value       = module.game_api_gateway_shell.gateway_url
 }
 
 output "client_id" {

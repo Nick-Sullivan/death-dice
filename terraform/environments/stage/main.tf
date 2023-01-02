@@ -15,6 +15,7 @@ terraform {
 locals {
   prefix            = "DeathDiceStage"
   prefix_lower      = "death-dice-stage"
+  prefix_underscore = "death_dice_stage"
   auth_callback_url = "http://localhost:5500/website/"
   auth_domain       = lower(local.prefix)
   tags = {
@@ -102,201 +103,25 @@ resource "local_file" "flutter" {
   filename = "../../../flutter/.env"
 }
 
-# Store a database history for analytics
+# Extract the data into s3 TODO- failures
 
-module "kinesis" {
-  source        = "./../../modules/kinesis"
+module "extraction" {
+  source        = "./../../modules/extraction"
   prefix        = local.prefix
   prefix_lower  = local.prefix_lower
-  table_name    = module.database.table_name
-  lambda_folder = "${path.root}/../../../lambda/analytics"
+  stream_arn    = module.database.stream_arn
+  lambda_folder = "${path.root}/../../../lambda/extraction"
 }
 
 # Athena for analytics
 
-resource "aws_athena_database" "example" {
-  name   = "tf_database"
-  bucket = module.kinesis.s3_name
+module "athena" {
+  source            = "./../../modules/athena"
+  prefix            = local.prefix
+  prefix_underscore = local.prefix_underscore
+  s3_name           = module.extraction.s3_name
 }
 
-resource "aws_athena_workgroup" "example" {
-  # Processor settings
-  name          = "tf_workgroup"
-  force_destroy = true
-  configuration {
-    bytes_scanned_cutoff_per_query     = 10 * 1024 * 1024 // bytes, minimum 10 MB
-    publish_cloudwatch_metrics_enabled = true
-
-    result_configuration {
-      output_location = "s3://${module.kinesis.s3_name}/athena"
-    }
-  }
-}
-
-resource "aws_glue_catalog_table" "connection" {
-  name          = "connection"
-  database_name = aws_athena_database.example.name
-  table_type    = "EXTERNAL_TABLE"
-  parameters = {
-    EXTERNAL       = "TRUE"
-    classification = "json"
-  }
-
-  storage_descriptor {
-    location = "s3://${module.kinesis.s3_name}/data/table=Connection/"
-
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
-
-    ser_de_info {
-      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-      parameters = {
-        "serialization.format"  = 1
-        "ignore.malformed.json" = false
-        "dots.in.keys"          = false
-        "case.insensitive"      = true
-        "mapping"               = true
-      }
-    }
-
-    columns {
-      name = "meta_event_type"
-      type = "string"
-    }
-    columns {
-      name = "modified_action"
-      type = "string"
-    }
-    columns {
-      name = "modified_at"
-      type = "timestamp"
-    }
-    columns {
-      name = "id"
-      type = "string"
-    }
-    columns {
-      name = "account_id"
-      type = "string"
-    }
-    columns {
-      name = "game_id"
-      type = "string"
-    }
-    columns {
-      name = "version"
-      type = "int"
-    }
-
-  }
-}
-
-resource "aws_glue_catalog_table" "game" {
-  name          = "game"
-  database_name = aws_athena_database.example.name
-  table_type    = "EXTERNAL_TABLE"
-  parameters = {
-    EXTERNAL       = "TRUE"
-    classification = "json"
-  }
-
-  storage_descriptor {
-    location = "s3://${module.kinesis.s3_name}/data/table=Game/"
-
-    input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-    output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
-
-    ser_de_info {
-      serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-      parameters = {
-        "serialization.format"  = 1
-        "ignore.malformed.json" = false
-        "dots.in.keys"          = false
-        "case.insensitive"      = true
-        "mapping"               = true
-      }
-    }
-
-    columns {
-      name = "meta_event_type"
-      type = "string"
-    }
-    columns {
-      name = "modified_action"
-      type = "string"
-    }
-    columns {
-      name = "modified_at"
-      type = "timestamp"
-    }
-    columns {
-      name = "modified_by"
-      type = "string"
-    }
-    columns {
-      name = "id"
-      type = "string"
-    }
-    columns {
-      name = "version"
-      type = "int"
-    }
-    columns {
-      name = "round_finished"
-      type = "boolean"
-    }
-    columns {
-      name = "mr_eleven"
-      type = "string"
-    }
-    # Whitespace is not allowed
-    columns {
-      name = "players"
-      type = "array<struct<nickname:string,finished:boolean,id:string,win_counter:int,outcome:string>>"
-    }
-
-  }
-}
-
-resource "aws_athena_named_query" "connection_list" {
-  name      = "connection_list"
-  workgroup = aws_athena_workgroup.example.id
-  database  = aws_athena_database.example.name
-  query     = <<-EOT
-    SELECT
-      *
-    FROM 
-      ${aws_glue_catalog_table.connection.name}
-    LIMIT 10;
-  EOT
-}
-
-resource "aws_athena_named_query" "game_list" {
-  name      = "game_list"
-  workgroup = aws_athena_workgroup.example.id
-  database  = aws_athena_database.example.name
-  query     = <<-EOT
-    SELECT
-      *
-    FROM 
-      ${aws_glue_catalog_table.game.name}
-    LIMIT 10;
-  EOT
-}
-
-resource "aws_athena_named_query" "game_count" {
-  name      = "game_count"
-  workgroup = aws_athena_workgroup.example.id
-  database  = aws_athena_database.example.name
-  query     = <<-EOT
-    SELECT
-      COUNT(*) AS game_count
-    FROM 
-      ${aws_glue_catalog_table.game.name}
-    WHERE
-      modified_action = 'CREATE_GAME';
-  EOT
-}
 
 # Lambda for accessing athena analytics
 
@@ -304,13 +129,15 @@ module "analytics_lambdas" {
   source        = "./../../modules/analytics_lambdas"
   prefix        = "${local.prefix}Analytics"
   lambda_folder = "${path.root}/../../../lambda/analytics"
-  athena_s3_output_arn = module.kinesis.s3_arn
-  athena_workgroup_arn = aws_athena_workgroup.example.arn
-  athena_workgroup_name = aws_athena_workgroup.example.name
-  athena_query_game_count_id = aws_athena_named_query.game_count.id
-  glue_database_id = aws_athena_database.example.id
-  glue_table_arn = aws_glue_catalog_table.game.arn
+  athena_s3_output_arn = module.extraction.s3_arn
+  athena_workgroup_arn = module.athena.workgroup_arn
+  athena_workgroup_name = module.athena.workgroup_name
+  athena_query_game_count_id = module.athena.query_game_count_id
+  glue_database_id = module.athena.glue_database_id
+  glue_table_arn = module.athena.glue_game_table_arn
 }
+
+# API for invoking Athena analytics
 
 module "analytics_api_gateway" {
   source      = "./../../modules/analytics_api_gateway"

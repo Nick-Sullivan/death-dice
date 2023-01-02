@@ -5,13 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "extract",
+      "name": "transform",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/extract.py"]
+      "args": ["-o", "profile.prof", "lambda/extraction/handler/transform.py"]
     },
     {
       "name": "connect",
@@ -20,7 +20,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/connect.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/connect.py"]
     },
     {
       "name": "create_game",
@@ -29,7 +29,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/create_game.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/create_game.py"]
     },
     {
       "name": "disconnect",
@@ -38,7 +38,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/disconnect.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/disconnect.py"]
     },
     {
       "name": "join_game",
@@ -47,7 +47,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/join_game.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/join_game.py"]
     },
     {
       "name": "new_round",
@@ -56,7 +56,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/new_round.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/new_round.py"]
     },
     {
       "name": "roll_dice",
@@ -65,7 +65,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/roll_dice.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/roll_dice.py"]
     },
     {
       "name": "set_nickname",
@@ -74,7 +74,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/handler/set_nickname.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/set_nickname.py"]
     },
   ]
 }

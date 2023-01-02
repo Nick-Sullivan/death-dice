@@ -32,7 +32,7 @@ def get_statistics(event, context):
   # )['QueryExecution']
 
   # TODO, avoid waiting in a lambda
-  time.sleep(3)
+  time.sleep(1)
 
   result = client.get_query_results(
     QueryExecutionId=execution_id

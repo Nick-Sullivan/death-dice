@@ -13,11 +13,12 @@ terraform {
 }
 
 locals {
-  prefix            = "DeathDiceStage"
-  prefix_lower      = "death-dice-stage"
-  prefix_underscore = "death_dice_stage"
-  auth_callback_url = "http://localhost:5500/website/"
-  auth_domain       = lower(local.prefix)
+  prefix                   = "DeathDiceStage"
+  prefix_lower             = "death-dice-stage"
+  prefix_underscore        = "death_dice_stage"
+  auth_callback_url        = "http://localhost:5500/website/"
+  auth_domain              = lower(local.prefix)
+  s3_database_history_name = "death-dice-stage-database-history"
   tags = {
     Project = "Death Dice Stage"
   }
@@ -39,8 +40,8 @@ module "game_api_gateway_shell" {
 
 # Create a database to store game state
 
-module "database" {
-  source = "./../../modules/database"
+module "game_database" {
+  source = "./../../modules/game_database"
   prefix = local.prefix
 }
 
@@ -50,8 +51,8 @@ module "game_lambdas" {
   source        = "./../../modules/game_lambdas"
   prefix        = local.prefix
   lambda_folder = "${path.root}/../../../lambda/game"
-  table_arn     = module.database.table_arn
   gateway_url   = module.game_api_gateway_shell.gateway_url
+  table_arn     = module.game_database.table_arn
 }
 
 # Populate the API so it will trigger the lambdas
@@ -65,8 +66,8 @@ module "game_api_gateway_integration" {
 
 # Create a dashboard for observing correct behaviour
 
-module "cloudwatch" {
-  source  = "./../../modules/cloudwatch"
+module "monitoring_cloudwatch" {
+  source  = "./../../modules/monitoring_cloudwatch"
   name    = local.prefix
   project = local.tags.Project
 }
@@ -105,43 +106,119 @@ resource "local_file" "flutter" {
 
 # Extract the data into s3 TODO- failures
 
-module "extraction" {
-  source        = "./../../modules/extraction"
+module "analytics_extraction" {
+  source        = "./../../modules/analytics_extraction"
   prefix        = local.prefix
   prefix_lower  = local.prefix_lower
-  stream_arn    = module.database.stream_arn
   lambda_folder = "${path.root}/../../../lambda/extraction"
+  s3_name       = local.s3_database_history_name
+  stream_arn    = module.game_database.stream_arn
 }
 
 # Athena for analytics
 
-module "athena" {
-  source            = "./../../modules/athena"
+module "analytics_athena" {
+  source            = "./../../modules/analytics_athena"
   prefix            = local.prefix
   prefix_underscore = local.prefix_underscore
-  s3_name           = module.extraction.s3_name
+  s3_name           = module.analytics_extraction.s3_name
 }
 
-
-# Lambda for accessing athena analytics
+# Lambda for orchestrating analytics
 
 module "analytics_lambdas" {
-  source        = "./../../modules/analytics_lambdas"
-  prefix        = "${local.prefix}Analytics"
-  lambda_folder = "${path.root}/../../../lambda/analytics"
-  athena_s3_output_arn = module.extraction.s3_arn
-  athena_workgroup_arn = module.athena.workgroup_arn
-  athena_workgroup_name = module.athena.workgroup_name
-  athena_query_game_count_id = module.athena.query_game_count_id
-  glue_database_id = module.athena.glue_database_id
-  glue_table_arn = module.athena.glue_game_table_arn
+  source                    = "./../../modules/analytics_lambdas"
+  prefix                    = "${local.prefix}Analytics"
+  lambda_folder             = "${path.root}/../../../lambda/analytics"
+  athena_s3_output_arn      = module.analytics_extraction.s3_arn
+  athena_workgroup_arn      = module.analytics_athena.workgroup_arn
+  athena_workgroup_name     = module.analytics_athena.workgroup_name
+  athena_query_id           = module.analytics_athena.query_id
+  glue_database_id          = module.analytics_athena.glue_database_id
+  glue_connection_table_arn = module.analytics_athena.glue_connection_table_arn
+  glue_game_table_arn       = module.analytics_athena.glue_game_table_arn
+  dynamodb_table_arn = aws_dynamodb_table.analytics_cache.arn
 }
 
-# API for invoking Athena analytics
+# API for accessing analytics results
 
 module "analytics_api_gateway" {
-  source      = "./../../modules/analytics_api_gateway"
-  name        = "${local.prefix}Analytics"
-  lambda_name = module.analytics_lambdas.lambdas["GetStatistics"].name
-  lambda_uri  = module.analytics_lambdas.lambdas["GetStatistics"].uri
+  source                = "./../../modules/analytics_api_gateway"
+  name                  = "${local.prefix}Analytics"
+  cognito_user_pool_arn = module.cognito.user_pool_arn
+  lambda_name           = module.analytics_lambdas.lambdas["StartQuery"].name
+  lambda_uri            = module.analytics_lambdas.lambdas["StartQuery"].uri
 }
+
+# Log when rule fires
+
+
+resource "aws_cloudwatch_event_rule" "events" {
+  name        = "${local.prefix}-AthenaQuerySucceeded"
+  description = ""
+
+  event_pattern = <<-EOF
+    {
+      "source": ["aws.athena"],
+      "detail-type": ["Athena Query State Change"],
+      "detail": {
+        "workgroupName": ["${module.analytics_athena.workgroup_name}"],
+        "currentState": ["SUCCEEDED"]
+      }
+    }
+  EOF
+}
+
+resource "aws_cloudwatch_event_target" "events" {
+  rule      = aws_cloudwatch_event_rule.events.name
+  target_id = "SendToCloudWatch"
+  arn       = aws_cloudwatch_log_group.events.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+  # dead_letter_config {
+  # arn = 
+  # }
+}
+
+resource "aws_cloudwatch_log_group" "events" {
+  name              = "/aws/events/${aws_cloudwatch_event_rule.events.name}"
+  retention_in_days = 90
+}
+
+# Invoke lambda when rule fires
+
+resource "aws_cloudwatch_event_target" "lambda" {
+  rule      = aws_cloudwatch_event_rule.events.name
+  target_id = "InvokeCacheLambda"
+  arn       = module.analytics_lambdas.lambdas["CacheResult"].arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+  # dead_letter_config {
+  # arn = 
+  # }
+}
+
+resource "aws_lambda_permission" "all" {
+  statement_id  = "AllowExecutionFromEventBus"
+  action        = "lambda:InvokeFunction"
+  function_name = module.analytics_lambdas.lambdas["CacheResult"].name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.events.arn
+}
+
+# Table for caching
+
+resource "aws_dynamodb_table" "analytics_cache" {
+  name         = "${local.prefix}AnalyticsCache"
+  hash_key     = "id"
+  billing_mode = "PAY_PER_REQUEST"
+  attribute {
+    name = "id"
+    type = "S"
+  }
+}
+

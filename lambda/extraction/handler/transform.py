@@ -74,8 +74,9 @@ def upload_to_s3(table_name, events):
    date = parser.parse(first_modified_at)
    year = date.strftime('%Y')
    month = date.strftime('%m')
+   day = date.strftime('%d')
    file = first_modified_at
-   key = f's3://{bucket_name}/data/table={table_name}/year={year}/month={month}/{file}.parquet'
+   key = f's3://{bucket_name}/data/table={table_name}/year={year}/month={month}/day={day}/{file}.parquet'
 
    df = pd.DataFrame(events)
    wr.s3.to_parquet(

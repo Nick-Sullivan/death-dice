@@ -9,6 +9,7 @@ from typing import List
 class Dice:
   id: str
   value: int
+  is_death_dice: bool
 
 
 class DiceFactory:
@@ -16,11 +17,11 @@ class DiceFactory:
   id = None
   options = None
 
-  def __new__(cls, value=None):
+  def __new__(cls, value=None, is_death_dice=False):
     assert isinstance(cls.id, str)
     value = cls.roll() if value is None else value
     assert value in cls.options
-    return Dice(id=cls.id, value=value)
+    return Dice(id=cls.id, value=value, is_death_dice=is_death_dice)
 
   @classmethod
   def roll(cls):

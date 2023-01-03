@@ -42,19 +42,19 @@ class DiceRoller:
   def _roll_death_dice(win_counter) -> Roll:
     """Rolls the death dice with N sides according"""
     if win_counter in [3, 4]:
-      return D4()
+      return D4(is_death_dice=True)
     elif win_counter in [5, 6]:
-      return D6()
+      return D6(is_death_dice=True)
     elif win_counter in [7, 8]:
-      return D8()
+      return D8(is_death_dice=True)
     elif win_counter in [9, 10]:
-      return D10()
+      return D10(is_death_dice=True)
     elif win_counter in [11, 12]:
-      return D12()
+      return D12(is_death_dice=True)
     elif win_counter in [13, 14]:
-      return D20()
+      return D20(is_death_dice=True)
     elif win_counter > 14:
-      return D10Percentile()
+      return D10Percentile(is_death_dice=True)
 
     raise NotImplementedError()
 

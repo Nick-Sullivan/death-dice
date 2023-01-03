@@ -8,6 +8,10 @@ terraform {
   }
 }
 
+locals {
+  s3_arn = "arn:aws:s3:::${var.s3_name}"
+}
+
 # DynamoDB stream triggers an extraction lambda
 
 resource "aws_lambda_event_source_mapping" "extract" {
@@ -32,6 +36,7 @@ resource "aws_lambda_function" "transform" {
   handler          = "transform.transform"
   role             = aws_iam_role.transform.arn
   runtime          = "python3.9"
+  memory_size      = 258  # MB
   timeout          = 10
   reserved_concurrent_executions = 1
   source_code_hash = data.archive_file.transform.output_base64sha256
@@ -40,7 +45,7 @@ resource "aws_lambda_function" "transform" {
   environment {
     variables = {
       "PROJECT" : var.prefix,
-      "BUCKET_NAME" : aws_s3_bucket.extract.bucket,
+      "BUCKET_NAME" : var.s3_name,
     }
   }
 }
@@ -83,8 +88,8 @@ data "aws_iam_policy_document" "upload_to_s3" {
     ]
     effect    = "Allow"
     resources = [
-      aws_s3_bucket.extract.arn,
-      "${aws_s3_bucket.extract.arn}/*",
+      local.s3_arn,
+      "${local.s3_arn}/*",
     ]
   }
 }
@@ -109,13 +114,3 @@ resource "aws_cloudwatch_log_group" "transform" {
   retention_in_days = 90
 }
 
-# S3 holds the data
-
-resource "aws_s3_bucket" "extract" {
-  bucket = "${var.prefix_lower}-database-history"
-}
-
-resource "aws_s3_bucket_acl" "extract" {
-  bucket = aws_s3_bucket.extract.id
-  acl    = "private"
-}

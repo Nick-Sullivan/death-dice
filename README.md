@@ -89,3 +89,14 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 - Airhorn people that take too long
 - 4 4 1 1 should be death dice
 - death dice upgrade on 3 wins with two players
+
+# TODO analytics
+
+- remove sleep in transformation lambda
+- lambda memory monitoring
+- SQL optimisation
+- display in app
+- separate s3 into its own permanent section
+- possibly SQL caching
+- cognito auth
+- move cognito to permanent

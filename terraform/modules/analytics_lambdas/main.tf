@@ -10,12 +10,24 @@ terraform {
 
 locals {
   lambdas = {
-    "GetStatistics" = {
-      name     = "${var.prefix}-GetStatistics"
-      filename = "get_statistics"
-      handler  = "get_statistics.get_statistics"
-      route    = "$get_statistics"
+    "StartQuery" = {
+      name     = "${var.prefix}-StartQuery"
+      filename = "start_query"
+      handler  = "start_query.start_query"
+      route    = "$start_query"
     },
+    "CacheResult" = {
+      name     = "${var.prefix}-CacheResult"
+      filename = "cache_result"
+      handler  = "cache_result.cache_result"
+      route    = "$cache_result"
+    },
+    # "GetStatistics" = {
+    #   name     = "${var.prefix}-GetStatistics"
+    #   filename = "get_statistics"
+    #   handler  = "get_statistics.get_statistics"
+    #   route    = "$get_statistics"
+    # },
   }
 }
 
@@ -50,7 +62,7 @@ resource "aws_lambda_function" "all" {
     variables = {
       "PROJECT" : var.prefix,
       "WORKGROUP": var.athena_workgroup_name,
-      "QUERY_GAME_COUNT_ID": var.athena_query_game_count_id,
+      "QUERY_ID": var.athena_query_id,
     }
   }
 }
@@ -96,8 +108,26 @@ data "aws_iam_policy_document" "query_athena" {
       "${var.athena_s3_output_arn}/*",
       "arn:aws:glue:ap-southeast-2:314077822992:catalog",
       "arn:aws:glue:ap-southeast-2:314077822992:database/${var.glue_database_id}",
-      var.glue_table_arn,
+      var.glue_connection_table_arn,
+      var.glue_game_table_arn,
     ]
+  }
+}
+
+data "aws_iam_policy_document" "access_dynamodb" {
+  # Allow Lambda to interact with the dynamo database
+  statement {
+    actions = [
+      "dynamodb:ConditionCheckItem",
+      "dynamodb:DeleteItem",
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:Query",
+      "dynamodb:Scan",
+      "dynamodb:UpdateItem",
+    ]
+    effect    = "Allow"
+    resources = [var.dynamodb_table_arn]
   }
 }
 
@@ -110,5 +140,9 @@ resource "aws_iam_role" "role" {
   inline_policy {
     name   = "QueryAthena"
     policy = data.aws_iam_policy_document.query_athena.json
+  }
+  inline_policy {
+    name   = "WriteResultsCache"
+    policy = data.aws_iam_policy_document.access_dynamodb.json
   }
 }

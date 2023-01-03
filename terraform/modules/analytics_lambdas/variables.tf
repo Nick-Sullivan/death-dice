@@ -23,8 +23,8 @@ variable "athena_workgroup_name" {
   type        = string
 }
 
-variable "athena_query_game_count_id" {
-  description = "ID of the Athena query that counts the number of games"
+variable "athena_query_id" {
+  description = "ID of the Athena query to perform"
   type        = string
 }
 
@@ -33,9 +33,17 @@ variable "glue_database_id" {
   type        = string
 }
 
-variable "glue_table_arn" {
+variable "glue_connection_table_arn" {
   description = "ARN of the glue table to be used in the query"
   type        = string
 }
 
+variable "glue_game_table_arn" {
+  description = "ARN of the glue table to be used in the query"
+  type        = string
+}
 
+variable "dynamodb_table_arn" {
+  description = "ARN of the dynamoDB table storing analytics results"
+  type        = string
+}

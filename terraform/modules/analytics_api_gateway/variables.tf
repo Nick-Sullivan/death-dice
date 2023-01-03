@@ -13,3 +13,8 @@ variable "lambda_uri" {
   description = "The URI of the Lambda to be invoked"
   type        = string
 }
+
+variable "cognito_user_pool_arn" {
+  description = "The ARN of the Cognito user pool performing authorising"
+  type        = string
+}

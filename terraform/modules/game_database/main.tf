@@ -19,16 +19,3 @@ resource "aws_dynamodb_table" "death_dice" {
     type = "S"
   }
 }
-
-# Permissions
-# note - if you make a change to this, you will need to destroy & reapply
-
-data "aws_iam_policy_document" "death_dice" {
-  statement {
-    actions   = [
-      "dynamodb:PutItem",
-    ]
-    effect    = "Allow"
-    resources = [aws_dynamodb_table.death_dice.arn]
-  }
-}

@@ -5,13 +5,40 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "extract",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/history/handler/extract.py"]
+    },
+    {
       "name": "transform",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/extraction/handler/transform.py"]
+      "args": ["-o", "profile.prof", "lambda/history/handler/transform.py"]
+    },
+    {
+      "name": "cache_result",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/analytics/handler/cache_result.py"]
+    },
+    {
+      "name": "get_statistics",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/analytics/handler/get_statistics.py"]
     },
     {
       "name": "connect",

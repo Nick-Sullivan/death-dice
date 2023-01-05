@@ -1,7 +1,8 @@
 
 import boto3
-from boto3.dynamodb.types import TypeSerializer
 import json
+import os
+from datetime import datetime, timezone
 
 def cache_result(event, context):
   print(event)
@@ -17,10 +18,11 @@ def cache_result(event, context):
 
   dynamodb = session.client('dynamodb')
   dynamodb.put_item(
-    TableName='DeathDiceStageAnalyticsCache',
+    TableName=os.environ['RESULT_CACHE_TABLE_NAME'],
     Item={
       'id': {'S': id},
       'value': {'S': json.dumps(rows)},
+      'modified_at': {'S': datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S.%f')},
     }
   )
 
@@ -36,7 +38,8 @@ def get_var_char_values(d, default):
 
 
 if __name__ == '__main__':
-   cache_result(
+  os.environ['RESULT_CACHE_TABLE_NAME'] = "DeathDiceStageAnalytics"
+  cache_result(
     {'version': '0', 'id': '920a15c3-1b71-693e-fce9-a64e63fa56cf', 'detail-type': 'Athena Query State Change', 'source': 'aws.athena', 'account': '314077822992', 'time': '2023-01-03T08:33:21Z', 'region': 'ap-southeast-2', 'resources': [], 'detail': {'currentState': 'SUCCEEDED', 'previousState': 'RUNNING', 'queryExecutionId': 'bba15bf0-0427-4c1d-aace-66ef5b895aa7', 'sequenceNumber': '3', 'statementType': 'DML', 'versionId': '0', 'workgroupName': 'DeathDiceStage'}}
     ,None
   )

@@ -92,11 +92,21 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 
 # TODO analytics
 
-- remove sleep in transformation lambda
 - lambda memory monitoring
+- lambda memory reduction
 - SQL optimisation
 - display in app
-- separate s3 into its own permanent section
 - possibly SQL caching
 - cognito auth
-- move cognito to permanent
+
+
+# Stats
+
+- extracting 161 records (2370ms, 67/128 MB)
+- extracting 209 records (2507ms, 73/128 MB)
+- extracting 193 records (2601ms, 73/128 MB)
+- extracting 317 records (4596ms, 82/128 MB)
+
+- transforming 0 messages (98ms, 240/512 MB, -)
+- transforming 104 messages (1510ms,  240/512 MB, 12.7KB)
+- transforming 975 messages (3964ms, 245/512 MB, 27.4KB)

@@ -3,6 +3,7 @@
 # - fiddle with the dashboard in the AWS console
 # - Actions -> View/Edit Source
 # - replace the prefix (DeathDice) with ${var.name}
+# - replace the prefix (DeathDiceAnalytics) with ${var.name_analytics}
 # - replace the project name (Death Dice) with ${var.project}
 resource "aws_cloudwatch_dashboard" "dashboard" {
   dashboard_name = var.name
@@ -16,6 +17,14 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "x": 12,
             "type": "metric",
             "properties": {
+                "metrics": [
+                    [ { "expression": "RUNNING_SUM(m1+m3)", "id": "e1", "label": "Cumulative ReadCapacityUnits", "region": "ap-southeast-2" } ],
+                    [ { "expression": "RUNNING_SUM(m2+m4)", "id": "e2", "label": "Cumulative WriteCapacityUnits", "region": "ap-southeast-2" } ],
+                    [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${var.name}", { "id": "m1", "visible": false } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m2", "visible": false } ],
+                    [ ".", "ConsumedReadCapacityUnits", ".", "${var.name_analytics}", { "id": "m3", "visible": false } ],
+                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m4", "visible": false } ]
+                ],
                 "annotations": {
                     "horizontal": [
                         {
@@ -30,12 +39,6 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
                         }
                     ]
                 },
-                "metrics": [
-                    [ { "expression": "RUNNING_SUM(m1)", "id": "e1", "label": "Cumulative ReadCapacityUnits", "region": "ap-southeast-2" } ],
-                    [ { "expression": "RUNNING_SUM(m2)", "id": "e2", "label": "Cumulative WriteCapacityUnits", "region": "ap-southeast-2" } ],
-                    [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${var.name}", { "id": "m1", "visible": false } ],
-                    [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m2", "visible": false } ]
-                ],
                 "period": 300,
                 "region": "ap-southeast-2",
                 "stacked": false,
@@ -143,6 +146,20 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "x": 18,
             "type": "metric",
             "properties": {
+                "metrics": [
+                    [ { "expression": "RUNNING_SUM(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11)", "id": "e1", "label": "Cumulative Processing Time", "region": "ap-southeast-2" } ],
+                    [ "AWS/Lambda", "Duration", "FunctionName", "${var.name}-Connect", "Resource", "${var.name}-Connect", { "id": "m1", "visible": false } ],
+                    [ "...", "${var.name}-CreateGame", ".", "${var.name}-CreateGame", { "id": "m2", "visible": false } ],
+                    [ "...", "${var.name}-Disconnect", ".", "${var.name}-Disconnect", { "id": "m3", "visible": false } ],
+                    [ "...", "${var.name}-JoinGame", ".", "${var.name}-JoinGame", { "id": "m4", "visible": false } ],
+                    [ "...", "${var.name}-NewRound", ".", "${var.name}-NewRound", { "id": "m5", "visible": false } ],
+                    [ "...", "${var.name}-RollDice", ".", "${var.name}-RollDice", { "id": "m6", "visible": false } ],
+                    [ "...", "${var.name}-SetNickname", ".", "${var.name}-SetNickname", { "id": "m7", "visible": false } ],
+                    [ ".", ".", ".", "${var.name}-ExtractAndTransform", { "id": "m8", "visible": false } ],
+                    [ "...", "${var.name_analytics}-CacheResult", { "id": "m9", "visible": false } ],
+                    [ "...", "${var.name_analytics}-GetStatistics", { "id": "m10", "visible": false } ],
+                    [ "...", "${var.name_analytics}-StartQuery", { "id": "m11", "visible": false } ]
+                ],
                 "annotations": {
                     "horizontal": [
                         {
@@ -152,16 +169,6 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
                         }
                     ]
                 },
-                "metrics": [
-                    [ { "expression": "RUNNING_SUM(m1+m2+m3+m4+m5+m6+m7)", "id": "e1", "label": "Cumulative Processing Time", "region": "ap-southeast-2" } ],
-                    [ "AWS/Lambda", "Duration", "FunctionName", "${var.name}-Connect", "Resource", "${var.name}-Connect", { "id": "m1", "visible": false } ],
-                    [ "...", "${var.name}-CreateGame", ".", "${var.name}-CreateGame", { "id": "m2", "visible": false } ],
-                    [ "...", "${var.name}-Disconnect", ".", "${var.name}-Disconnect", { "id": "m3", "visible": false } ],
-                    [ "...", "${var.name}-JoinGame", ".", "${var.name}-JoinGame", { "id": "m4", "visible": false } ],
-                    [ "...", "${var.name}-NewRound", ".", "${var.name}-NewRound", { "id": "m5", "visible": false } ],
-                    [ "...", "${var.name}-RollDice", ".", "${var.name}-RollDice", { "id": "m6", "visible": false } ],
-                    [ "...", "${var.name}-SetNickname", ".", "${var.name}-SetNickname", { "id": "m7", "visible": false } ]
-                ],
                 "period": 300,
                 "region": "ap-southeast-2",
                 "stacked": false,
@@ -183,82 +190,23 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "type": "metric",
             "properties": {
                 "metrics": [
-                    [ { "expression": "RUNNING_SUM(m1)", "label": "Cumulative IncomingBytes", "id": "e1", "region": "ap-southeast-2" } ],
-                    [ "AWS/Kinesis", "IncomingBytes", "StreamName", "${var.name}", { "label": "IncomingBytes", "id": "m1", "stat": "Sum" } ]
+                    [ { "expression": "RUNNING_SUM(m1) / (1024^2)", "label": "Cumulative Processed MB", "id": "e1" } ],
+                    [ "AWS/Athena", "ProcessedBytes", "WorkGroup", "${var.name_analytics}", { "id": "m1", "visible": false } ]
                 ],
-                "view": "timeSeries",
-                "stacked": false,
-                "region": "ap-southeast-2",
-                "annotations": {
-                    "horizontal": [
-                        {
-                            "label": "1c of ingest",
-                            "value": 290000000
-                        }
-                    ]
-                },
-                "period": 300,
-                "stat": "Average",
-                "title": "Kinesis Data Stream"
-            }
-        },
-        {
-            "height": 6,
-            "width": 6,
-            "y": 12,
-            "x": 12,
-            "type": "metric",
-            "properties": {
-                "metrics": [
-                    [ { "expression": "RUNNING_SUM(m1)", "label": "Cumulative S3 Object Count", "id": "e1", "region": "ap-southeast-2" } ],
-                    [ "AWS/Firehose", "DeliveryToS3.ObjectCount", "DeliveryStreamName", "${var.name}", { "id": "m1", "visible": false } ]
-                ],
-                "view": "timeSeries",
-                "stacked": false,
-                "region": "ap-southeast-2",
-                "title": "Kinesis Firehose - s3 objects",
-                "stat": "Sum",
-                "period": 300,
                 "annotations": {
                     "horizontal": [
                         {
                             "label": "1c of s3 objects",
-                            "value": 1587
+                            "value": 2097
                         }
                     ]
                 },
-                "yAxis": {
-                    "left": {
-                        "min": 0
-                    }
-                }
-            }
-        },
-        {
-            "height": 6,
-            "width": 6,
-            "y": 12,
-            "x": 18,
-            "type": "metric",
-            "properties": {
-                "metrics": [
-                    [ { "expression": "RUNNING_SUM(m2)", "label": "Cumulative S3 Bytes", "id": "e2", "region": "ap-southeast-2" } ],
-                    [ "AWS/Firehose", "DeliveryToS3.Bytes", "DeliveryStreamName", "${var.name}", { "id": "m2", "visible": false } ]
-                ],
-                "view": "timeSeries",
-                "stacked": false,
-                "region": "ap-southeast-2",
-                "title": "Kinesis Firehose - s3 bytes",
-                "stat": "Sum",
                 "period": 300,
-                "annotations": {
-                    "horizontal": [
-                        {
-                            "label": "1c of GB delivered",
-                            "value": 429000000
-                        }
-                    ]
-                },
+                "region": "ap-southeast-2",
+                "stacked": false,
+                "stat": "Sum",
+                "title": "Athena Costs",
+                "view": "timeSeries",
                 "yAxis": {
                     "left": {
                         "min": 0

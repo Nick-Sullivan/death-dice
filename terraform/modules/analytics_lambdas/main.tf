@@ -1,5 +1,3 @@
-# Creates the Lambda functions, serverless execution that can be invoked by other components
-
 terraform {
   required_providers {
     aws = {
@@ -15,19 +13,31 @@ locals {
       filename = "start_query"
       handler  = "start_query.start_query"
       route    = "$start_query"
+      role = aws_iam_role.start_query.arn
+      variables = {
+        "QUERY_ID": var.athena_query_id,
+      }
     },
     "CacheResult" = {
       name     = "${var.prefix}-CacheResult"
       filename = "cache_result"
       handler  = "cache_result.cache_result"
       route    = "$cache_result"
+      role = aws_iam_role.cache_result.arn
+      variables = {
+        "RESULT_CACHE_TABLE_NAME": var.dynamodb_table_name,
+      }
     },
-    # "GetStatistics" = {
-    #   name     = "${var.prefix}-GetStatistics"
-    #   filename = "get_statistics"
-    #   handler  = "get_statistics.get_statistics"
-    #   route    = "$get_statistics"
-    # },
+    "GetStatistics" = {
+      name     = "${var.prefix}-GetStatistics"
+      filename = "get_statistics"
+      handler  = "get_statistics.get_statistics"
+      route    = "$get_statistics"
+      role = aws_iam_role.get_statistics.arn
+      variables = {
+        "RESULT_CACHE_TABLE_NAME": var.dynamodb_table_name,
+      }
+    },
   }
 }
 
@@ -53,24 +63,19 @@ resource "aws_lambda_function" "all" {
   filename         = "${var.lambda_folder}/zip/${each.value.filename}.zip"
   function_name    = each.value.name
   handler          = each.value.handler
-  role             = aws_iam_role.role.arn
+  role             = each.value.role
   runtime          = "python3.9"
   timeout          = 10
   source_code_hash = data.archive_file.all[each.key].output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
   environment {
-    variables = {
-      "PROJECT" : var.prefix,
-      "WORKGROUP": var.athena_workgroup_name,
-      "QUERY_ID": var.athena_query_id,
-    }
+    variables = each.value.variables
   }
 }
 
-# Permissions
+# Permissions - common
 
 data "aws_iam_policy_document" "assume_role" {
-  # Allow Lambda to assume a role so it can execute
   statement {
     actions = ["sts:AssumeRole"]
     effect  = "Allow"
@@ -80,6 +85,8 @@ data "aws_iam_policy_document" "assume_role" {
     }
   }
 }
+
+# Permissions - start Athena query
 
 data "aws_iam_policy_document" "query_athena" {
   # Allow Lambda to perform queries in Athena
@@ -114,8 +121,39 @@ data "aws_iam_policy_document" "query_athena" {
   }
 }
 
-data "aws_iam_policy_document" "access_dynamodb" {
-  # Allow Lambda to interact with the dynamo database
+resource "aws_iam_role" "start_query" {
+  # Permissions for the Lambda
+  name                = "${var.prefix}-QueryAthena"
+  description         = "Allows Lambda to start queries in Athena"
+  assume_role_policy  = data.aws_iam_policy_document.assume_role.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  inline_policy {
+    name   = "QueryAthena"
+    policy = data.aws_iam_policy_document.query_athena.json
+  }
+}
+
+# Permissions - cache results to DynamoDB
+
+data "aws_iam_policy_document" "get_query_result" {
+  statement {
+    actions = [
+      "athena:GetQueryResults",
+      "s3:GetBucketLocation",
+      "s3:GetObject",
+      "s3:ListBucket",
+      "s3:ListMultipartUploadParts",
+    ]
+    effect    = "Allow"
+    resources = [
+      var.athena_workgroup_arn,
+      var.athena_s3_output_arn,
+      "${var.athena_s3_output_arn}/*",
+    ]
+  }
+}
+
+data "aws_iam_policy_document" "write_cache" {
   statement {
     actions = [
       "dynamodb:ConditionCheckItem",
@@ -131,18 +169,41 @@ data "aws_iam_policy_document" "access_dynamodb" {
   }
 }
 
-resource "aws_iam_role" "role" {
-  # Permissions for the Lambda
-  name                = "${var.prefix}LamdbaRole"
-  description         = "Allows Lambda to query Athena"
+resource "aws_iam_role" "cache_result" {
+  name                = "${var.prefix}-CacheAthenaResult"
+  description         = "Allows Lambda to cache Athena results in DynamoDB"
   assume_role_policy  = data.aws_iam_policy_document.assume_role.json
   managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
   inline_policy {
-    name   = "QueryAthena"
-    policy = data.aws_iam_policy_document.query_athena.json
+    name   = "GetQueryResult"
+    policy = data.aws_iam_policy_document.get_query_result.json
   }
   inline_policy {
     name   = "WriteResultsCache"
-    policy = data.aws_iam_policy_document.access_dynamodb.json
+    policy = data.aws_iam_policy_document.write_cache.json
+  }
+}
+
+# Permissions - read DynamoDB cache
+
+data "aws_iam_policy_document" "read_cache" {
+  statement {
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:Scan",
+    ]
+    effect    = "Allow"
+    resources = [var.dynamodb_table_arn]
+  }
+}
+
+resource "aws_iam_role" "get_statistics" {
+  name                = "${var.prefix}-GetStatistics"
+  description         = "Allows Lambda to read cached results in DynamoDB"
+  assume_role_policy  = data.aws_iam_policy_document.assume_role.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  inline_policy {
+    name   = "ReadResultsCache"
+    policy = data.aws_iam_policy_document.read_cache.json
   }
 }

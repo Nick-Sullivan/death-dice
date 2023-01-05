@@ -68,7 +68,8 @@ class TestGameDao:
             'rolls': {'L': [{'M': {
               'dice': {'L': [{'M': {
                 'id': {'S': 'D6'},
-                'value': {'N': '4'}
+                'value': {'N': '4'},
+                'is_death_dice': {'BOOL': False}
               }}]}
             }}]}
           }}]},
@@ -154,7 +155,8 @@ class TestGameDao:
             'rolls': {'L': [{'M': {
               'dice': {'L': [{'M': {
                 'id': {'S': 'D6'},
-                'value': {'N': '4'}
+                'value': {'N': '4'},
+                'is_death_dice': {'BOOL': False}
               }}]}
             }}]}
           }}]},

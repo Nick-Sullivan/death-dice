@@ -1,12 +1,6 @@
-# Extracts data from DynamoDB to S3
-# Note - saving this as parquet reduces the amount of data scanned by 10 to 30x
-
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-    }
-  }
+locals {
+  s3_output_arn      = "${var.s3_arn}/athena"
+  s3_output_location = "s3://${var.s3_name}/athena"
 }
 
 resource "aws_athena_database" "athena" {
@@ -23,7 +17,7 @@ resource "aws_athena_workgroup" "athena" {
     publish_cloudwatch_metrics_enabled = true
 
     result_configuration {
-      output_location = "s3://${var.s3_name}/athena"
+      output_location = local.s3_output_location
     }
   }
 }
@@ -89,69 +83,6 @@ resource "aws_glue_catalog_table" "connection" {
 
   }
 }
-
-# resource "aws_glue_catalog_table" "connection_json" {
-#   name          = "connection_json"
-#   database_name = aws_athena_database.athena.name
-#   table_type    = "EXTERNAL_TABLE"
-#   parameters = {
-#     EXTERNAL       = "TRUE"
-#     classification = "json"
-#   }
-
-#   storage_descriptor {
-#     location = "s3://${var.s3_name}/data/table=ConnectionJson/"
-
-#     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-#     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
-
-#     ser_de_info {
-#       serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-
-#       parameters = {
-#         "serialization.format"  = 1
-#         "ignore.malformed.json" = false
-#         "dots.in.keys"          = false
-#         "case.insensitive"      = true
-#         "mapping"               = true
-#       }
-#     }
-
-#     columns {
-#       name = "meta_event_type"
-#       type = "string"
-#     }
-#     columns {
-#       name = "modified_action"
-#       type = "string"
-#     }
-#     columns {
-#       name = "modified_at"
-#       type = "timestamp"
-#     }
-#     columns {
-#       name = "id"
-#       type = "string"
-#     }
-#     columns {
-#       name = "account_id"
-#       type = "string"
-#     }
-#     columns {
-#       name = "game_id"
-#       type = "string"
-#     }
-#     columns {
-#       name = "version"
-#       type = "int"
-#     }
-#     columns {
-#       name = "nickname"
-#       type = "string"
-#     }
-
-#   }
-# }
 
 resource "aws_glue_catalog_table" "game" {
   name          = "game"
@@ -220,72 +151,6 @@ resource "aws_glue_catalog_table" "game" {
   }
 }
 
-# resource "aws_glue_catalog_table" "game_json" {
-#   name          = "game_json"
-#   database_name = aws_athena_database.athena.name
-#   table_type    = "EXTERNAL_TABLE"
-#   parameters = {
-#     EXTERNAL       = "TRUE"
-#     classification = "json"
-#   }
-
-#   storage_descriptor {
-#     location = "s3://${var.s3_name}/data/table=GameJson/"
-
-#     input_format  = "org.apache.hadoop.mapred.TextInputFormat"
-#     output_format = "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat"
-
-#     ser_de_info {
-#       serialization_library = "org.openx.data.jsonserde.JsonSerDe"
-#       parameters = {
-#         "serialization.format"  = 1
-#         "ignore.malformed.json" = false
-#         "dots.in.keys"          = false
-#         "case.insensitive"      = true
-#         "mapping"               = true
-#       }
-#     }
-
-#     columns {
-#       name = "meta_event_type"
-#       type = "string"
-#     }
-#     columns {
-#       name = "modified_action"
-#       type = "string"
-#     }
-#     columns {
-#       name = "modified_at"
-#       type = "timestamp"
-#     }
-#     columns {
-#       name = "modified_by"
-#       type = "string"
-#     }
-#     columns {
-#       name = "id"
-#       type = "string"
-#     }
-#     columns {
-#       name = "version"
-#       type = "int"
-#     }
-#     columns {
-#       name = "round_finished"
-#       type = "boolean"
-#     }
-#     columns {
-#       name = "mr_eleven"
-#       type = "string"
-#     }
-#     # Whitespace is not allowed
-#     columns {
-#       name = "players"
-#       type = "array<struct<nickname:string,finished:boolean,id:string,win_counter:int,outcome:string>>"
-#     }
-
-#   }
-# }
 
 resource "aws_athena_named_query" "connection_list" {
   name      = "connection_list"
@@ -680,6 +545,7 @@ resource "aws_athena_named_query" "all_stats_per_account" {
 
   EOT
 }
+
 
 // -- TRIGGERED BY PLAYER ACTION
 

@@ -107,6 +107,18 @@ data "aws_iam_policy_document" "upload_to_s3" {
   }
 }
 
+data "aws_iam_policy_document" "put_event" {
+  statement {
+    actions = [
+      "events:PutEvents",
+    ]
+    effect = "Allow"
+    resources = [
+      "arn:aws:events:ap-southeast-2:314077822992:event-bus/default",
+    ]
+  }
+}
+
 resource "aws_iam_role" "transform" {
   name                = "${var.prefix}-LamdbaTransformRole"
   description         = "Allows Lambda to read from SQS and upload to S3"
@@ -120,6 +132,10 @@ resource "aws_iam_role" "transform" {
     name   = "S3Upload"
     policy = data.aws_iam_policy_document.upload_to_s3.json
   }
+  inline_policy {
+    name   = "PutEvent"
+    policy = data.aws_iam_policy_document.put_event.json
+  }
 }
 
 
@@ -127,5 +143,34 @@ resource "aws_iam_role" "transform" {
 
 resource "aws_cloudwatch_log_group" "transform" {
   name              = "/aws/lambda/${local.transform_name}"
+  retention_in_days = 90
+}
+
+
+# When the game history has finished uploading to S3, fire a rule
+
+resource "aws_cloudwatch_event_rule" "transform_finished" {
+  name        = "${var.prefix}-TransformComplete"
+  description = "Game history data has been transformed"
+  event_pattern = <<-EOF
+    {
+      "source": ["death.dice"],
+      "detail-type": ["Transformation complete"]
+    }
+  EOF
+}
+
+resource "aws_cloudwatch_event_target" "transform_finished" {
+  rule      = aws_cloudwatch_event_rule.transform_finished.name
+  target_id = "SendToCloudWatch"
+  arn       = aws_cloudwatch_log_group.transform_finished.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+}
+
+resource "aws_cloudwatch_log_group" "transform_finished" {
+  name              = "/aws/events/${aws_cloudwatch_event_rule.transform_finished.name}"
   retention_in_days = 90
 }

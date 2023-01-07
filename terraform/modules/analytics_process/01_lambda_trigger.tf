@@ -11,12 +11,26 @@ locals {
   lambda_name = "${var.prefix}-StartQuery"
 }
 
-# When the game history has finished uploading to S3, fire a rule
 
+# When the game history has finished uploading to S3, invokes a lambda for processing
 
+resource "aws_cloudwatch_event_target" "start_query" {
+  rule      = var.transform_finished_rule_name
+  target_id = "InvokeStartQueryLambda"
+  arn       = aws_lambda_function.start_query.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+}
 
-# The rule invokes a lambda for processing
-
+resource "aws_lambda_permission" "start_query" {
+  statement_id  = "AllowExecutionFromEventBus"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.start_query.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = var.transform_finished_rule_arn
+}
 
 
 # The lambda starts an Athena query
@@ -35,6 +49,7 @@ resource "aws_lambda_function" "start_query" {
   runtime          = "python3.9"
   timeout          = 10
   source_code_hash = data.archive_file.start_query.output_base64sha256
+  layers = ["arn:aws:lambda:ap-southeast-2:770693421928:layer:Klayers-p39-boto3:10"]  # newer boto3
   depends_on       = [aws_cloudwatch_log_group.start_query]
   environment {
     variables = {
@@ -107,5 +122,3 @@ resource "aws_cloudwatch_log_group" "start_query" {
   name              = "/aws/lambda/${local.lambda_name}"
   retention_in_days = 90
 }
-
-

@@ -171,10 +171,15 @@ resource "aws_cloudwatch_log_group" "cache" {
 
 resource "aws_dynamodb_table" "cache" {
   name         = var.prefix
-  hash_key     = "id"
+  hash_key     = "account_id"
+  range_key    = "date_id"
   billing_mode = "PAY_PER_REQUEST"
   attribute {
-    name = "id"
+    name = "account_id"
+    type = "S"
+  }
+  attribute {
+    name = "date_id"
     type = "S"
   }
 }

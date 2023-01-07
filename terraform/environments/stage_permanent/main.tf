@@ -40,6 +40,11 @@ resource "aws_s3_bucket_acl" "history" {
   acl    = "private"
 }
 
+resource "aws_s3_bucket_metric" "history" {
+  bucket = aws_s3_bucket.history.bucket
+  name   = "EntireBucket"
+}
+
 // Cognito to store user signups
 
 resource "aws_cognito_user_pool" "users" {

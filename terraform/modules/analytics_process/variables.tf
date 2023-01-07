@@ -22,3 +22,13 @@ variable "s3_arn" {
   description = "ARN of the s3 bucket to ingest and store results"
   type        = string
 }
+
+variable "transform_finished_rule_arn" {
+  description = "ARN of the rule that fires when transformation has finished"
+  type        = string
+}
+
+variable "transform_finished_rule_name" {
+  description = "Name of the rule that fires when transformation has finished"
+  type        = string
+}     

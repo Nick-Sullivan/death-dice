@@ -8,6 +8,8 @@ module "analytics_process" {
   prefix_underscore = local.prefix_analytics_underscore
   s3_arn            = module.game_history.s3_arn
   s3_name           = module.game_history.s3_name
+  transform_finished_rule_arn = module.game_history.transform_finished_rule_arn
+  transform_finished_rule_name = module.game_history.transform_finished_rule_name
 }
 
 

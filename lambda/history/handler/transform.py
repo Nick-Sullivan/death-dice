@@ -12,6 +12,7 @@ from decimal import Decimal
 deserialiser = TypeDeserializer()
 session = boto3.Session()
 sqs = session.client('sqs')
+event_bridge = session.client('events')
 
 MESSAGES_PER_BATCH = 10  # max 10
 MAX_BATCHES = 200
@@ -43,9 +44,19 @@ def transform(event, context):
       tables[transformed['table']].append(transformed)
 
    for table_name, events in tables.items():
+      sorted(events, key=lambda x: x['modified_at'])
       upload_to_s3(table_name, events)
 
    delete_sqs_messages(receipts)
+
+   event_bridge.put_events(
+      Entries=[{
+         'Source': 'death.dice',
+         'DetailType': 'Transformation complete',
+         'Detail': '{}',
+         'Resources': [],
+      }]
+   )
 
    return {'statusCode': 200}
 

@@ -56,8 +56,7 @@ data "aws_iam_policy_document" "assume_role" {
 data "aws_iam_policy_document" "read_cache" {
   statement {
     actions = [
-      "dynamodb:GetItem",
-      "dynamodb:Scan",
+      "dynamodb:Query",
     ]
     effect    = "Allow"
     resources = [var.dynamodb_table_arn]

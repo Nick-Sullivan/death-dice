@@ -3,6 +3,8 @@ import boto3
 import json
 import os
 from boto3.dynamodb.types import TypeDeserializer
+from boto3.dynamodb.conditions import Key, Attr
+
 from collections import defaultdict
 
 deserialiser = TypeDeserializer()
@@ -21,24 +23,20 @@ def get_statistics(event, context):
 
   session = boto3.Session()
   dynamodb = session.client('dynamodb')
-  result = dynamodb.scan(
+  result = dynamodb.query(
     TableName=os.environ['RESULT_CACHE_TABLE_NAME'],
+    KeyConditionExpression='account_id = :account_id',
+    ExpressionAttributeValues={':account_id': {'S': account_id}},
   )
 
-  results = []
-  for item in result['Items']:
-    stats = json.loads(item['value']['S'])
-    matching_stats = [s for s in stats if s['account_id'] == account_id]
-    if not matching_stats:
-      continue
-    results.extend(matching_stats)
+  stats_by_date = [json.loads(item['value']['S']) for item in result['Items']]
 
-  sum_ = sum_results(results, ignored_keys={'account_id', 'date_id'})
-  print(sum_)
+  stats = sum_results(stats_by_date, ignored_keys={'account_id', 'date_id'})
+  print(stats)
 
   return {
     'statusCode': 200,
-    'body': json.dumps(sum_),
+    'body': json.dumps(stats),
   }
 
 

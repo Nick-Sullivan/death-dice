@@ -89,6 +89,8 @@ data "aws_iam_policy_document" "query_athena" {
       "s3:ListBucket",
       "s3:ListMultipartUploadParts",
       "s3:PutObject",
+      "glue:CreatePartition",
+      "glue:GetPartition",
       "glue:GetTable",
     ]
     effect = "Allow"

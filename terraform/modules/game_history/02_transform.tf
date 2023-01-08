@@ -11,7 +11,7 @@ resource "aws_cloudwatch_event_rule" "transform" {
   name                = local.transform_name
   description         = "Transform periodically"
   schedule_expression = "cron(30 0 * * ? *)" # 11:00am adelaide time, every day
-  # schedule_expression = "rate(2 minutes)"
+  # schedule_expression = "rate(1 minute)"
 }
 
 resource "aws_cloudwatch_event_target" "transform" { # comment to stop all transformations

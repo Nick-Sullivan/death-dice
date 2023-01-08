@@ -49,6 +49,10 @@ resource "aws_glue_catalog_table" "connection" {
     }
 
     columns {
+      name = "date_id"
+      type = "string"
+    }
+    columns {
       name = "meta_event_type"
       type = "string"
     }
@@ -93,6 +97,12 @@ resource "aws_glue_catalog_table" "game" {
     classification = "parquet"
   }
 
+  partition_keys {
+    name    = "date_id"
+    type    = "string"
+    comment = "YYYY-MM-DD of when this was modified"
+  }
+
   storage_descriptor {
     location = "s3://${var.s3_name}/data/table=Game/"
 
@@ -132,6 +142,10 @@ resource "aws_glue_catalog_table" "game" {
     }
     columns {
       name = "version"
+      type = "int"
+    }
+    columns {
+      name = "round_id"
       type = "int"
     }
     columns {

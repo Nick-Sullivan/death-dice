@@ -35,6 +35,7 @@ def _create_game(connection) -> GameState:
   game = GameState(
     id=game_id,
     mr_eleven='',
+    round_id=0,
     round_finished=True,
     players=[Player(
       id=connection.id,

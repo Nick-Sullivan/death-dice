@@ -50,6 +50,7 @@ def test_disconnect_only_player(connection_dao, game_dao, transaction_mock):
   game = GameState(
     id='game_id',
     mr_eleven='',
+    round_id=0,
     round_finished=False,
     players=[0],
     modified_action=GameAction.NEW_ROUND,

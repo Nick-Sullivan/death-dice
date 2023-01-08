@@ -55,6 +55,7 @@ def test_join_game(connection_dao, game_dao, client_notifier, transaction_mock):
   game_dao.get.return_value = GameState(
     id='ABCD',
     mr_eleven='',
+    round_id=0,
     round_finished=True,
     players=[],
     modified_action=GameAction.CREATE_GAME,

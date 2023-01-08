@@ -34,6 +34,7 @@ class TestGameDao:
     game = GameState(
       id='test', 
       mr_eleven='nick',
+      round_id=0,
       round_finished=False,
       modified_action=GameAction.CREATE_GAME,
       modified_by='nick',
@@ -58,6 +59,7 @@ class TestGameDao:
         'Item': {
           'id': {'S': 'test'},
           'mr_eleven': {'S': 'nick'},
+          'round_id': {'N': '0'},
           'round_finished': {'BOOL': False},
           'players': {'L': [{'M': {
             'id': {'S': 'pid'},
@@ -89,6 +91,7 @@ class TestGameDao:
         GameState(
           id='test',
           mr_eleven=None,
+          round_id=0,
           round_finished=None,
           modified_action=GameAction.CREATE_GAME,
           modified_by='nick',
@@ -120,6 +123,7 @@ class TestGameDao:
       id='test',
       version=2,
       mr_eleven='nick',
+      round_id=0,
       round_finished=False,
       modified_at=datetime_mock.now(),
       modified_action=GameAction.CREATE_GAME,
@@ -145,6 +149,7 @@ class TestGameDao:
         'Item': {
           'id': {'S': 'test'},
           'mr_eleven': {'S': 'nick'},
+          'round_id': {'N': '0'},
           'round_finished': {'BOOL': False},
           'players': {'L': [{'M': {
             'id': {'S': 'pid'},
@@ -175,6 +180,7 @@ class TestGameDao:
     game = GameState(
       id='test',
       mr_eleven=None,
+      round_id=0,
       round_finished=None,
       modified_action=GameAction.NEW_ROUND,
       modified_by='nick',

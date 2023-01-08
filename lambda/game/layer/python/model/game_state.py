@@ -50,6 +50,7 @@ class GameState:
   id: str
   mr_eleven: str
   players: List[Player]
+  round_id: int
   round_finished: bool
   modified_action: GameAction
   modified_by: str

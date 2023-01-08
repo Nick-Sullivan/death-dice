@@ -29,7 +29,7 @@ def transform(event, context):
 
    print(f'Transforming {len(messages)} messages')
 
-   tables = defaultdict(list)
+   file_values = defaultdict(list)
    receipts = []
    for sqs_event in messages:
       receipts.append({
@@ -41,11 +41,12 @@ def transform(event, context):
 
       transformed = transform_event(dynamodb_event)
 
-      tables[transformed['table']].append(transformed)
+      key = (transformed['table'], transformed['date_id'])
+      file_values[key].append(transformed)
 
-   for table_name, events in tables.items():
+   for (table_name, date_id), events in file_values.items():
       sorted(events, key=lambda x: x['modified_at'])
-      upload_to_s3(table_name, events)
+      upload_to_s3(table_name, date_id, events)
 
    delete_sqs_messages(receipts)
 
@@ -107,6 +108,9 @@ def transform_event(event):
 
    response = remove_decimals(response)
 
+   date = parser.parse(response['modified_at'])
+   response['date_id'] = date.strftime('%Y-%m-%d')
+
    return response
 
 
@@ -124,18 +128,11 @@ def remove_decimals(key_values):
    return key_values
 
 
-def upload_to_s3(table_name, events):
+def upload_to_s3(table_name, date_id, events):
    print(events)
    bucket_name = os.environ['BUCKET_NAME']
-
    first_modified_at = min([e['modified_at'] for e in events])
-
-   date = parser.parse(first_modified_at)
-   year = date.strftime('%Y')
-   month = date.strftime('%m')
-   day = date.strftime('%d')
-   file = first_modified_at
-   key = f's3://{bucket_name}/data/table={table_name}/year={year}/month={month}/day={day}/{file}.parquet'
+   key = f's3://{bucket_name}/data/table={table_name}/date_id={date_id}/{first_modified_at}.parquet'
 
    df = pd.DataFrame(events)
    wr.s3.to_parquet(

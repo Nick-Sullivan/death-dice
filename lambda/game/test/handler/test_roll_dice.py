@@ -50,6 +50,7 @@ def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, indiv
   game_dao.get.return_value = GameState(
     id='ABCD',
     mr_eleven='', 
+    round_id=0,
     round_finished=True,
     players=[Player(
       id='nicks_connection_id',

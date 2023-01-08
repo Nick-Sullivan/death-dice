@@ -30,6 +30,7 @@ def test_new_round(connection_dao, game_dao, client_notifier):
   game_dao.get.return_value = GameState(
     id='ABCD',
     mr_eleven='',
+    round_id=0,
     round_finished=True,
     players=[Player(id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)],
     modified_action=GameAction.CREATE_GAME,
@@ -43,6 +44,7 @@ def test_new_round(connection_dao, game_dao, client_notifier):
   }, None)
 
   new_state = game_dao.set.call_args.args[0]
+  assert new_state.round_id == 1
   assert not new_state.round_finished
   assert new_state.modified_action == GameAction.NEW_ROUND
   assert new_state.modified_by == 'nicks_connection_id'

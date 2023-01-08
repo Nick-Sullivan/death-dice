@@ -25,6 +25,7 @@ def _new_round(connection) -> GameState:
 
   game = game_dao.get(connection.game_id)
 
+  game.round_id += 1
   game.round_finished = False
   game.modified_action = GameAction.NEW_ROUND
   game.modified_by = connection.id

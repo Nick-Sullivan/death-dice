@@ -38,6 +38,7 @@ class Roll:
 @dataclass
 class Player:
   id: str
+  account_id: str
   nickname: str
   win_counter: int
   finished: bool

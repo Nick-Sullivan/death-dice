@@ -73,6 +73,7 @@ def test_join_game(connection_dao, game_dao, client_notifier, transaction_mock):
   assert connection_dao.set.call_args.args[0].modified_action == ConnectionAction.JOIN_GAME
   assert connection_dao.set.call_args.args[1] == transaction_mock().__enter__()
   assert game_dao.set.call_args.args[0].players[0].id == 'nicks_connection_id'
+  assert game_dao.set.call_args.args[0].players[0].account_id == None
   assert game_dao.set.call_args.args[1] == transaction_mock().__enter__()
   assert game_dao.set.call_args.args[0].modified_action == GameAction.JOIN_GAME
   assert game_dao.set.call_args.args[0].modified_by == 'nicks_connection_id'

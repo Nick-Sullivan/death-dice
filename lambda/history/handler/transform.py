@@ -50,11 +50,15 @@ def transform(event, context):
 
    delete_sqs_messages(receipts)
 
+   date_ids = {date_id for (_, date_id), _ in file_values.items()}
+
    event_bridge.put_events(
       Entries=[{
-         'Source': 'death.dice',
+         'Source': os.environ['EVENT_SOURCE'],
          'DetailType': 'Transformation complete',
-         'Detail': '{}',
+         'Detail': json.dumps({
+            'date_ids': sorted(date_ids),
+         }),
          'Resources': [],
       }]
    )

@@ -1,14 +1,6 @@
-WITH 
-  accounts AS (
-    SELECT 
-      id AS player_id,
-      account_id
-    FROM 
-      connection
-    WHERE 
-      meta_event_type = 'REMOVE'
-  ),
+-- Note, due to DISTINCT these aggregations are not correct for players without accounts
 
+WITH 
   game_per_player AS (
     SELECT 
       game.*,
@@ -17,11 +9,10 @@ WITH
       game
       CROSS JOIN UNNEST(players) AS t(player)
   ),
-
   games_played AS (
     SELECT 
       date_id,
-      player.id AS player_id,
+      player.account_id AS account_id,
       'games_played' AS metric,
       COUNT( DISTINCT id ) AS count
     FROM 
@@ -31,12 +22,12 @@ WITH
       AND player.outcome != ''  --Just joined
     GROUP BY 
       date_id,
-      player.id
+      player.account_id
   ),
   rounds_played AS (
     SELECT
       date_id,
-      player.id AS player_id,
+      player.account_id AS account_id,
       'rounds_played' AS metric,
       COUNT( DISTINCT round_id ) AS count
     FROM
@@ -46,27 +37,28 @@ WITH
       AND player.outcome != ''  --Just joined
     GROUP BY
       date_id,
-      player.id
+      player.account_id
   ),
   dice_rolled AS (
     SELECT 
       date_id,
-      modified_by AS player_id,
+      player.account_id AS account_id,
       'dice_rolled' as metric,
       COUNT(*) AS count
     FROM 
-      game
+      game_per_player
     WHERE 
       meta_event_type = 'MODIFY'
       AND modified_action = 'ROLL_DICE'
+      AND player.id = modified_by
     GROUP BY 
       date_id,
-      modified_by
+      player.account_id
   ),
   round_outcomes AS (
     SELECT
       date_id,
-      player.id AS player_id,
+      player.account_id AS account_id,
       CONCAT('outcome_', LOWER(player.outcome)) AS metric,
       COUNT( DISTINCT round_id ) AS count
     FROM
@@ -76,11 +68,10 @@ WITH
       AND player.outcome != ''  --Just joined
     GROUP BY
       date_id,
-      player.id,
+      player.account_id,
       player.outcome
   ),
-
-  all_stats_by_player AS (
+  all_stats AS (
     SELECT * FROM games_played
     UNION ALL SELECT * FROM rounds_played
     UNION ALL SELECT * FROM dice_rolled
@@ -88,16 +79,9 @@ WITH
   )
 
 SELECT 
-  accounts.account_id,
-  all_stats_by_player.date_id,
-  all_stats_by_player.metric,
-  SUM(all_stats_by_player.count) AS count
+  * 
 FROM 
-  accounts
-	RIGHT JOIN all_stats_by_player ON accounts.player_id = all_stats_by_player.player_id
+  all_stats
 WHERE 
-  all_stats_by_player.date_id = ?
-GROUP BY
-  accounts.account_id,
-  all_stats_by_player.date_id,
-  all_stats_by_player.metric
+  date_id = ?
+  AND account_id IS NOT NULL

@@ -1,8 +1,6 @@
 
 import boto3
-import json
 import os
-from datetime import datetime, timedelta, timezone
 
 session = boto3.Session()
 athena = session.client('athena')
@@ -11,30 +9,26 @@ glue = session.client('glue')
 
 def start_query(event, context):
   print(event)
-  today = datetime.now(timezone.utc)
-  yesterday = today - timedelta(days=1)
-  date_id = yesterday.strftime('%Y-%m-%d')
-  print(f'Starting query for {date_id}')
 
   named_query = athena.get_named_query(
     NamedQueryId=os.environ['QUERY_ID']
   )['NamedQuery']
 
-  create_partition(named_query['Database'], 'game', date_id)
+  date_ids = event['detail']['date_ids']
 
-  execution_id = athena.start_query_execution(
-    QueryString=named_query['QueryString'],
-    QueryExecutionContext={
-      'Database': named_query['Database']
-    },
-    WorkGroup=named_query['WorkGroup'],
-    ExecutionParameters=[f'\'{date_id}\''],
-  )['QueryExecutionId']
+  for date_id in date_ids:
+    print(f'Starting query for {date_id}')
 
-  return {
-    'statusCode': 200,
-    'body': json.dumps({'executionId': execution_id}),
-  }
+    create_partition(named_query['Database'], 'game', date_id)
+
+    athena.start_query_execution(
+      QueryString=named_query['QueryString'],
+      QueryExecutionContext={
+        'Database': named_query['Database']
+      },
+      WorkGroup=named_query['WorkGroup'],
+      ExecutionParameters=[f'\'{date_id}\''],
+    )['QueryExecutionId']
  
 
 def create_partition(database, table, date_id):

@@ -32,7 +32,7 @@ def test_new_round(connection_dao, game_dao, client_notifier):
     mr_eleven='',
     round_id=0,
     round_finished=True,
-    players=[Player(id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)],
+    players=[Player(id=None, account_id=None, nickname=None, win_counter=None, finished=None, outcome=None, rolls=None)],
     modified_action=GameAction.CREATE_GAME,
     modified_by='nick',
   )

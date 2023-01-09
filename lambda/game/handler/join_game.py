@@ -47,6 +47,7 @@ def _join_game(connection, game_id) -> GameState:
   
   game.players.append(Player(
     id=connection.id,
+    account_id=connection.account_id,
     nickname=connection.nickname,
     win_counter=0,
     finished=False,

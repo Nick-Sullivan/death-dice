@@ -189,18 +189,19 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "x": 18,
             "type": "metric",
             "properties": {
+                "metrics": [
+                    [ { "expression": "RUNNING_SUM(m1)", "id": "e1", "label": "Cumulative processed bytes", "region": "ap-southeast-2" } ],
+                    [ "AWS/Athena", "ProcessedBytes", "WorkGroup", "${var.name_analytics}", { "id": "m1", "visible": false } ]
+                ],
                 "annotations": {
                     "horizontal": [
                         {
-                            "label": "1c of s3 objects",
-                            "value": 2097
+                            "color": "#1f77b4",
+                            "label": "1c of bytes processed",
+                            "value": 2199023255
                         }
                     ]
                 },
-                "metrics": [
-                    [ { "expression": "RUNNING_SUM(m1) / (1024^2)", "id": "e1", "label": "Cumulative Processed MB" } ],
-                    [ "AWS/Athena", "ProcessedBytes", "WorkGroup", "${var.name_analytics}", { "id": "m1", "visible": false } ]
-                ],
                 "period": 300,
                 "region": "ap-southeast-2",
                 "stacked": false,
@@ -221,17 +222,18 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "x": 12,
             "type": "metric",
             "properties": {
-                "metrics": [
-                    [ "AWS/S3", "BucketSizeBytes", "StorageType", "StandardStorage", "BucketName", "death-dice-stage-database-history", { "id": "m2" } ]
-                ],
                 "annotations": {
                     "horizontal": [
                         {
+                            "color": "#1f77b4",
                             "label": "1c of storage per month",
                             "value": 4294967296
                         }
                     ]
                 },
+                "metrics": [
+                    [ "AWS/S3", "BucketSizeBytes", "StorageType", "StandardStorage", "BucketName", "death-dice-stage-database-history", { "id": "m2" } ]
+                ],
                 "period": 86400,
                 "region": "ap-southeast-2",
                 "stacked": false,
@@ -240,6 +242,52 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
                 "view": "timeSeries",
                 "yAxis": {
                     "left": {
+                        "min": 0
+                    }
+                }
+            }
+        },
+        {
+            "height": 6,
+            "width": 6,
+            "y": 12,
+            "x": 18,
+            "type": "metric",
+            "properties": {
+                "metrics": [
+                    [ { "expression": "RUNNING_SUM(m1 + m2)", "label": "Cumulative put/list", "id": "e1", "region": "ap-southeast-2" } ],
+                    [ { "expression": "RUNNING_SUM(m3)", "label": "Cumulative get", "id": "e2", "yAxis": "right", "region": "ap-southeast-2" } ],
+                    [ "AWS/S3", "PutRequests", "BucketName", "death-dice-stage-database-history", "FilterId", "EntireBucket", { "id": "m1", "visible": false } ],
+                    [ ".", "ListRequests", ".", ".", ".", ".", { "id": "m2", "visible": false } ],
+                    [ ".", "GetRequests", ".", ".", ".", ".", { "id": "m3", "visible": false } ]
+                ],
+                "annotations": {
+                    "horizontal": [
+                        {
+                            "color": "#1f77b4",
+                            "label": "1c of PUT",
+                            "value": 2000
+                        },
+                        {
+                            "color": "#ff7f0e",
+                            "label": "1c of GET",
+                            "value": 25000,
+                            "yAxis": "right"
+                        }
+                    ]
+                },
+                "period": 86400,
+                "region": "ap-southeast-2",
+                "stacked": false,
+                "stat": "Sum",
+                "title": "S3 request costs",
+                "view": "timeSeries",
+                "yAxis": {
+                    "left": {
+                        "min": 0,
+                        "showUnits": false
+                    },
+                    "right": {
                         "min": 0
                     }
                 }

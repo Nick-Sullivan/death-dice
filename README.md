@@ -96,12 +96,11 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 - lambda memory reduction
 - SQL optimisation
 - display in app
-- possibly SQL caching
 - cognito auth
 
-- when SQL finishes, event to start query cache
-- query cache columns
-- cache by month as well
+- prevent multiple new rounds
+- dead letter queues
+
 
 # Stats
 

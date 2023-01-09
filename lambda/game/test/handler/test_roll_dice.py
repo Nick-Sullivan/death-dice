@@ -54,6 +54,7 @@ def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, indiv
     round_finished=True,
     players=[Player(
       id='nicks_connection_id',
+      account_id=None,
       nickname=None,
       win_counter=None,
       finished=None,

@@ -41,6 +41,7 @@ class TestGameDao:
       players=[
         Player(
           id='pid',
+          account_id='account',
           nickname='nick',
           win_counter=1,
           finished=True,
@@ -63,6 +64,7 @@ class TestGameDao:
           'round_finished': {'BOOL': False},
           'players': {'L': [{'M': {
             'id': {'S': 'pid'},
+            'account_id': {'S': 'account'},
             'nickname': {'S': 'nick'},
             'win_counter': {'N': '1'},
             'finished': {'BOOL': True},
@@ -131,6 +133,7 @@ class TestGameDao:
       players=[
         Player(
           id='pid',
+          account_id='account',
           nickname='nick',
           win_counter=1,
           finished=True,
@@ -153,6 +156,7 @@ class TestGameDao:
           'round_finished': {'BOOL': False},
           'players': {'L': [{'M': {
             'id': {'S': 'pid'},
+            'account_id': {'S': 'account'},
             'nickname': {'S': 'nick'},
             'win_counter': {'N': '1'},
             'finished': {'BOOL': True},

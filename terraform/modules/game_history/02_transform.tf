@@ -2,6 +2,7 @@
 locals {
   s3_arn         = "arn:aws:s3:::${var.s3_name}"
   transform_name = "${var.prefix}-Transform"
+  event_source = "${var.prefix}.Transform"
 }
 
 
@@ -57,6 +58,7 @@ resource "aws_lambda_function" "transform" {
     variables = {
       "BUCKET_NAME" : var.s3_name,
       "QUEUE_URL" : aws_sqs_queue.extract.url,
+      "EVENT_SOURCE" : local.event_source,
     }
   }
 }
@@ -154,7 +156,7 @@ resource "aws_cloudwatch_event_rule" "transform_finished" {
   description = "Game history data has been transformed"
   event_pattern = <<-EOF
     {
-      "source": ["death.dice"],
+      "source": ["${local.event_source}"],
       "detail-type": ["Transformation complete"]
     }
   EOF

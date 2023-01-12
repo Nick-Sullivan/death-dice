@@ -2,6 +2,7 @@ import 'package:death_dice/data_access/database_interactor.dart';
 import 'package:death_dice/data_access/websocket_interactor.dart';
 import 'package:death_dice/model/constants.dart';
 import 'package:death_dice/model/game_state.dart';
+import 'package:death_dice/screens/account_screen.dart';
 import 'package:death_dice/screens/game_screen.dart';
 import 'package:death_dice/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
@@ -81,12 +82,22 @@ class _HomeScreenState extends State<HomeScreen> {
             return [
               const PopupMenuItem(
                 value: 0,
+                child: Text("Account"),
+              ),
+              const PopupMenuItem(
+                value: 1,
                 child: Text("Log out"),
               ),
             ];
           },
           onSelected: ((value) {
             if (value == 0){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => AccountScreen(accountId: accountId))
+              );
+            }
+            if (value == 1){
               database.delete(usernameKey);
               database.delete(passwordKey);
               database.delete(accountIdKey);

@@ -51,11 +51,11 @@ class CognitoInteractor {
 
     CognitoUserException exception;
     try {
-      await cognitoUser.authenticateUser(authDetails);
+      var session = await cognitoUser.authenticateUser(authDetails);
       var attributes = await cognitoUser.getUserAttributes();
       var attribute = attributes!.singleWhere((a) => a.name == 'sub');
       var accountId = attribute.value!;
-      // var accessToken = session!.getAccessToken().getJwtToken()!;
+      var accessToken = session!.getAccessToken().getJwtToken()!;
       return accountId;
     } on CognitoUserNewPasswordRequiredException catch (e) {
       // handle New Password challenge

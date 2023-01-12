@@ -12,8 +12,8 @@ resource "aws_cloudwatch_event_bus" "project_bus" {
 }
 
 resource "aws_cloudwatch_event_rule" "to_custom_bus" {
-  name        = "${var.prefix}Analytics-ToCustomBus"
-  description = "Send events to the project bus"
+  name          = "${var.prefix}Analytics-ToCustomBus"
+  description   = "Send events to the project bus"
   event_pattern = <<-EOF
     {
       "source": ["aws.athena"],

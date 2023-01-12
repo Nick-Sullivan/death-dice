@@ -5,19 +5,20 @@ import os
 from collections import defaultdict
 from datetime import datetime, timezone
 
+session = boto3.Session()
+athena = session.client('athena')
+dynamodb = session.client('dynamodb')
+
+
 def cache_result(event, context):
   print(event)
 
-  session = boto3.Session()
-
-  athena = session.client('athena')
   result = athena.get_query_results(QueryExecutionId=event['detail']['queryExecutionId'])
   
   rows = parse_athena_result(result, default='0')
 
   grouped = group_results(rows)
 
-  dynamodb = session.client('dynamodb')
   for group in grouped:
     dynamodb.put_item(
       TableName=os.environ['RESULT_CACHE_TABLE_NAME'],

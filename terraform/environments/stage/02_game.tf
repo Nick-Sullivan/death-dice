@@ -40,12 +40,13 @@ module "game_database" {
 # TODO- failures
 
 module "game_history" {
-  source        = "./../../modules/game_history"
-  lambda_folder = "${path.root}/../../../lambda/history"
-  prefix        = local.prefix
-  prefix_lower  = local.prefix_lower
-  s3_name       = local.permanent_output.s3_database_history_name
-  stream_arn    = module.game_database.stream_arn
+  source         = "./../../modules/game_history"
+  lambda_folder  = "${path.root}/../../../lambda/history"
+  aws_account_id = local.aws_account_id
+  prefix         = local.prefix
+  prefix_lower   = local.prefix_lower
+  s3_name        = local.permanent_output.s3_database_history_name
+  stream_arn     = module.game_database.stream_arn
 }
 
 
@@ -55,4 +56,10 @@ module "game_monitoring" {
   name           = local.prefix
   name_analytics = local.prefix_analytics
   project        = local.tags.Project
+}
+
+module "notifications" {
+  source      = "./../../modules/notifications"
+  prefix      = local.prefix
+  admin_email = local.admin_email
 }

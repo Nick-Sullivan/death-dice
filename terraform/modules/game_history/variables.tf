@@ -22,3 +22,8 @@ variable "s3_name" {
   description = "Name of the S3 bucket to store database history"
   type        = string
 }
+
+variable "aws_account_id" {
+  description = "AWS account ID"
+  type        = string
+}

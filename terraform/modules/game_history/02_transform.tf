@@ -2,7 +2,7 @@
 locals {
   s3_arn         = "arn:aws:s3:::${var.s3_name}"
   transform_name = "${var.prefix}-Transform"
-  event_source = "${var.prefix}.Transform"
+  event_source   = "${var.prefix}.Transform"
 }
 
 
@@ -116,7 +116,7 @@ data "aws_iam_policy_document" "put_event" {
     ]
     effect = "Allow"
     resources = [
-      "arn:aws:events:ap-southeast-2:314077822992:event-bus/default",
+      "arn:aws:events:ap-southeast-2:${var.aws_account_id}:event-bus/default",
     ]
   }
 }
@@ -141,7 +141,7 @@ resource "aws_iam_role" "transform" {
 }
 
 
-# Cloudwatch logs
+# Cloudwatch logs and notifications
 
 resource "aws_cloudwatch_log_group" "transform" {
   name              = "/aws/lambda/${local.transform_name}"
@@ -152,8 +152,8 @@ resource "aws_cloudwatch_log_group" "transform" {
 # When the game history has finished uploading to S3, fire a rule
 
 resource "aws_cloudwatch_event_rule" "transform_finished" {
-  name        = "${var.prefix}-TransformComplete"
-  description = "Game history data has been transformed"
+  name          = "${var.prefix}-TransformComplete"
+  description   = "Game history data has been transformed"
   event_pattern = <<-EOF
     {
       "source": ["${local.event_source}"],

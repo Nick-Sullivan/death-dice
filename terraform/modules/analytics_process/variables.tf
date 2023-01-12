@@ -31,4 +31,9 @@ variable "transform_finished_rule_arn" {
 variable "transform_finished_rule_name" {
   description = "Name of the rule that fires when transformation has finished"
   type        = string
-}     
+}
+
+variable "aws_account_id" {
+  description = "AWS account ID"
+  type        = string
+}

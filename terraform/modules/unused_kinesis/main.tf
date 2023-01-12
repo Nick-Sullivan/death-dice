@@ -123,7 +123,7 @@ data "aws_iam_policy_document" "kinesis_upload_to_s3" {
       "s3:ListBucketMultipartUploads",
       "s3:PutObject",
     ]
-    effect    = "Allow"
+    effect = "Allow"
     resources = [
       aws_s3_bucket.kinesis.arn,
       "${aws_s3_bucket.kinesis.arn}/*",
@@ -138,7 +138,7 @@ data "aws_iam_policy_document" "kinesis_invoke_lambda" {
       "lambda:InvokeFunction",
       "lambda:GetFunctionConfiguration",
     ]
-    effect    = "Allow"
+    effect = "Allow"
     resources = [
       aws_lambda_function.transform.arn,
     ]
@@ -147,9 +147,9 @@ data "aws_iam_policy_document" "kinesis_invoke_lambda" {
 
 resource "aws_iam_role" "kinesis_role" {
   # Permissions for the Kinesis delivery stream
-  name                = "${var.prefix}FirehoseRole"
-  description         = "Allows Firehose to invoke transform lambdas and write to S3"
-  assume_role_policy  = data.aws_iam_policy_document.kinesis_assume_role.json
+  name               = "${var.prefix}FirehoseRole"
+  description        = "Allows Firehose to invoke transform lambdas and write to S3"
+  assume_role_policy = data.aws_iam_policy_document.kinesis_assume_role.json
   inline_policy {
     name   = "ListKinesisDataStream"
     policy = data.aws_iam_policy_document.kinesis_list_stream.json
@@ -176,11 +176,11 @@ resource "aws_kinesis_firehose_delivery_stream" "s3_stream" {
 
 
   extended_s3_configuration {
-    role_arn   = aws_iam_role.kinesis_role.arn
-    bucket_arn = aws_s3_bucket.kinesis.arn
-    buffer_size        = 64   # MB (minimum 64)
-    buffer_interval    = 60  # seconds
-    prefix = "data/table=!{partitionKeyFromLambda:table}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/"
+    role_arn            = aws_iam_role.kinesis_role.arn
+    bucket_arn          = aws_s3_bucket.kinesis.arn
+    buffer_size         = 64 # MB (minimum 64)
+    buffer_interval     = 60 # seconds
+    prefix              = "data/table=!{partitionKeyFromLambda:table}/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/"
     error_output_prefix = "errors/year=!{timestamp:yyyy}/month=!{timestamp:MM}/day=!{timestamp:dd}/!{firehose:error-output-type}/"
 
     # s3_backup_mode = "Enabled"

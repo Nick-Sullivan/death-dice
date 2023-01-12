@@ -7,7 +7,8 @@ terraform {
 }
 
 locals {
-  extract_name = "${var.prefix}-Extract"
+  extract_name      = "${var.prefix}-Extract"
+  extract_fail_name = "${var.prefix}-ExtractDeadLetterQueue"
 }
 
 
@@ -102,8 +103,27 @@ resource "aws_cloudwatch_log_group" "extract" {
 }
 
 
-# SQS queue holds all the data until we want to transform
+# SQS queue holds all the data until we want to transform. If transformation fails, messages will go to the dead letter queue.
 
 resource "aws_sqs_queue" "extract" {
-  name = local.extract_name
+  name                      = local.extract_name
+  message_retention_seconds = 14 * 24 * 60 * 60
+  redrive_policy = jsonencode({
+    deadLetterTargetArn = aws_sqs_queue.extract_dead_letter.arn
+    maxReceiveCount     = 3
+  })
+}
+
+resource "aws_sqs_queue" "extract_dead_letter" {
+  name                      = local.extract_fail_name
+  message_retention_seconds = 14 * 24 * 60 * 60
+}
+
+resource "aws_sqs_queue_redrive_allow_policy" "extract" {
+  queue_url = aws_sqs_queue.extract_dead_letter.id
+
+  redrive_allow_policy = jsonencode({
+    redrivePermission = "byQueue",
+    sourceQueueArns   = [aws_sqs_queue.extract.arn]
+  })
 }

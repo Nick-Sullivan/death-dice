@@ -49,7 +49,7 @@ resource "aws_lambda_function" "start_query" {
   runtime          = "python3.9"
   timeout          = 10
   source_code_hash = data.archive_file.start_query.output_base64sha256
-  layers = ["arn:aws:lambda:ap-southeast-2:770693421928:layer:Klayers-p39-boto3:10"]  # newer boto3
+  layers           = ["arn:aws:lambda:ap-southeast-2:770693421928:layer:Klayers-p39-boto3:10"] # newer boto3
   depends_on       = [aws_cloudwatch_log_group.start_query]
   environment {
     variables = {
@@ -98,8 +98,8 @@ data "aws_iam_policy_document" "query_athena" {
       aws_athena_workgroup.athena.arn,
       var.s3_arn,
       "${var.s3_arn}/*",
-      "arn:aws:glue:ap-southeast-2:314077822992:catalog",
-      "arn:aws:glue:ap-southeast-2:314077822992:database/${aws_athena_database.athena.id}",
+      "arn:aws:glue:ap-southeast-2:${var.aws_account_id}:catalog",
+      "arn:aws:glue:ap-southeast-2:${var.aws_account_id}:database/${aws_athena_database.athena.id}",
       aws_glue_catalog_table.connection.arn,
       aws_glue_catalog_table.game.arn,
     ]

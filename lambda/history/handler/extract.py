@@ -3,15 +3,17 @@ import json
 import os
 import itertools
 
+session = boto3.Session()
+sqs = session.client('sqs')
+
+MESSAGES_PER_BATCH = 10  # max 10
+
+
 def extract(event, context):
    print(event)
    print(f"Uploading {len(event['Records'])} records to SQS")
 
-   session = boto3.Session()
-   sqs = session.client('sqs')
-
-   max_batch = 10
-   batches = grouper(event['Records'], max_batch)
+   batches = grouper(event['Records'], MESSAGES_PER_BATCH)
 
    for batch in batches:
 
@@ -22,7 +24,7 @@ def extract(event, context):
             'MessageBody': json.dumps(record),
          })
 
-      response = sqs.send_message_batch(
+      sqs.send_message_batch(
          QueueUrl=os.environ['QUEUE_URL'],
          Entries=entries
       )

@@ -20,6 +20,9 @@ provider "aws" {
 }
 
 locals {
+  admin_email    = "nick.dave.sullivan@gmail.com"
+  aws_account_id = "314077822992"
+
   prefix            = "DeathDiceStage"
   prefix_lower      = "death-dice-stage"
   prefix_underscore = "death_dice_stage"

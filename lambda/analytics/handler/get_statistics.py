@@ -13,7 +13,14 @@ deserialiser = TypeDeserializer()
 def get_statistics(event, context):
   print(event)
 
-  body = json.loads(event['body'])
+  body = event.get('body')
+  if body is None:
+    return {
+      'statusCode': 400,
+      'body': json.dumps({'error': 'body is required'})
+    }
+
+  body = json.loads(body)
   account_id = body.get('account_id')
   if account_id is None:
     return {

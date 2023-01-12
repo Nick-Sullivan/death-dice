@@ -23,3 +23,8 @@ variable "lambda_folder" {
   description = "Location of the folder with lambda source code, expected to have a 'src' folder inside it"
   type        = string
 }
+
+variable "aws_account_id" {
+  description = "AWS account ID"
+  type        = string
+}

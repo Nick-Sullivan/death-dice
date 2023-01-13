@@ -19,12 +19,12 @@ class Statistics {
 
   factory Statistics.fromJson(Map<String, dynamic> json) {
     return Statistics(
-      diceRolled: json['dice_rolled'],
-      roundsPlayed: json['rounds_played'],
-      gamesPlayed: json['games_played'],
-      outcomeTie: json['outcome_tie'],
-      outcomeSipDrink: json['outcome_sip_drink'],
-      outcomeWinner: json['outcome_winner'],
+      diceRolled: json['dice_rolled'] ?? 0,
+      roundsPlayed: json['rounds_played'] ?? 0,
+      gamesPlayed: json['games_played'] ?? 0,
+      outcomeTie: json['outcome_tie'] ?? 0,
+      outcomeSipDrink: json['outcome_sip_drink'] ?? 0,
+      outcomeWinner: json['outcome_winner'] ?? 0,
     );
   }
 }

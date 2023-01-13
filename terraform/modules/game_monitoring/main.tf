@@ -5,6 +5,7 @@
 # - replace the prefix (DeathDiceAnalytics) with ${var.name_analytics}
 # - replace the prefix (DeathDice) with ${var.name}
 # - replace the project name (Death Dice) with ${var.project}
+# - replace the project name (death-dice) with ${var.name_lower}
 resource "aws_cloudwatch_dashboard" "dashboard" {
   dashboard_name = var.name
   dashboard_body = jsonencode(
@@ -232,7 +233,7 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
               ]
             },
             "metrics" : [
-              ["AWS/S3", "BucketSizeBytes", "StorageType", "StandardStorage", "BucketName", "death-dice-stage-database-history", { "id" : "m2" }]
+              ["AWS/S3", "BucketSizeBytes", "StorageType", "StandardStorage", "BucketName", "${var.name_lower}-database-history", { "id" : "m2" }]
             ],
             "period" : 86400,
             "region" : "ap-southeast-2",
@@ -272,7 +273,7 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
             "metrics" : [
               [{ "expression" : "RUNNING_SUM(m1 + m2)", "id" : "e1", "label" : "Cumulative put/list", "region" : "ap-southeast-2" }],
               [{ "expression" : "RUNNING_SUM(m3)", "id" : "e2", "label" : "Cumulative get", "region" : "ap-southeast-2", "yAxis" : "right" }],
-              ["AWS/S3", "PutRequests", "BucketName", "death-dice-stage-database-history", "FilterId", "EntireBucket", { "id" : "m1", "visible" : false }],
+              ["AWS/S3", "PutRequests", "BucketName", "${var.name_lower}-database-history", "FilterId", "EntireBucket", { "id" : "m1", "visible" : false }],
               [".", "ListRequests", ".", ".", ".", ".", { "id" : "m2", "visible" : false }],
               [".", "GetRequests", ".", ".", ".", ".", { "id" : "m3", "visible" : false }]
             ],

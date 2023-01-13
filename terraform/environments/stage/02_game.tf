@@ -54,6 +54,7 @@ module "game_history" {
 module "game_monitoring" {
   source         = "./../../modules/game_monitoring"
   name           = local.prefix
+  name_lower     = local.prefix_lower
   name_analytics = local.prefix_analytics
   project        = local.tags.Project
 }

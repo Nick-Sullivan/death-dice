@@ -189,10 +189,6 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
           "x" : 18,
           "type" : "metric",
           "properties" : {
-            "metrics" : [
-              [{ "expression" : "RUNNING_SUM(m1)", "id" : "e1", "label" : "Cumulative processed bytes", "region" : "ap-southeast-2" }],
-              ["AWS/Athena", "ProcessedBytes", "WorkGroup", "${var.name_analytics}", { "id" : "m1", "visible" : false }]
-            ],
             "annotations" : {
               "horizontal" : [
                 {
@@ -202,6 +198,10 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
                 }
               ]
             },
+            "metrics" : [
+              [{ "expression" : "RUNNING_SUM(m1)", "id" : "e1", "label" : "Cumulative processed bytes", "region" : "ap-southeast-2" }],
+              ["AWS/Athena", "ProcessedBytes", "WorkGroup", "${var.name_analytics}", { "id" : "m1", "visible" : false }]
+            ],
             "period" : 300,
             "region" : "ap-southeast-2",
             "stacked" : false,
@@ -254,13 +254,6 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
           "x" : 18,
           "type" : "metric",
           "properties" : {
-            "metrics" : [
-              [{ "expression" : "RUNNING_SUM(m1 + m2)", "label" : "Cumulative put/list", "id" : "e1", "region" : "ap-southeast-2" }],
-              [{ "expression" : "RUNNING_SUM(m3)", "label" : "Cumulative get", "id" : "e2", "yAxis" : "right", "region" : "ap-southeast-2" }],
-              ["AWS/S3", "PutRequests", "BucketName", "death-dice-stage-database-history", "FilterId", "EntireBucket", { "id" : "m1", "visible" : false }],
-              [".", "ListRequests", ".", ".", ".", ".", { "id" : "m2", "visible" : false }],
-              [".", "GetRequests", ".", ".", ".", ".", { "id" : "m3", "visible" : false }]
-            ],
             "annotations" : {
               "horizontal" : [
                 {
@@ -276,6 +269,13 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
                 }
               ]
             },
+            "metrics" : [
+              [{ "expression" : "RUNNING_SUM(m1 + m2)", "id" : "e1", "label" : "Cumulative put/list", "region" : "ap-southeast-2" }],
+              [{ "expression" : "RUNNING_SUM(m3)", "id" : "e2", "label" : "Cumulative get", "region" : "ap-southeast-2", "yAxis" : "right" }],
+              ["AWS/S3", "PutRequests", "BucketName", "death-dice-stage-database-history", "FilterId", "EntireBucket", { "id" : "m1", "visible" : false }],
+              [".", "ListRequests", ".", ".", ".", ".", { "id" : "m2", "visible" : false }],
+              [".", "GetRequests", ".", ".", ".", ".", { "id" : "m3", "visible" : false }]
+            ],
             "period" : 86400,
             "region" : "ap-southeast-2",
             "stacked" : false,
@@ -290,6 +290,41 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
               "right" : {
                 "min" : 0
               }
+            }
+          }
+        },
+        {
+          "height" : 6,
+          "width" : 6,
+          "y" : 13,
+          "x" : 0,
+          "type" : "metric",
+          "properties" : {
+            "metrics" : [
+              ["AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${var.name}-Extract", { "id" : "m4" }]
+            ],
+            "period" : 3600,
+            "region" : "ap-southeast-2",
+            "stacked" : false,
+            "stat" : "Maximum",
+            "title" : "Extract SQS",
+            "view" : "timeSeries",
+            "yAxis" : {
+              "left" : {
+                "min" : 0,
+                "showUnits" : false
+              },
+              "right" : {
+                "min" : 0
+              }
+            },
+            "annotations" : {
+              "horizontal" : [
+                {
+                  "label" : "Processed per invoke",
+                  "value" : 5000
+                }
+              ]
             }
           }
         }

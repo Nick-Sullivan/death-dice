@@ -15,7 +15,7 @@ sqs = session.client('sqs')
 event_bridge = session.client('events')
 
 MESSAGES_PER_BATCH = 10  # max 10
-MAX_BATCHES = 200
+MAX_BATCHES = 500
 
 def transform(event, context):
    """Converts DynamoDB diff streams into files to be stored in s3"""

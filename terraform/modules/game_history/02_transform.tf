@@ -49,7 +49,7 @@ resource "aws_lambda_function" "transform" {
   role                           = aws_iam_role.transform.arn
   runtime                        = "python3.9"
   memory_size                    = 512 # MB
-  timeout                        = 10
+  timeout                        = 30
   reserved_concurrent_executions = 1
   source_code_hash               = data.archive_file.transform.output_base64sha256
   layers                         = ["arn:aws:lambda:ap-southeast-2:336392948345:layer:AWSSDKPandas-Python39:2"]

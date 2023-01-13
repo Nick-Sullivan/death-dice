@@ -97,4 +97,5 @@ resource "aws_cognito_user_pool_client" "users" {
   allowed_oauth_flows                  = ["code", "implicit"]
   allowed_oauth_scopes                 = ["email", "openid"]
   supported_identity_providers         = ["COGNITO"]
+  id_token_validity                    = 24 # hours
 }

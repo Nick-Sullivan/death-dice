@@ -1,0 +1,6 @@
+{
+  "s3_database_history_name": "death-dice-database-history",
+  "cognito_client_id": "6ctrer83bdorqg8p5bj9qjvspb",
+  "cognito_user_pool_id": "ap-southeast-2_UHN4eaYLV",
+  "cognito_user_pool_arn": "arn:aws:cognito-idp:ap-southeast-2:314077822992:userpool/ap-southeast-2_UHN4eaYLV"
+}

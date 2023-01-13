@@ -99,6 +99,7 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 - cognito auth
 
 - prevent multiple new rounds
+- consistent analytics gateway ID
 
 
 # Stats

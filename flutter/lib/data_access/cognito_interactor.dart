@@ -7,6 +7,7 @@ class CognitoInteractor {
   bool isInitialised = false;
   late final CognitoUserPool userPool;
   HashMap userCache = HashMap<String, CognitoUser>();
+  HashMap sessionCache = HashMap<String, CognitoUserSession>();
 
   CognitoInteractor();
 
@@ -26,6 +27,10 @@ class CognitoInteractor {
       userCache[username] = CognitoUser(username, userPool);
     }
     return userCache[username];
+  }
+
+  CognitoUserSession getSession(String username){
+    return sessionCache[username];
   }
 
   Future signUp(String username, String password) async {
@@ -52,10 +57,11 @@ class CognitoInteractor {
     CognitoUserException exception;
     try {
       var session = await cognitoUser.authenticateUser(authDetails);
+      sessionCache[username] = session;
+
       var attributes = await cognitoUser.getUserAttributes();
       var attribute = attributes!.singleWhere((a) => a.name == 'sub');
       var accountId = attribute.value!;
-      var accessToken = session!.getAccessToken().getJwtToken()!;
       return accountId;
     } on CognitoUserNewPasswordRequiredException catch (e) {
       // handle New Password challenge
@@ -100,4 +106,10 @@ class CognitoInteractor {
     final cognitoUser = getUser(username);
     return cognitoUser.getUserAttributes();
   }
+
+  Future<String> getIdToken(String username) async {
+    final session = getSession(username);
+    return session.idToken.getJwtToken()!;
+  }
+
 }

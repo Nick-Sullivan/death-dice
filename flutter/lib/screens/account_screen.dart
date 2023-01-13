@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:death_dice/data_access/analytics_interactor.dart';
+import 'package:death_dice/data_access/cognito_interactor.dart';
 import 'package:death_dice/model/http_responses.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
@@ -9,10 +11,12 @@ const analyticsUrl = 'https://3er3bwfcy1.execute-api.ap-southeast-2.amazonaws.co
 
 class AccountScreen extends StatefulWidget {
   final String accountId;
+  final String username;
 
   const AccountScreen({
     super.key,
-    required this.accountId
+    required this.accountId,
+    required this.username,
   });
 
   @override
@@ -20,16 +24,20 @@ class AccountScreen extends StatefulWidget {
 }
 
 class _AccountScreenState extends State<AccountScreen> {
+  final CognitoInteractor cognito = getIt<CognitoInteractor>();
+  final AnalyticsInteractor analytics = getIt<AnalyticsInteractor>();
   bool isLoading = false;
   Statistics? statistics;
 
   @override
   void initState() {
     isLoading = true;
-    getStatistics().then((value) {
-      statistics = value;
-      setState(() => isLoading = false);
-    });
+    analytics.init()
+      .then((_) => getStatistics())
+      .then((value) {
+        statistics = value;
+        setState(() => isLoading = false);
+      });
     super.initState();
   }
 
@@ -138,22 +146,7 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Future<Statistics> getStatistics() async {
-    final response = await http.post(
-      Uri.parse(analyticsUrl),
-      headers: <String, String>{
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: jsonEncode(<String, String>{
-        'account_id': widget.accountId,
-      }),
-    );
-
-    if (response.statusCode == 200){
-      return Statistics.fromJson(jsonDecode(response.body));
-    } else {
-      throw Exception('uh oh');
-    }
+    return await analytics.getStatistics(widget.username, widget.accountId);
   }
-
 
 }

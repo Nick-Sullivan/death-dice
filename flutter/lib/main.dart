@@ -1,4 +1,5 @@
 
+import 'package:death_dice/data_access/analytics_interactor.dart';
 import 'package:death_dice/data_access/cognito_interactor.dart';
 import 'package:death_dice/data_access/database_interactor.dart';
 import 'package:death_dice/data_access/websocket_interactor.dart';
@@ -10,6 +11,7 @@ final getIt = GetIt.instance;
 void main() {
   getIt.registerSingleton<DatabaseInteractor>(DatabaseInteractor());
   getIt.registerSingleton<CognitoInteractor>(CognitoInteractor());
+  getIt.registerSingleton<AnalyticsInteractor>(AnalyticsInteractor());
   getIt.registerSingleton<WebsocketInteractor>(WebsocketInteractor());
   runApp(const MyApp());
 }

@@ -21,6 +21,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final WebsocketInteractor websocket = getIt<WebsocketInteractor>();
   late final TextEditingController nameController;
   late final TextEditingController gameCodeController;
+  late final String username;
   late final String accountId;
   late bool isCreatingGame;
   bool isLoading = false;
@@ -37,7 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
     nameController = TextEditingController(text: 'Roib');
     gameCodeController = TextEditingController();
     database.init()
-      .then((_) => accountId = database.read(accountIdKey));
+      .then((_) => accountId = database.read(accountIdKey))
+      .then((_) => username = database.read(usernameKey));
     websocket.init();
     super.initState();
   }
@@ -94,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (value == 0){
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => AccountScreen(accountId: accountId))
+                MaterialPageRoute(builder: (context) => AccountScreen(accountId: accountId, username: username))
               );
             }
             if (value == 1){

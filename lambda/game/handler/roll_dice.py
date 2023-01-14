@@ -25,10 +25,14 @@ def roll_dice(connection_id, request):
 def _roll_dice(connection) -> GameState:
 
   game = game_dao.get(connection.game_id)
-  game.modified_action = GameAction.ROLL_DICE
-  game.modified_by = connection.id
 
   player = next(p for p in game.players if p.id == connection.id)
+
+  if player.finished:
+    return game
+
+  game.modified_action = GameAction.ROLL_DICE
+  game.modified_by = connection.id
 
   new_roll = DiceRoller.roll(player.rolls, player.win_counter, player.nickname)
   player.rolls.append(new_roll)

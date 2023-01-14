@@ -6,6 +6,6 @@ if __name__ == '__main__':
    client = session.client('lambda')
 
    client.invoke(
-      FunctionName='DeathDiceStage-Transform',
+      FunctionName='DeathDice-Transform',
    )
    

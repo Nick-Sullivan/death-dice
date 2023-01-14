@@ -3,7 +3,7 @@
 
 module "game_api_gateway_shell" {
   source = "./../../modules/game_api_gateway_shell"
-  name   = local.prefix
+  name   = var.prefix
 }
 
 
@@ -22,7 +22,7 @@ module "game_api_gateway_integration" {
 module "game_lambdas" {
   source        = "./../../modules/game_lambdas"
   lambda_folder = "${path.root}/../../../lambda/game"
-  prefix        = local.prefix
+  prefix        = var.prefix
   gateway_url   = module.game_api_gateway_shell.gateway_url
   table_arn     = module.game_database.table_arn
 }
@@ -32,35 +32,18 @@ module "game_lambdas" {
 
 module "game_database" {
   source = "./../../modules/game_database"
-  prefix = local.prefix
+  prefix = var.prefix
 }
 
 
 # Whenever the game state changes, we save it to S3
-# TODO- failures
 
 module "game_history" {
   source         = "./../../modules/game_history"
   lambda_folder  = "${path.root}/../../../lambda/history"
-  aws_account_id = local.aws_account_id
-  prefix         = local.prefix
-  prefix_lower   = local.prefix_lower
-  s3_name        = local.permanent_output.s3_database_history_name
+  aws_account_id = var.aws_account_id
+  prefix         = var.prefix
+  prefix_lower   = var.prefix_lower
+  s3_name        = var.s3_database_history_name
   stream_arn     = module.game_database.stream_arn
-}
-
-
-# Monitor using a cloudwatch dashboard 
-module "game_monitoring" {
-  source         = "./../../modules/game_monitoring"
-  name           = local.prefix
-  name_lower     = local.prefix_lower
-  name_analytics = local.prefix_analytics
-  project        = local.tags.Project
-}
-
-module "notifications" {
-  source      = "./../../modules/notifications"
-  prefix      = local.prefix
-  admin_email = local.admin_email
 }

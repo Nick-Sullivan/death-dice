@@ -40,7 +40,9 @@ keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -key
 - Release, copy link for testers
 
 Subsequent releases
-- edit pubspec.yaml release version (the + is used by google)
+- edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
 - flutter build appbundle
 - in play.google.com/console, select internal testing, edit release
+
+
 

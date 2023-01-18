@@ -54,10 +54,10 @@ class _AccountScreenState extends State<AccountScreen> {
               padding: const EdgeInsets.only(top: 30.0, bottom: 30.0),
               child: buildLogo(),
             ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-              child: buildSendButton(),
-            ),
+            // Padding(
+            //   padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
+            //   child: buildSendButton(),
+            // ),
             Padding(
               padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
               child: buildGameStatistics(),
@@ -118,6 +118,12 @@ class _AccountScreenState extends State<AccountScreen> {
     var outcomeTie = '-';
     var outcomeSipDrink = '-';
     var outcomeWinner = '-';
+    var outcomeFinishDrink = '-';
+    var outcomeDualWield = '-';
+    var outcomeShower = '-';
+    var outcomeHeadOnTable = '-';
+    var outcomeWishPurchase = '-';
+    var outcomePool = '-';
 
     if (statistics != null){
       gamesPlayed = statistics!.gamesPlayed.toString();
@@ -126,6 +132,12 @@ class _AccountScreenState extends State<AccountScreen> {
       outcomeTie = statistics!.outcomeTie.toString();
       outcomeSipDrink = statistics!.outcomeSipDrink.toString();
       outcomeWinner = statistics!.outcomeWinner.toString();
+      outcomeFinishDrink = statistics!.outcomeFinishDrink.toString();
+      outcomeDualWield = statistics!.outcomeDualWield.toString();
+      outcomeShower = statistics!.outcomeShower.toString();
+      outcomeHeadOnTable = statistics!.outcomeHeadOnTable.toString();
+      outcomeWishPurchase = statistics!.outcomeWishPurchase.toString();
+      outcomePool = statistics!.outcomePool.toString();
     }
 
     var spans = <TextSpan>[
@@ -135,6 +147,12 @@ class _AccountScreenState extends State<AccountScreen> {
       TextSpan(text: '- Wins: $outcomeWinner\n'),
       TextSpan(text: '- Losses: $outcomeSipDrink\n'),
       TextSpan(text: '- Tie: $outcomeTie\n'),
+      TextSpan(text: '- Finish drink: $outcomeFinishDrink\n'),
+      TextSpan(text: '- Dual wield: $outcomeDualWield\n'),
+      TextSpan(text: '- Shower: $outcomeShower\n'),
+      TextSpan(text: '- Head on table: $outcomeHeadOnTable\n'),
+      TextSpan(text: '- Wish purchase: $outcomeWishPurchase\n'),
+      TextSpan(text: '- Pool: $outcomePool\n'),
     ];
     return RichText(
       text: TextSpan(

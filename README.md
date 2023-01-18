@@ -92,14 +92,8 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 
 # TODO analytics
 
-- lambda memory monitoring
-- lambda memory reduction
-- SQL optimisation
-- display in app
-- cognito auth
-
-- prevent multiple new rounds
 - consistent analytics gateway ID
+- get, not post
 
 
 # Stats

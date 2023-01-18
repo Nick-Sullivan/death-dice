@@ -140,7 +140,7 @@ packages:
     source: hosted
     version: "5.0.2"
   flutter_launcher_icons:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_launcher_icons
       url: "https://pub.dartlang.org"
@@ -154,7 +154,7 @@ packages:
     source: hosted
     version: "2.0.1"
   flutter_native_splash:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: flutter_native_splash
       url: "https://pub.dartlang.org"

@@ -47,7 +47,7 @@ Install required things
 ```
 python3 -m venv .venv
 ./.venv/Scripts/activate
-pip install pytest boto3 playwright pytest-playwright pytest-xdist snakeviz
+pip install pytest boto3 playwright pytest-playwright pytest-xdist snakeviz awswrangler
 playwright install
 ```
 

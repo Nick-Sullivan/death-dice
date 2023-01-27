@@ -1,7 +1,8 @@
 {
   "python.analysis.extraPaths": [
-    "./lambda/handler",
-    "./lambda/layer/python"
+    "./lambda/game/handler",
+    "./lambda/game/layer/python",
+    "./lambda/history/layer/python"
   ],
   "python.testing.pytestArgs": [
     "-n", "auto",

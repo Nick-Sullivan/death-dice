@@ -25,10 +25,24 @@ resource "aws_lambda_event_source_mapping" "extract" {
 
 # Extract lambda uploads the data to SQS, to batch the data
 
+data "archive_file" "layer" {
+  type        = "zip"
+  source_dir  = "${var.lambda_folder}/layer"
+  excludes    = ["__pycache__.py"]
+  output_path = "${var.lambda_folder}/zip/layer.zip"
+}
+
 data "archive_file" "extract" {
   type        = "zip"
   source_file = "${var.lambda_folder}/handler/extract.py"
   output_path = "${var.lambda_folder}/zip/extract.zip"
+}
+
+resource "aws_lambda_layer_version" "layer" {
+  filename            = "${var.lambda_folder}/zip/layer.zip"
+  layer_name          = "${local.extract_name}Layer"
+  compatible_runtimes = ["python3.9"]
+  source_code_hash    = data.archive_file.layer.output_base64sha256
 }
 
 resource "aws_lambda_function" "extract" {
@@ -40,6 +54,7 @@ resource "aws_lambda_function" "extract" {
   memory_size                    = 128 # MB
   timeout                        = 10
   reserved_concurrent_executions = 1
+  layers                         = [aws_lambda_layer_version.layer.arn,]
   source_code_hash               = data.archive_file.extract.output_base64sha256
   depends_on                     = [aws_cloudwatch_log_group.extract]
   environment {

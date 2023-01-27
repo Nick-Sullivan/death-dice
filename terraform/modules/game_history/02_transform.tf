@@ -52,7 +52,10 @@ resource "aws_lambda_function" "transform" {
   timeout                        = 30
   reserved_concurrent_executions = 1
   source_code_hash               = data.archive_file.transform.output_base64sha256
-  layers                         = ["arn:aws:lambda:ap-southeast-2:336392948345:layer:AWSSDKPandas-Python39:2"]
+  layers                         = [
+    aws_lambda_layer_version.layer.arn,
+    "arn:aws:lambda:ap-southeast-2:336392948345:layer:AWSSDKPandas-Python39:2"
+  ]
   depends_on                     = [aws_cloudwatch_log_group.transform]
   environment {
     variables = {

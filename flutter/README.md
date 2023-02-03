@@ -51,3 +51,4 @@ Subsequent releases
 CICD
 - edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
 - Codemagic for a new build, linked to github
+- (requires moving google console to closed testing)

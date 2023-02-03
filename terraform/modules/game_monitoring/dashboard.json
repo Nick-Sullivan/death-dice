@@ -1,0 +1,387 @@
+{
+  "widgets": [
+      {
+          "height": 6,
+          "width": 6,
+          "y": 11,
+          "x": 12,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m1+m3)", "id": "e1", "label": "Cumulative ReadCapacityUnits", "region": "ap-southeast-2" } ],
+                  [ { "expression": "RUNNING_SUM(m2+m4)", "id": "e2", "label": "Cumulative WriteCapacityUnits", "region": "ap-southeast-2", "yAxis": "right" } ],
+                  [ "AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", "${name}", { "id": "m1", "visible": false } ],
+                  [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m2", "visible": false } ],
+                  [ ".", "ConsumedReadCapacityUnits", ".", "${name_analytics}", { "id": "m3", "visible": false } ],
+                  [ ".", "ConsumedWriteCapacityUnits", ".", ".", { "id": "m4", "visible": false } ]
+              ],
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#ff7f0e",
+                          "label": "1c of writes",
+                          "value": 7027,
+                          "yAxis": "right"
+                      },
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of reads",
+                          "value": 35137
+                      }
+                  ]
+              },
+              "period": 300,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "DynamoDB Costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "showUnits": false
+                  },
+                  "right": {
+                      "showUnits": false
+                  }
+              }
+          }
+      },
+      {
+          "height": 9,
+          "width": 18,
+          "y": 1,
+          "x": 0,
+          "type": "explorer",
+          "properties": {
+              "metrics": [
+                  {
+                      "metricName": "Duration",
+                      "resourceType": "AWS::Lambda::Function",
+                      "stat": "p90"
+                  },
+                  {
+                      "metricName": "Errors",
+                      "resourceType": "AWS::Lambda::Function",
+                      "stat": "Sum"
+                  },
+                  {
+                      "metricName": "Invocations",
+                      "resourceType": "AWS::Lambda::Function",
+                      "stat": "Sum"
+                  },
+                  {
+                      "metricName": "Throttles",
+                      "resourceType": "AWS::Lambda::Function",
+                      "stat": "Sum"
+                  }
+              ],
+              "labels": [
+                  {
+                      "key": "Project",
+                      "value": "${project}"
+                  }
+              ],
+              "widgetOptions": {
+                  "legend": {
+                      "position": "bottom"
+                  },
+                  "view": "timeSeries",
+                  "stacked": false,
+                  "rowsPerPage": 1,
+                  "widgetsPerRow": 4
+              },
+              "period": 300,
+              "splitBy": "Project",
+              "region": "ap-southeast-2",
+              "title": "Lambda"
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 11,
+          "x": 0,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m1)", "id": "e1", "label": "Cumulative Message Count", "region": "ap-southeast-2" } ],
+                  [ "AWS/ApiGateway", "MessageCount", "ApiId", "n5gv5jyihj", { "id": "m1", "visible": false } ]
+              ],
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of requests",
+                          "value": 7693
+                      }
+                  ]
+              },
+              "period": 86400,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "ApiGateway Costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 11,
+          "x": 6,
+          "type": "metric",
+          "properties": {
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of 128MB",
+                          "value": 4761905
+                      }
+                  ]
+              },
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11)", "id": "e1", "label": "Cumulative Processing Time", "region": "ap-southeast-2" } ],
+                  [ "AWS/Lambda", "Duration", "FunctionName", "${name}-Connect", "Resource", "${name}-Connect", { "id": "m1", "visible": false } ],
+                  [ "...", "${name}-CreateGame", ".", "${name}-CreateGame", { "id": "m2", "visible": false } ],
+                  [ "...", "${name}-Disconnect", ".", "${name}-Disconnect", { "id": "m3", "visible": false } ],
+                  [ "...", "${name}-JoinGame", ".", "${name}-JoinGame", { "id": "m4", "visible": false } ],
+                  [ "...", "${name}-NewRound", ".", "${name}-NewRound", { "id": "m5", "visible": false } ],
+                  [ "...", "${name}-RollDice", ".", "${name}-RollDice", { "id": "m6", "visible": false } ],
+                  [ "...", "${name}-SetNickname", ".", "${name}-SetNickname", { "id": "m7", "visible": false } ],
+                  [ ".", ".", ".", "${name}-ExtractAndTransform", { "id": "m8", "visible": false } ],
+                  [ "...", "${name_analytics}-CacheResult", { "id": "m9", "visible": false } ],
+                  [ "...", "${name_analytics}-GetStatistics", { "id": "m10", "visible": false } ],
+                  [ "...", "${name_analytics}-StartQuery", { "id": "m11", "visible": false } ]
+              ],
+              "period": 300,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "Lambda Costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 17,
+          "x": 0,
+          "type": "metric",
+          "properties": {
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of bytes processed",
+                          "value": 2199023255
+                      }
+                  ]
+              },
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m1)", "id": "e1", "label": "Cumulative processed bytes", "region": "ap-southeast-2" } ],
+                  [ "AWS/Athena", "ProcessedBytes", "WorkGroup", "${name_analytics}", { "id": "m1", "visible": false } ]
+              ],
+              "period": 300,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "Athena Costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 17,
+          "x": 12,
+          "type": "metric",
+          "properties": {
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of storage per month",
+                          "value": 4294967296
+                      }
+                  ]
+              },
+              "metrics": [
+                  [ "AWS/S3", "BucketSizeBytes", "StorageType", "StandardStorage", "BucketName", "${name_lower}-database-history", { "id": "m2" } ]
+              ],
+              "period": 86400,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "S3 Storage Costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 17,
+          "x": 6,
+          "type": "metric",
+          "properties": {
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c of PUT",
+                          "value": 2000
+                      },
+                      {
+                          "color": "#ff7f0e",
+                          "label": "1c of GET",
+                          "value": 25000,
+                          "yAxis": "right"
+                      }
+                  ]
+              },
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m1 + m2)", "id": "e1", "label": "Cumulative put/list", "region": "ap-southeast-2" } ],
+                  [ { "expression": "RUNNING_SUM(m3)", "id": "e2", "label": "Cumulative get", "region": "ap-southeast-2", "yAxis": "right" } ],
+                  [ "AWS/S3", "PutRequests", "BucketName", "${name_lower}-database-history", "FilterId", "EntireBucket", { "id": "m1", "visible": false } ],
+                  [ ".", "ListRequests", ".", ".", ".", ".", { "id": "m2", "visible": false } ],
+                  [ ".", "GetRequests", ".", ".", ".", ".", { "id": "m3", "visible": false } ]
+              ],
+              "period": 86400,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "S3 request costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "showUnits": false
+                  },
+                  "right": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 1,
+          "x": 18,
+          "type": "metric",
+          "properties": {
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "label": "Processed per invoke",
+                          "value": 5000
+                      }
+                  ]
+              },
+              "metrics": [
+                  [ "AWS/SQS", "ApproximateNumberOfMessagesVisible", "QueueName", "${name}-Extract", { "id": "m4" } ]
+              ],
+              "period": 3600,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Maximum",
+              "title": "Extract SQS",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "showUnits": false
+                  },
+                  "right": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 6,
+          "width": 6,
+          "y": 11,
+          "x": 18,
+          "type": "metric",
+          "properties": {
+              "metrics": [
+                  [ { "expression": "RUNNING_SUM(m4+m5+m6+m7+m8+m9)", "id": "e1", "label": "Cumulative actions", "region": "ap-southeast-2" } ],
+                  [ "AWS/SQS", "NumberOfMessagesSent", "QueueName", "${name}-Extract", { "id": "m4", "visible": false } ],
+                  [ ".", "NumberOfMessagesReceived", ".", ".", { "id": "m5", "visible": false } ],
+                  [ ".", "NumberOfMessagesDeleted", ".", ".", { "id": "m6", "visible": false } ],
+                  [ ".", "NumberOfMessagesSent", ".", "${name}-ExtractDeadLetterQueue", { "id": "m7", "visible": false } ],
+                  [ ".", "NumberOfMessagesReceived", ".", ".", { "id": "m8", "visible": false } ],
+                  [ ".", "NumberOfMessagesDeleted", ".", ".", { "id": "m9", "visible": false } ]
+              ],
+              "annotations": {
+                  "horizontal": [
+                      {
+                          "color": "#1f77b4",
+                          "label": "1c",
+                          "value": 25000
+                      }
+                  ]
+              },
+              "period": 86400,
+              "region": "ap-southeast-2",
+              "stacked": false,
+              "stat": "Sum",
+              "title": "SQS costs",
+              "view": "timeSeries",
+              "yAxis": {
+                  "left": {
+                      "min": 0,
+                      "showUnits": false
+                  },
+                  "right": {
+                      "min": 0
+                  }
+              }
+          }
+      },
+      {
+          "height": 1,
+          "width": 24,
+          "y": 0,
+          "x": 0,
+          "type": "text",
+          "properties": {
+              "markdown": "# Monitoring",
+              "background": "transparent"
+          }
+      },
+      {
+          "height": 1,
+          "width": 24,
+          "y": 10,
+          "x": 0,
+          "type": "text",
+          "properties": {
+              "markdown": "# Costs",
+              "background": "transparent"
+          }
+      }
+  ]
+}

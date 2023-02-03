@@ -41,7 +41,6 @@ def transform(event, context):
 
 
 def upload_to_s3(table_name, date_id, events):
-   print(events)
    bucket_name = os.environ['BUCKET_NAME']
    first_modified_at = min([e['modified_at'] for e in events])
    key = f's3://{bucket_name}/data/table={table_name}/date_id={date_id}/{first_modified_at}.parquet'

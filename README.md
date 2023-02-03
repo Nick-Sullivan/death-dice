@@ -106,3 +106,4 @@ Running in VSCode will dump a `profile.prof` file. View it with `snakeviz profil
 - transforming 0 messages (98ms, 240/512 MB, -)
 - transforming 104 messages (1510ms,  240/512 MB, 12.7KB)
 - transforming 975 messages (3964ms, 245/512 MB, 27.4KB)
+- transforming 1322 messages (6256ms, 255/512 MB, 54.3KB)

@@ -28,6 +28,12 @@ locals {
       handler  = "create_game.create_game"
       route    = "createGame"
     },
+    "Heartbeat" = {
+      name     = "${var.prefix}-Heartbeat"
+      filename = "heartbeat"
+      handler  = "heartbeat.heartbeat"
+      route    = "heartbeat"
+    },
     "JoinGame" = {
       name     = "${var.prefix}-JoinGame"
       filename = "join_game"

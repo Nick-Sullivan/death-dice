@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:death_dice/model/game_state.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -11,6 +12,7 @@ class GameCache {
 
 class WebsocketInteractor {
   bool isInitialised = false;
+  bool isConnected = false;
   late final String gatewayUrl;
   late IOWebSocketChannel channel;
   Map<GameAction, Function(Map)> actionDispatch = <GameAction, Function(Map)>{};
@@ -29,8 +31,10 @@ class WebsocketInteractor {
   }
 
   void connect() {
-    channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl), pingInterval: const Duration(minutes: 1));
+    channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl));
     channel.stream.listen(_listen);
+    isConnected = true;
+    Timer.periodic(const Duration(seconds: 60), sendHeartbeat);
   }
 
   void _listen(dynamic message){
@@ -94,6 +98,7 @@ class WebsocketInteractor {
   void close() {
     channel.sink.close();
     cache = GameCache();
+    isConnected = false;
   }
 
   void createPlayer(String name, String accountId) {
@@ -102,7 +107,7 @@ class WebsocketInteractor {
   }
 
   void createGame() {
-    var message = "{\"action\": \"createGame\"}";
+    const message = "{\"action\": \"createGame\"}";
     channel.sink.add(message);
   }
 
@@ -112,7 +117,7 @@ class WebsocketInteractor {
   }
 
   void newRound() {
-    var message = "{\"action\": \"newRound\"}";
+    const message = "{\"action\": \"newRound\"}";
     channel.sink.add(message);
   }
 
@@ -121,4 +126,12 @@ class WebsocketInteractor {
     channel.sink.add(message);
   }
 
+  void sendHeartbeat(Timer timer) {
+    if (isConnected) {
+      const message = "{\"action\": \"heartbeat\"}";
+      channel.sink.add(message);
+    } else {
+      timer.cancel();
+    }
+  }
 }

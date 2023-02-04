@@ -1,5 +1,6 @@
 import 'package:death_dice/data_access/database_interactor.dart';
 import 'package:death_dice/data_access/websocket_interactor.dart';
+import "dart:math";
 import 'package:death_dice/model/constants.dart';
 import 'package:death_dice/model/game_state.dart';
 import 'package:death_dice/screens/account_screen.dart';
@@ -35,7 +36,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    nameController = TextEditingController(text: 'Roib');
+    nameController = TextEditingController(text: createRandomName());
     gameCodeController = TextEditingController();
     database.init()
       .then((_) => accountId = database.read(accountIdKey))
@@ -236,4 +237,46 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => isLoading = false);
   }
 
+  String createRandomName() {
+    const list = [
+      'A Big Carrot 🥕',
+      'A Grapist 🍇',
+      'Big Boi 🍆',
+      'Biggus Dickus',
+      'bongz4lyfe',
+      'Brett Maher',
+      'Deez Nuts',
+      'Definitely not Roib',
+      'Dice Lover',
+      'Dirk Cuckold',
+      'Dong Swanson',
+      'Dr Roib',
+      'Eggies 🥚🥚🥚',
+      'Girthy Baby 👶',
+      'Hanz Shuttlecock',
+      'Im so thirsty',
+      'Jam Fucker',
+      'Lets fuck this pig',
+      'Like an Ogre 🧅',
+      'Magician',
+      'Mike Rotch',
+      'Moist Panda',
+      'Mr Illeven 🤢'
+      'Mr Twelve',
+      'Poop 💩',
+      'Ready for a drink 🍺',
+      'Roib',
+      'Schubert the Cat',
+      'Shower Lover',
+      'Sodomy Wizard',
+      'Thicc',
+      'Uncomfortable Horse',
+      'Wet Boy',
+      'Wing Lover 🐔',
+      'Wish Purchaser',
+      'you up?',
+    ];
+
+    return list[Random().nextInt(list.length)];
+  }
 }

@@ -113,3 +113,13 @@ class TestConnectionDao:
         }
       }
     })
+
+  @pytest.mark.parametrize('name, expected', [
+    pytest.param('Roib', True, id='normal'),
+    pytest.param('', False, id='too short'),
+    pytest.param('1234567891011121314151617', False, id='too long'),
+    pytest.param('Mr Eleven', False, id='protected word'),
+    pytest.param('Mr Eleven ', False, id='protected word with space'),
+  ])
+  def test_is_valid_nickname(self, obj, name, expected):
+    assert obj.is_valid_nickname(name) == expected

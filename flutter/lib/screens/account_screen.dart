@@ -1,10 +1,8 @@
-import 'dart:convert';
 import 'package:death_dice/data_access/analytics_interactor.dart';
 import 'package:death_dice/data_access/cognito_interactor.dart';
 import 'package:death_dice/model/http_responses.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-import 'package:http/http.dart' as http;
 final getIt = GetIt.instance;
 
 const analyticsUrl = 'https://3er3bwfcy1.execute-api.ap-southeast-2.amazonaws.com/v1/statistics';

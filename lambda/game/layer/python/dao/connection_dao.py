@@ -77,6 +77,6 @@ class ConnectionDao:
     invalid_names = {'MR ELEVEN', 'MRELEVEN', 'MR 11', 'MR11'}
     return (
       2 <= len(nickname) <= 20
-      and nickname.upper not in invalid_names
+      and nickname.upper().strip() not in invalid_names
     )
   

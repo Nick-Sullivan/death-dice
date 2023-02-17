@@ -10,9 +10,9 @@ data "template_file" "dashboard" {
   template = file("${path.module}/dashboard.json")
   vars = {
     name_analytics = var.name_analytics
-    name = var.name
-    project = var.project
-    name_lower = var.name_lower
+    name           = var.name
+    project        = var.project
+    name_lower     = var.name_lower
   }
 }
 

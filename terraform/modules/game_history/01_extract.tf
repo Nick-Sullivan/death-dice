@@ -54,7 +54,7 @@ resource "aws_lambda_function" "extract" {
   memory_size                    = 128 # MB
   timeout                        = 10
   reserved_concurrent_executions = 1
-  layers                         = [aws_lambda_layer_version.layer.arn,]
+  layers                         = [aws_lambda_layer_version.layer.arn, ]
   source_code_hash               = data.archive_file.extract.output_base64sha256
   depends_on                     = [aws_cloudwatch_log_group.extract]
   environment {

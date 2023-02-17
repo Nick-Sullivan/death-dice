@@ -153,6 +153,18 @@ data "aws_iam_policy_document" "api_connections" {
   }
 }
 
+data "aws_iam_policy_document" "put_event" {
+  statement {
+    actions = [
+      "events:PutEvents",
+    ]
+    effect = "Allow"
+    resources = [
+      "arn:aws:events:ap-southeast-2:${var.aws_account_id}:event-bus/default",
+    ]
+  }
+}
+
 resource "aws_iam_role" "role" {
   # Permissions for the Lambda
   name                = "${var.prefix}LamdbaRole"
@@ -167,4 +179,36 @@ resource "aws_iam_role" "role" {
     name   = "ApiGatewayConnections"
     policy = data.aws_iam_policy_document.api_connections.json
   }
+  inline_policy {
+    name   = "PutEvent"
+    policy = data.aws_iam_policy_document.put_event.json
+  }
+}
+
+# Events
+
+resource "aws_cloudwatch_event_rule" "game_created" {
+  name          = "${var.prefix}-GameCreated"
+  description   = "A game has been created"
+  event_pattern = <<-EOF
+    {
+      "source": ["${var.prefix}.GameCreated"],
+      "detail-type": ["Game created"]
+    }
+  EOF
+}
+
+resource "aws_cloudwatch_event_target" "game_created" {
+  rule      = aws_cloudwatch_event_rule.game_created.name
+  target_id = "SendToCloudWatch"
+  arn       = aws_cloudwatch_log_group.game_created.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+}
+
+resource "aws_cloudwatch_log_group" "game_created" {
+  name              = "/aws/events/${aws_cloudwatch_event_rule.game_created.name}"
+  retention_in_days = 90
 }

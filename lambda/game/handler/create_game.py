@@ -1,6 +1,6 @@
 
 from client_interactor import ClientNotifier, lambda_handler
-from dao import ConnectionDao, GameDao, TransactionWriter, concurrency_retry
+from dao import ConnectionDao, GameDao, TransactionWriter, concurrency_retry, publish_new_game_event
 from model import ConnectionAction, GameAction, GameState, Player, RollResultNote
 
 connection_dao = ConnectionDao()
@@ -53,6 +53,8 @@ def _create_game(connection) -> GameState:
   with TransactionWriter() as transaction:
     connection_dao.set(connection, transaction)
     game_dao.create(game, transaction)
+
+  publish_new_game_event(game_id)
   
   return game
 

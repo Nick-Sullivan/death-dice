@@ -13,6 +13,11 @@ output "transform_finished_rule_name" {
   value       = module.game_history.transform_finished_rule_name
 }
 
+output "game_created_rule_name" {
+  description = "Name of the rule that fires when a game is created"
+  value       = module.game_lambdas.game_created_rule_name
+}
+
 output "gateway_url" {
   description = "URL for invoking API Gateway."
   value       = module.game_api_gateway_shell.gateway_url

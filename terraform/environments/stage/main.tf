@@ -72,7 +72,8 @@ module "game_monitoring" {
 }
 
 module "notifications" {
-  source      = "./../../modules/notifications"
-  prefix      = local.prefix
-  admin_email = local.admin_email
+  source                 = "./../../modules/notifications"
+  prefix                 = local.prefix
+  admin_email            = local.admin_email
+  game_created_rule_name = module.game.game_created_rule_name
 }

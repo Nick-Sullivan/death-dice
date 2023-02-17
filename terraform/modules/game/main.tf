@@ -20,11 +20,12 @@ module "game_api_gateway_integration" {
 # The lambda's update game state
 
 module "game_lambdas" {
-  source        = "./../../modules/game_lambdas"
-  lambda_folder = "${path.root}/../../../lambda/game"
-  prefix        = var.prefix
-  gateway_url   = module.game_api_gateway_shell.gateway_url
-  table_arn     = module.game_database.table_arn
+  source         = "./../../modules/game_lambdas"
+  lambda_folder  = "${path.root}/../../../lambda/game"
+  aws_account_id = var.aws_account_id
+  prefix         = var.prefix
+  gateway_url    = module.game_api_gateway_shell.gateway_url
+  table_arn      = module.game_database.table_arn
 }
 
 

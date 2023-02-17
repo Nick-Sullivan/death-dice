@@ -123,6 +123,8 @@ class _AccountScreenState extends State<AccountScreen> {
     var outcomeWishPurchase = '-';
     var outcomePool = '-';
 
+    var outcomeWinPercent= '-';
+
     if (statistics != null){
       gamesPlayed = statistics!.gamesPlayed.toString();
       diceRolled = statistics!.diceRolled.toString();
@@ -136,13 +138,15 @@ class _AccountScreenState extends State<AccountScreen> {
       outcomeHeadOnTable = statistics!.outcomeHeadOnTable.toString();
       outcomeWishPurchase = statistics!.outcomeWishPurchase.toString();
       outcomePool = statistics!.outcomePool.toString();
+
+      outcomeWinPercent = (100 * statistics!.outcomeWinner / statistics!.roundsPlayed).toStringAsFixed(1);
     }
 
     var spans = <TextSpan>[
       TextSpan(text: 'Dice rolled: $diceRolled\n'),
       TextSpan(text: 'Games played: $gamesPlayed\n'),
       TextSpan(text: 'Rounds played: $roundsPlayed\n'),
-      TextSpan(text: '- Wins: $outcomeWinner\n'),
+      TextSpan(text: '- Wins: $outcomeWinner ($outcomeWinPercent%)\n'),
       TextSpan(text: '- Losses: $outcomeSipDrink\n'),
       TextSpan(text: '- Tie: $outcomeTie\n'),
       TextSpan(text: '- Finish drink: $outcomeFinishDrink\n'),

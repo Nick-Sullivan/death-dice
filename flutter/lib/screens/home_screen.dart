@@ -261,7 +261,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'Magician',
       'Mike Rotch',
       'Moist Panda',
-      'Mr Illeven 🤢'
+      'Mr Illeven 🤢',
       'Mr Twelve',
       'Poop 💩',
       'Ready for a drink 🍺',

@@ -24,21 +24,6 @@ WITH
       date_id,
       player.account_id
   ),
-  rounds_played AS (
-    SELECT
-      date_id,
-      player.account_id AS account_id,
-      'rounds_played' AS metric,
-      COUNT( DISTINCT round_id ) AS count
-    FROM
-      game_per_player
-    WHERE
-      player.finished
-      AND player.outcome != ''  --Just joined
-    GROUP BY
-      date_id,
-      player.account_id
-  ),
   dice_rolled AS (
     SELECT 
       date_id,
@@ -71,11 +56,23 @@ WITH
       player.account_id,
       player.outcome
   ),
+  rounds_played AS (
+    SELECT
+      date_id,
+      account_id,
+      'rounds_played' AS metric,
+      SUM(round_outcomes.count) AS count
+    FROM
+      round_outcomes
+    GROUP BY
+      date_id,
+      account_id
+  ),
   all_stats AS (
     SELECT * FROM games_played
-    UNION ALL SELECT * FROM rounds_played
     UNION ALL SELECT * FROM dice_rolled
     UNION ALL SELECT * FROM round_outcomes
+    UNION ALL SELECT * FROM rounds_played
   )
 
 SELECT 

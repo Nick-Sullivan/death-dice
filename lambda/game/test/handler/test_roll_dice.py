@@ -61,6 +61,7 @@ def test_roll_dice(client_notifier, connection_dao, dice_roller, game_dao, indiv
       outcome=None,
       rolls=[Roll([D6(3)])]
     )],
+    spectators=[],
     modified_action=GameAction.NEW_ROUND,
     modified_by='nick',
   )

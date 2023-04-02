@@ -46,6 +46,7 @@ def _create_game(connection) -> GameState:
       outcome=RollResultNote.NONE,
       rolls=[]
     )],
+    spectators=[],
     modified_action=GameAction.CREATE_GAME,
     modified_by=connection.id,
   )

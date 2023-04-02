@@ -31,12 +31,19 @@ def _disconnect(connection) -> GameState:
   game.modified_action = GameAction.LEAVE_GAME
   game.modified_by = connection.id
 
-  if len(game.players) <= 1:
+  is_last_connection = len(game.players) + len(game.spectators) <= 1
+  if is_last_connection:
     with TransactionWriter() as transaction:
       connection_dao.delete(connection, transaction)
       game_dao.delete(game, transaction)
       return None
-  
+
+  is_spectator = any(s for s in game.spectators if s.id == connection.id)
+  if is_spectator:
+    game.spectators = [s for s in game.spectators if s.id != connection.id]
+    game_dao.set(game)
+    return game
+
   game.players = [p for p in game.players if p.id != connection.id]
 
   is_round_finished = all([p.finished for p in game.players])

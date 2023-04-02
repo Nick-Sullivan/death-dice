@@ -17,6 +17,8 @@ class GameAction(Enum):
   LEAVE_GAME = 'LEAVE_GAME'
   NEW_ROUND = 'NEW_ROUND'
   ROLL_DICE = 'ROLL_DICE'
+  START_SPECTATING = 'START_SPECTATING'
+  STOP_SPECTATING = 'STOP_SPECTATING'
 
 
 @dataclass
@@ -47,10 +49,18 @@ class Player:
 
 
 @dataclass
+class Spectator:
+  id: str
+  account_id: str
+  nickname: str
+
+
+@dataclass
 class GameState:
   id: str
   mr_eleven: str
   players: List[Player]
+  spectators: List[Spectator]
   round_id: int
   round_finished: bool
   modified_action: GameAction
@@ -100,6 +110,7 @@ class GameState:
 
     game = GameState(**game_dict)
     game.players = [Player(**p) for p in game.players]
+    game.spectators = [Spectator(**s) for s in game.spectators]
     for player in game.players:
       player.rolls = [Roll(**r) for r in player.rolls]
       for roll in player.rolls:

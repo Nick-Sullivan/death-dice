@@ -58,6 +58,7 @@ def test_join_game(connection_dao, game_dao, client_notifier, transaction_mock):
     round_id=0,
     round_finished=True,
     players=[],
+    spectators=[],
     modified_action=GameAction.CREATE_GAME,
     modified_by='nick',
   )

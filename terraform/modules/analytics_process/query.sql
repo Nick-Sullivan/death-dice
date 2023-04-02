@@ -9,6 +9,14 @@ WITH
       game
       CROSS JOIN UNNEST(players) AS t(player)
   ),
+  game_per_spectator AS (
+    SELECT 
+      game.*,
+      spectator
+    FROM 
+      game
+      CROSS JOIN UNNEST(spectators) AS t(spectator)
+  ),
   games_played AS (
     SELECT 
       date_id,
@@ -68,11 +76,24 @@ WITH
       date_id,
       account_id
   ),
+  rounds_spectated AS (
+    SELECT
+      date_id,
+      spectator.account_id AS account_id,
+      'rounds_spectated' AS metric,
+      COUNT(DISTINCT round_id) AS count
+    FROM
+      game_per_spectator
+    GROUP BY
+      date_id,
+      spectator.account_id
+  ),
   all_stats AS (
     SELECT * FROM games_played
     UNION ALL SELECT * FROM dice_rolled
     UNION ALL SELECT * FROM round_outcomes
     UNION ALL SELECT * FROM rounds_played
+    UNION ALL SELECT * FROM rounds_spectated
   )
 
 SELECT 

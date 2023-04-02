@@ -5,6 +5,7 @@ var cardIdCounter = 0;
 var playerIdToCardId = {};
 var accessToken;
 var isLoggedIn;
+var isSpectating = false;
 
 
 var callback_lookup = {
@@ -285,6 +286,36 @@ function rollDice() {
   dicePanel.parentNode.appendChild(newItem);
 }
 
+function toggleSpectating() {
+  document.getElementById("btnToggleSpectating").disabled = true;
+  document.getElementById("btnRollDice").disabled = true;
+  document.getElementById("btnNewRound").disabled = true;
+
+  if (isSpectating){
+    _stopSpectating();
+  } else {
+    _startSpectating();
+  }
+  isSpectating = !isSpectating;
+  
+}
+
+function _startSpectating() {
+  var message = {
+    action: "startSpectating",
+  };
+
+  socket.send(JSON.stringify(message));
+}
+
+function _stopSpectating() {
+  var message = {
+    action: "stopSpectating",
+  };
+
+  socket.send(JSON.stringify(message));
+}
+
 function getDiceHtml(id, number){
   var paddedNumber = String(number).padStart(2, '0');
   return `<img src='img/dice/${id.toLowerCase()}-${paddedNumber}.png' height='50px'/>`
@@ -370,6 +401,8 @@ function gameStateCallback(response){
   // Re-order the cards to match the state
   _orderCards(state.players);
 
+  // Update buttons if we're a player
+
   const thisPlayer = state.players.find(p => {return p.id == playerId});
 
   if (playersToUpdate.includes(playerId)) {
@@ -402,6 +435,14 @@ function gameStateCallback(response){
       playRandomCrackSound();
     }
   }
+
+  // Update buttons if we're a spectator
+  const thisSpectator = state.spectators.find(s => {return s.id == playerId});
+  if (thisSpectator != null){
+    document.getElementById("btnRollDice").disabled = true;
+    document.getElementById("btnNewRound").disabled = true;
+  }
+  document.getElementById("btnToggleSpectating").disabled = false;
 
   prevState = state;
 

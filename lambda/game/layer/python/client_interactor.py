@@ -69,16 +69,26 @@ class ClientNotifier:
     # Order by player joined time TODO
     player_output.sort(key=lambda x: x['id'])
       
+    spectator_output = []
+    for spectator in game.spectators:
+      entry = {
+        'id': spectator.id,
+        'nickname': 'Mr Eleven' if spectator.id == game.mr_eleven else spectator.nickname,
+      }
+      spectator_output.append(entry)
+
     # Send it
     message = {
       'action': 'gameState',
       'data': {
         'players': player_output,
+        'spectators': spectator_output,
         'round': {'complete': game.round_finished},
       },
     }
     print(f'game_state_update: {message}')
-    self.send_notification([p.id for p in game.players], message)
+    connection_ids = [p.id for p in game.players] + [s.id for s in game.spectators]
+    self.send_notification(connection_ids, message)
 
 
 def lambda_handler(func):

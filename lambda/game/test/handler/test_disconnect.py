@@ -53,7 +53,33 @@ def test_disconnect_only_player(connection_dao, game_dao, transaction_mock):
     round_id=0,
     round_finished=False,
     players=[0],
+    spectators=[],
     modified_action=GameAction.NEW_ROUND,
+    modified_by='nick',
+  )
+  game_dao.get.return_value = game
+
+  disconnect({
+    'requestContext': {
+      'connectionId': 'nicks_connection_id'
+    }
+  }, None)
+
+  connection_dao.delete.assert_called_once_with(connection, transaction_mock().__enter__())
+  game_dao.delete.assert_called_once_with(game, transaction_mock().__enter__())
+
+
+def test_disconnect_only_spectator(connection_dao, game_dao, transaction_mock):
+  connection = ConnectionItem(id='nicks_connection_id', game_id='game_id', modified_action=ConnectionAction.CREATE_CONNECTION)
+  connection_dao.get.return_value = connection
+  game = GameState(
+    id='game_id',
+    mr_eleven='',
+    round_id=0,
+    round_finished=False,
+    players=[],
+    spectators=[0],
+    modified_action=GameAction.START_SPECTATING,
     modified_by='nick',
   )
   game_dao.get.return_value = game

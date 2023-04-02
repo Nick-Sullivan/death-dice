@@ -58,6 +58,18 @@ locals {
       handler  = "set_nickname.set_nickname"
       route    = "setNickname"
     },
+    "StartSpectating" = {
+      name     = "${var.prefix}-StartSpectating"
+      filename = "start_spectating"
+      handler  = "start_spectating.start_spectating"
+      route    = "startSpectating"
+    },
+    "StopSpectating" = {
+      name     = "${var.prefix}-StopSpectating"
+      filename = "stop_spectating"
+      handler  = "stop_spectating.stop_spectating"
+      route    = "stopSpectating"
+    },
   }
 }
 

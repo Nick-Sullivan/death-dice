@@ -18,6 +18,7 @@ class GameSession:
     self.join_btn = page.locator("button", has_text="Join")
     self.new_round_btn = page.locator("#btnNewRound")
     self.roll_dice_btn = page.locator("#btnRollDice")
+    self.toggle_spectate_btn = page.locator("#btnToggleSpectating")
 
   def assert_init(self):
     assert self.name_form.is_visible()
@@ -93,6 +94,20 @@ class GameSession:
     self.roll_dice_btn.click(trial=True) # wait for enabled
     assert self.new_round_btn.is_disabled()
     assert self.roll_dice_btn.is_enabled()
+
+  def start_spectating(self):
+    self.toggle_spectate_btn.click()
+    assert self.toggle_spectate_btn.is_disabled()
+
+    self.toggle_spectate_btn.click(trial=True) # wait for enabled
+    assert self.new_round_btn.is_disabled()
+    assert self.roll_dice_btn.is_disabled()
+
+  def stop_spectating(self):
+    self.toggle_spectate_btn.click()
+    assert self.toggle_spectate_btn.is_disabled()
+
+    self.toggle_spectate_btn.click(trial=True) # wait for enabled
 
   def roll_dice(self):
     self.roll_dice_btn.click()
@@ -402,3 +417,57 @@ def test_many_players(context: BrowserContext):
   sessions[0].new_round()
   for session in sessions:
     session.roll_dice() # 1,2
+
+
+def test_spectator(page: Page):
+  session = GameSession(page)
+  session.assert_init()
+  session.set_name("DUAL")
+  session.create_game()
+  session.start_spectating()
+  session.stop_spectating()
+  session.new_round()
+  session.roll_dice() # 2,2
+  session.roll_dice() # 2,2,2
+  session.assert_result_text("DUAL Uh oh")
+  session.roll_dice() # 2,2,2,2
+  session.assert_result_text("DUAL (1) Dual wield")
+
+
+def test_spectator_mid_roll(page: Page):
+  session = GameSession(page)
+  session.assert_init()
+  session.set_name("DUAL")
+  session.create_game()
+  session.new_round()
+  session.roll_dice() # 2,2
+  session.start_spectating()
+  session.stop_spectating()
+  session.new_round()
+  session.roll_dice() # 2,2
+  session.roll_dice() # 2,2,2
+  session.assert_result_text("DUAL Uh oh")
+  session.roll_dice() # 2,2,2,2
+  session.assert_result_text("DUAL (1) Dual wield")
+
+
+def test_two_player_one_spectates(context: BrowserContext):
+
+  session = GameSession(context.new_page())
+  session.assert_init()
+  session.set_name("ABOVE_AVERAGE_JOE")
+  session.create_game()
+  game_code = session.get_game_code()
+
+  session2 = GameSession(context.new_page())
+  session2.assert_init()
+  session2.set_name("AVERAGE_JOE")
+  session2.join_game(game_code)
+  session2.new_round()
+
+  session.roll_dice() # 5,4
+  session2.start_spectating()
+
+  session.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
+  session2.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
+

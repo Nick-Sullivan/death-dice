@@ -50,7 +50,8 @@ class TestGameDao:
             Roll([D6(4)])
           ]
         )
-      ]
+      ],
+      spectators=[],
     )
     obj.create(game, transaction)
 
@@ -77,6 +78,7 @@ class TestGameDao:
               }}]}
             }}]}
           }}]},
+          'spectators': {'L': []},
           'version': {'N': '0'},
           'modified_at': {'S': '2022-01-01 00:00:00.000000'},
           'modified_action': {'S': 'CREATE_GAME'},
@@ -98,6 +100,7 @@ class TestGameDao:
           modified_action=GameAction.CREATE_GAME,
           modified_by='nick',
           players=[],
+          spectators=[],
           modified_at=datetime_mock.now(),
           version=2,
         )
@@ -142,7 +145,8 @@ class TestGameDao:
             Roll([D6(4)])
           ]
         )
-      ]
+      ],
+      spectators=[],
     )
     obj.set(game, transaction)
 
@@ -169,6 +173,7 @@ class TestGameDao:
               }}]}
             }}]}
           }}]},
+          'spectators': {'L': []},
           'version': {'N': '3'},
           'modified_at': {'S': '2022-01-01 00:00:00.000000'},
           'modified_action': {'S': 'CREATE_GAME'},
@@ -189,6 +194,7 @@ class TestGameDao:
       modified_action=GameAction.NEW_ROUND,
       modified_by='nick',
       players=[],
+      spectators=[],
       version=2,
     )
 

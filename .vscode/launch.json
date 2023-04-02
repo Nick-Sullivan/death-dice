@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "extract",
+      "name": "history - extract",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -14,7 +14,7 @@
       "args": ["-o", "profile.prof", "lambda/history/handler/extract.py"]
     },
     {
-      "name": "transform",
+      "name": "history - transform",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -23,7 +23,7 @@
       "args": ["-o", "profile.prof", "lambda/history/handler/transform.py"]
     },
     {
-      "name": "invoke_transform",
+      "name": "history - invoke_transform",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -32,7 +32,7 @@
       "args": ["-o", "profile.prof", "lambda/history/script/invoke_transform.py"]
     },
     {
-      "name": "create_partition",
+      "name": "analytics - create_partition",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -41,7 +41,7 @@
       "args": ["-o", "profile.prof", "lambda/analytics/handler/create_partition.py"]
     },
     {
-      "name": "start_query",
+      "name": "analytics - start_query",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -50,7 +50,7 @@
       "args": ["-o", "profile.prof", "lambda/analytics/handler/start_query.py"]
     },
     {
-      "name": "invoke_start_query",
+      "name": "analytics - invoke_start_query",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -59,7 +59,7 @@
       "args": ["-o", "profile.prof", "lambda/analytics/script/invoke_start_query.py"]
     },
     {
-      "name": "cache_result",
+      "name": "analytics - cache_result",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -68,7 +68,7 @@
       "args": ["-o", "profile.prof", "lambda/analytics/handler/cache_result.py"]
     },
     {
-      "name": "get_statistics",
+      "name": "analytics - get_statistics",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -77,7 +77,7 @@
       "args": ["-o", "profile.prof", "lambda/analytics/handler/get_statistics.py"]
     },
     {
-      "name": "connect",
+      "name": "game - connect",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -86,7 +86,16 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/connect.py"]
     },
     {
-      "name": "create_game",
+      "name": "game - set_nickname",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/game/handler/set_nickname.py"]
+    },
+    {
+      "name": "game - create_game",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -95,7 +104,7 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/create_game.py"]
     },
     {
-      "name": "disconnect",
+      "name": "game - disconnect",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -104,7 +113,7 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/disconnect.py"]
     },
     {
-      "name": "join_game",
+      "name": "game - join_game",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -113,7 +122,7 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/join_game.py"]
     },
     {
-      "name": "new_round",
+      "name": "game - new_round",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -122,7 +131,7 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/new_round.py"]
     },
     {
-      "name": "roll_dice",
+      "name": "game - roll_dice",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
@@ -131,13 +140,22 @@
       "args": ["-o", "profile.prof", "lambda/game/handler/roll_dice.py"]
     },
     {
-      "name": "set_nickname",
+      "name": "game - start_spectating",
       "type": "python",
       "request": "launch",
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/set_nickname.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/start_spectating.py"]
+    },
+    {
+      "name": "game - stop_spectating",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/game/handler/stop_spectating.py"]
     },
   ]
 }

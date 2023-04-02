@@ -49,21 +49,43 @@ enum Dice {
 
 class GameState {
   List<GamePlayer> players;
+  List<GameSpectator> spectators;
   GameRound round;
 
-  GameState(this.players, this.round);
+  GameState(this.players, this.spectators, this.round);
 
   factory GameState.fromJson(Map<String, dynamic> map){
     var players = <GamePlayer>[];
     for (var playerJson in map['players']){
       players.add(GamePlayer.fromJson(playerJson));
     }
+    var spectators = <GameSpectator>[];
+    for (var spectatorJson in map['spectators']){
+      spectators.add(GameSpectator.fromJson(spectatorJson));
+    }
     return GameState(
       players,
+      spectators,
       GameRound.fromJson(map['round']),
     );
   }
 }
+
+
+class GameSpectator {
+  String id;
+  String nickname;
+
+  GameSpectator(this.id, this.nickname);
+
+  factory GameSpectator.fromJson(Map<String, dynamic> map){
+    return GameSpectator(
+      map['id'],
+      map['nickname'],
+    );
+  }
+}
+
 
 class GamePlayer {
   String id;

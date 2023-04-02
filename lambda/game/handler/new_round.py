@@ -1,4 +1,3 @@
-"""All functions in are lambda entry points"""
 
 from client_interactor import ClientNotifier, lambda_handler
 from dao import ConnectionDao, GameDao, concurrency_retry

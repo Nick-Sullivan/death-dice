@@ -34,7 +34,6 @@ class WebsocketInteractor {
     channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl));
     channel.stream.listen(_listen);
     isConnected = true;
-    Timer.periodic(const Duration(seconds: 60), sendHeartbeat);
   }
 
   void _listen(dynamic message){
@@ -126,12 +125,15 @@ class WebsocketInteractor {
     channel.sink.add(message);
   }
 
-  void sendHeartbeat(Timer timer) {
-    if (isConnected) {
-      const message = "{\"action\": \"heartbeat\"}";
-      channel.sink.add(message);
-    } else {
-      timer.cancel();
-    }
+  void startSpectating() {
+    const message = "{\"action\": \"startSpectating\"}";
+    channel.sink.add(message);
   }
+  
+  void stopSpectating() {
+    const message = "{\"action\": \"stopSpectating\"}";
+    channel.sink.add(message);
+  }
+
+
 }

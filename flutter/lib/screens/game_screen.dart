@@ -17,6 +17,7 @@ class _GameScreenState extends State<GameScreen> {
   late final String gameId;
   late final String playerId;
   bool isRoundComplete = false;
+  bool isSpectator = false;
   bool isTurnComplete = false;
   bool isLoading = false;
   
@@ -44,6 +45,10 @@ class _GameScreenState extends State<GameScreen> {
               Padding(
                 padding: const EdgeInsets.only(top: 30, left: 15, right: 15, bottom: 30),
                 child: buildDisconnectButton(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: buildToggleSpectatingButton(),
               ),
               Padding(
                 padding: const EdgeInsets.only(bottom: 30),
@@ -95,8 +100,31 @@ class _GameScreenState extends State<GameScreen> {
     );
   }
 
+  Widget buildToggleSpectatingButton() {
+
+    var enabled = !isLoading;
+    return Container(
+      height: 50,
+      width: 250,
+      decoration: BoxDecoration(
+        color: enabled ? Theme.of(context).primaryColor : Colors.grey,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextButton(
+        onPressed: enabled ? () async {
+          setState(() => isLoading = true);
+          isSpectator ? websocket.stopSpectating() : websocket.startSpectating();
+        } : null,
+        child: Text(
+          isSpectator ? 'Stop Spectating' : 'Spectate',
+          style: const TextStyle(color: Colors.white, fontSize: 25),
+        ),
+      ),
+    );
+  }
+
   Widget buildNewRoundButton() {
-    var enabled = isRoundComplete && !isLoading;
+    var enabled = isRoundComplete && !isLoading && !isSpectator;
     return Container(
       height: 50,
       width: 250,
@@ -118,7 +146,7 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   Widget buildRollDiceButton() {
-    var enabled = !isRoundComplete && !isTurnComplete && !isLoading;
+    var enabled = !isRoundComplete && !isTurnComplete && !isLoading && !isSpectator;
     return Container(
       height: 50,
       width: 250,
@@ -149,6 +177,11 @@ class _GameScreenState extends State<GameScreen> {
       }
       text += "${player.nickname}(${player.winCount}): ${values.join(',')} ${player.rollResult!.value}\r\n";
     }
+
+    for (var spectator in gameState.spectators){
+      text += "(Spectator) ${spectator.nickname}\r\n";
+    }
+
     return Text(
       text,
       style: const TextStyle(fontStyle: FontStyle.italic),
@@ -158,8 +191,12 @@ class _GameScreenState extends State<GameScreen> {
   void onGameStateUpdated(GameState gamestate) {
     debugPrint('Game updated');
     isRoundComplete = gamestate.round.isComplete;
-    var player = gamestate.players.firstWhere((p) => p.id == playerId);
-    isTurnComplete = player.isTurnFinished;
+
+    isSpectator = gamestate.spectators.where((s) => s.id == playerId).isNotEmpty;
+    if (!isSpectator){
+      var player = gamestate.players.firstWhere((p) => p.id == playerId);
+      isTurnComplete = player.isTurnFinished;
+    }
     setState(() => isLoading = false);
   }
 

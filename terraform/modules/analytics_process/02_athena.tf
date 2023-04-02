@@ -161,6 +161,10 @@ resource "aws_glue_catalog_table" "game" {
       name = "players"
       type = "array<struct<id:string,account_id:string,nickname:string,finished:boolean,win_counter:int,outcome:string,rolls:array<struct<dice:array<struct<id:string,value:int,is_death_dice:boolean>>>>>>"
     }
+    columns {
+      name = "spectators"
+      type = "array<struct<id:string,account_id:string,nickname:string>>"
+    }
 
   }
 }

@@ -13,6 +13,7 @@ class IndividualRollJudge:
     RollResultNote.POOL,
     RollResultNote.SIP_DRINK,
     RollResultNote.SHOWER,
+    RollResultNote.DUAL_WIELD,
   }
 
   @classmethod
@@ -296,7 +297,10 @@ class GroupRollJudge:
     for player, result in self.contenders.items():
 
       if result.note == RollResultNote.NONE:
-        result.note = RollResultNote.TIE
+        if max_value == 8 and roll_totals[player] == 8:
+          result.note = RollResultNote.COCKRING_HANDS
+        else:
+          result.note = RollResultNote.TIE
 
       result.type = RollResultType.LOSER
 

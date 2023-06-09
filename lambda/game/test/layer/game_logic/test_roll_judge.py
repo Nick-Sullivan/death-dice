@@ -38,7 +38,7 @@ class TestIndividualRollJudge:
     ),
     pytest.param(
       [[2, 2], [2], [2]],
-      RollResult(note=RollResultNote.DUAL_WIELD, type=RollResultType.NONE, turn_finished=True),
+      RollResult(note=RollResultNote.DUAL_WIELD, type=RollResultType.LOSER, turn_finished=True),
       id='dual wield',
     ),
     pytest.param(
@@ -58,7 +58,7 @@ class TestIndividualRollJudge:
     ),
     pytest.param(
       [[2, 2, 3], [2], [2]],
-      RollResult(note=RollResultNote.DUAL_WIELD, type=RollResultType.NONE, turn_finished=True),
+      RollResult(note=RollResultNote.DUAL_WIELD, type=RollResultType.LOSER, turn_finished=True),
       id='duel wield with death dice',
     ),
     pytest.param(
@@ -147,7 +147,7 @@ class TestGroupRollJudge:
     ),
     pytest.param(
       {'A': [[2, 2, 3], [2], [2]]},
-      {'A': RollResult(RollResultNote.DUAL_WIELD, RollResultType.WINNER, turn_finished=True)},
+      {'A': RollResult(RollResultNote.DUAL_WIELD, RollResultType.LOSER, turn_finished=True)},
       id='solo player duel wield with death dice',
     ),
     pytest.param(
@@ -179,7 +179,7 @@ class TestGroupRollJudge:
       },
       {
         'A': RollResult(RollResultNote.DUAL_WIELD, RollResultType.LOSER, turn_finished=True),
-        'B': RollResult(RollResultNote.TIE, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.WINNER, RollResultType.WINNER, turn_finished=True),
       },
       id='tie with dual wield',
     ),
@@ -189,8 +189,8 @@ class TestGroupRollJudge:
         'B': [[1, 3]],
       },
       {
-        'A': RollResult(RollResultNote.DUAL_WIELD, RollResultType.WINNER, turn_finished=True),
-        'B': RollResult(RollResultNote.SIP_DRINK, RollResultType.LOSER, turn_finished=True),
+        'A': RollResult(RollResultNote.DUAL_WIELD, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.WINNER, RollResultType.WINNER, turn_finished=True),
       },
       id='win with dual wield',
     ),
@@ -318,6 +318,43 @@ class TestGroupRollJudge:
       },
       id='almost three way tie with death dice',
     ),
+    pytest.param(
+      {
+        'A': [[3, 3], [2]],
+        'B': [[2, 2], [4]],
+      },
+      {
+        'A': RollResult(RollResultNote.COCKRING_HANDS, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.COCKRING_HANDS, RollResultType.LOSER, turn_finished=True),
+      },
+      id='two tie to 8',
+    ),
+    pytest.param(
+      {
+        'A': [[3, 3], [2]],
+        'B': [[2, 2], [4]],
+        'C': [[2, 1]],
+      },
+      {
+        'A': RollResult(RollResultNote.COCKRING_HANDS, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.COCKRING_HANDS, RollResultType.LOSER, turn_finished=True),
+        'C': RollResult(RollResultNote.TIE, RollResultType.LOSER, turn_finished=True),
+      },
+      id='two tie to 8, third still drinks',
+    ),
+    pytest.param(
+      {
+        'A': [[3, 3], [2]],
+        'B': [[2, 2], [4]],
+        'C': [[5, 5], [2]],
+      },
+      {
+        'A': RollResult(RollResultNote.SIP_DRINK, RollResultType.LOSER, turn_finished=True),
+        'B': RollResult(RollResultNote.SIP_DRINK, RollResultType.LOSER, turn_finished=True),
+        'C': RollResult(RollResultNote.WINNER, RollResultType.WINNER, turn_finished=True),
+      },
+      id='two tie to 8, third wins',
+    ),
   ])
   def test_calculate_result(self, player_roll_values, expected):
     player_rolls = self._create_rolls_from_values(player_roll_values)
@@ -369,6 +406,7 @@ class TestGroupRollJudge:
 
     result = judge.calculate_new_mr_eleven()
     assert expected == result
+
 
   def _create_rolls_from_values(self, player_roll_values):
     player_rolls = {}

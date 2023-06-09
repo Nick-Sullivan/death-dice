@@ -40,6 +40,7 @@ keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -key
 - Release, copy link for testers
 
 Subsequent releases
+- make sure terraform apply was performed first, so .env is populated
 - edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
 - flutter build appbundle
 - in play.google.com/console, select internal testing, edit release
@@ -52,3 +53,8 @@ CICD
 - edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
 - Codemagic for a new build, linked to github
 - (requires moving google console to closed testing)
+
+
+
+real device 7m30s til disconnect
+emulated 11m til disconnect

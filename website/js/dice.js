@@ -334,6 +334,7 @@ function getRollResultHtml(rollResult){
     "UH_OH": "Uh oh",
     "WINNER": "Winner",
     "WISH_PURCHASE": "Buy from wish.com",
+    "COCKRING_HANDS": "Cockring hands",
     "": "",
   }[rollResult];
 }
@@ -356,6 +357,8 @@ function getBackgroundColor(rollResult){
     
     "UH_OH": "#c8c9ce",
     "THREE_WAY_TIE": "#c8c9ce",
+
+    "COCKRING_HANDS": "#f57fdb",
     "": "#c8c9ce",
   }[rollResult];
 }

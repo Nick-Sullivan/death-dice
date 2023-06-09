@@ -16,6 +16,7 @@ class RollResultNote(Enum):
   UH_OH = 'UH_OH'
   WINNER = 'WINNER'
   WISH_PURCHASE = 'WISH_PURCHASE'
+  COCKRING_HANDS = 'COCKRING_HANDS'
 
 
 class RollResultType(Enum):

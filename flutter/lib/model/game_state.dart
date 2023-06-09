@@ -9,6 +9,7 @@ enum GameAction {
 
 enum RollResult{
   none(''),
+  cockringHands('COCKRING_HANDS'),
   dualWield('DUAL_WIELD'),
   headOnTable('HEAD_ON_TABLE'),
   finishDrink('FINISH_DRINK'),

@@ -19,6 +19,8 @@ class DiceRoller:
     'AVERAGE_GREG': [1, 2, 3],
     'ABOVE_AVERAGE_JOE': [5, 4, 4, 5],
     'LUCKY_JOE': [6, 6, 5],
+    'QUANTAM_COCKRING1': [5, 3],
+    'QUANTAM_COCKRING2': [3, 5],
   }
 
   @staticmethod

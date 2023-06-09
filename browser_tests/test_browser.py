@@ -153,7 +153,7 @@ def test_dual(page: Page):
   session.roll_dice() # 2,2,2
   session.assert_result_text("DUAL Uh oh")
   session.roll_dice() # 2,2,2,2
-  session.assert_result_text("DUAL (1) Dual wield")
+  session.assert_result_text("DUAL Dual wield")
 
 
 def test_shower(page: Page):
@@ -431,7 +431,7 @@ def test_spectator(page: Page):
   session.roll_dice() # 2,2,2
   session.assert_result_text("DUAL Uh oh")
   session.roll_dice() # 2,2,2,2
-  session.assert_result_text("DUAL (1) Dual wield")
+  session.assert_result_text("DUAL Dual wield")
 
 
 def test_spectator_mid_roll(page: Page):
@@ -448,7 +448,7 @@ def test_spectator_mid_roll(page: Page):
   session.roll_dice() # 2,2,2
   session.assert_result_text("DUAL Uh oh")
   session.roll_dice() # 2,2,2,2
-  session.assert_result_text("DUAL (1) Dual wield")
+  session.assert_result_text("DUAL Dual wield")
 
 
 def test_two_player_one_spectates(context: BrowserContext):
@@ -471,3 +471,25 @@ def test_two_player_one_spectates(context: BrowserContext):
   session.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
   session2.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
 
+
+def test_two_player_cockring(context: BrowserContext):
+
+  session = GameSession(context.new_page())
+  session.assert_init()
+  session.set_name("QUANTAM_COCKRING1")
+  session.create_game()
+  game_code = session.get_game_code()
+
+  session2 = GameSession(context.new_page())
+  session2.assert_init()
+  session2.set_name("QUANTAM_COCKRING2")
+  session2.join_game(game_code)
+  session2.new_round()
+
+  session.roll_dice() # 5,3
+  session2.roll_dice() # 3,5
+
+  session.assert_result_text("QUANTAM_COCKRING1 Cockring hands")
+  session.assert_result_text("QUANTAM_COCKRING2 Cockring hands")
+  session2.assert_result_text("QUANTAM_COCKRING1 Cockring hands")
+  session2.assert_result_text("QUANTAM_COCKRING2 Cockring hands")

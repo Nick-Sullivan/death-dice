@@ -6,6 +6,7 @@ import 'package:death_dice/model/game_state.dart';
 import 'package:death_dice/screens/account_screen.dart';
 import 'package:death_dice/screens/game_screen.dart';
 import 'package:death_dice/screens/log_in_screen.dart';
+import 'package:death_dice/screens/unity_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
@@ -89,6 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const PopupMenuItem(
                 value: 1,
+                child: Text("Unity test"),
+              ),
+              const PopupMenuItem(
+                value: 2,
                 child: Text("Log out"),
               ),
             ];
@@ -101,6 +106,12 @@ class _HomeScreenState extends State<HomeScreen> {
               );
             }
             if (value == 1){
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => UnityScreen())
+              );
+            }
+            if (value == 2){
               database.delete(usernameKey);
               database.delete(passwordKey);
               database.delete(accountIdKey);

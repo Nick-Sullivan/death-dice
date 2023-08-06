@@ -16,6 +16,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final emailController = TextEditingController();
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   bool isLoading = false;
 
   @override
@@ -50,7 +51,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,
@@ -149,6 +150,7 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final codeController = TextEditingController();
   final passwordController = TextEditingController();
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   bool isLoading = false;
 
   @override
@@ -188,7 +190,7 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,

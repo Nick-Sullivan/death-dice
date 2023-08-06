@@ -24,6 +24,8 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final AnalyticsInteractor analytics = getIt<AnalyticsInteractor>();
+  final AssetImage background = const AssetImage("assets/images/desert-tins.jpg");
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo-grey.png");
   bool isLoading = false;
   Statistics? statistics;
 
@@ -45,23 +47,18 @@ class _AccountScreenState extends State<AccountScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).backgroundColor,
       appBar: buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 30.0, bottom: 30.0),
-              child: buildLogo(),
-            ),
-            // Padding(
-            //   padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-            //   child: buildSendButton(),
-            // ),
-            Padding(
-              padding: const EdgeInsets.only(top: 10.0, bottom: 10.0),
-              child: buildGameStatistics(),
-            ),
-          ],
+      body: Container(
+        constraints: const BoxConstraints.expand(),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            alignment: Alignment.center,
+            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.dstATop),
+            fit: BoxFit.cover,
+            image: background,
+          )
         ),
+        child: buildGameStatistics(),
+        
       ),
     );
   }
@@ -70,41 +67,6 @@ class _AccountScreenState extends State<AccountScreen> {
     return AppBar(
       title: const Text('Account'),
       backgroundColor: Theme.of(context).primaryColor,
-    );
-  }
-
-  Widget buildLogo() {
-    var image = isLoading
-      ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
-    return Center(
-      child: SizedBox(
-        width: 150,
-        height: 100,
-        child: image,
-      ),
-    );
-  }
-  
-  Widget buildSendButton() {
-    return Container(
-      height: 50,
-      width: 250,
-      decoration: BoxDecoration(
-        color: isLoading ? Colors.grey : Theme.of(context).primaryColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextButton(
-        onPressed: isLoading ? null : () async {
-          setState(() => isLoading = true);
-          statistics = await getStatistics();
-          setState(() => isLoading = false);
-        },
-        child: const Text(
-          'Refresh data',
-          style: TextStyle(color: Colors.white, fontSize: 25),
-        ),
-      ),
     );
   }
 
@@ -149,22 +111,47 @@ class _AccountScreenState extends State<AccountScreen> {
       TextSpan(text: 'Games: $gamesPlayed\n'),
       TextSpan(text: 'Rounds (spectator): $roundsSpectated\n'),
       TextSpan(text: 'Rounds (player): $roundsPlayed\n'),
-      TextSpan(text: '  Wins: $outcomeWinner ($outcomeWinPercent%)\n'),
-      TextSpan(text: '  Losses: $outcomeSipDrink\n'),
-      TextSpan(text: '  Tie: $outcomeTie\n'),
-      TextSpan(text: '  Finish drink: $outcomeFinishDrink\n'),
-      TextSpan(text: '  Dual wield: $outcomeDualWield\n'),
-      TextSpan(text: '  Shower: $outcomeShower\n'),
-      TextSpan(text: '  Head on table: $outcomeHeadOnTable\n'),
-      TextSpan(text: '  Wish purchase: $outcomeWishPurchase\n'),
-      TextSpan(text: '  Pool: $outcomePool\n'),
+      TextSpan(text: '\n'),
+      TextSpan(text: 'Wins: $outcomeWinner ($outcomeWinPercent%)\n'),
+      TextSpan(text: 'Losses: $outcomeSipDrink\n'),
+      TextSpan(text: 'Tie: $outcomeTie\n'),
+      TextSpan(text: 'Finish drink: $outcomeFinishDrink\n'),
+      TextSpan(text: 'Dual wield: $outcomeDualWield\n'),
+      TextSpan(text: 'Shower: $outcomeShower\n'),
+      TextSpan(text: 'Head on table: $outcomeHeadOnTable\n'),
+      TextSpan(text: 'Wish purchase: $outcomeWishPurchase\n'),
+      TextSpan(text: 'Pool: $outcomePool\n'),
     ];
-    return RichText(
-      text: TextSpan(
-        style: const TextStyle(color: Colors.black),
-        children: spans,
-      ),
-      textAlign: TextAlign.left,
+    const scaling = 0.8;
+    const width = 326 * scaling;
+    const height = 612 * scaling;
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        Image(
+          image: canLogo,
+          width: width,
+          height: height,
+        ),
+        Container(
+          alignment: Alignment.center,
+          width: width,
+          height: height,
+          child: Padding(
+            padding: const EdgeInsets.only(left: 20, top: 115),
+            child: RichText(
+              text: TextSpan(
+                style: TextStyle(
+                  color: Color(0xffb7212a),
+                  fontFamily: 'Stanford Breath'
+                ),
+                children: spans,
+              ),
+              textAlign: TextAlign.left,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

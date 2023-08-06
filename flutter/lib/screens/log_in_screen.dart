@@ -91,6 +91,7 @@ class LogInScreen extends StatefulWidget {
 class _LogInScreenState extends State<LogInScreen> {
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final DatabaseInteractor database = getIt<DatabaseInteractor>();
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   late final TextEditingController emailController;
   late final TextEditingController passwordController;
   bool isLoading = false;
@@ -141,7 +142,7 @@ class _LogInScreenState extends State<LogInScreen> {
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,

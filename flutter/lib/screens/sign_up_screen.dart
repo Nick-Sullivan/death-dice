@@ -17,6 +17,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   bool isLoading = false;
 
   @override
@@ -56,7 +57,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,
@@ -160,6 +161,7 @@ class SignUpConfirmationScreen extends StatefulWidget {
 class _SignUpConfirmationScreenState extends State<SignUpConfirmationScreen> {
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final codeController = TextEditingController();
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   bool isLoading = false;
 
   @override
@@ -194,7 +196,7 @@ class _SignUpConfirmationScreenState extends State<SignUpConfirmationScreen> {
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,

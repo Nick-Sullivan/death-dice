@@ -21,7 +21,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var primaryColor = Colors.red[800]!;
+    preCacheImages(context);
+    const primaryColor = Color(0xffb7212a);//Colors.red[800]!;
+    const secondaryColor = Color(0xffbebfc3);
     return MaterialApp(
       title: 'Death Dice',
       routes: {
@@ -36,17 +38,31 @@ class MyApp extends StatelessWidget {
             fontSize: 18,
           )
         ),
-        inputDecorationTheme: InputDecorationTheme(
+        inputDecorationTheme: const InputDecorationTheme(
           border: OutlineInputBorder(
             borderSide: BorderSide(color: primaryColor)
           ),
           focusedBorder: OutlineInputBorder(
             borderSide: BorderSide(color: primaryColor)
           ),
-          labelStyle: TextStyle(color: Colors.grey[600]),
+          labelStyle: TextStyle(color: secondaryColor),
         ),
       ),
     );
   }
 
+  void preCacheImages(BuildContext context) {
+    precacheImage(const AssetImage("assets/images/ancient-scroll.png"), context);
+    precacheImage(const AssetImage("assets/images/can-icon.png"), context);
+    precacheImage(const AssetImage("assets/images/can-in-forest.jpg"), context);
+    precacheImage(const AssetImage("assets/images/can-logo-grey.png"), context);
+    precacheImage(const AssetImage("assets/images/can-logo-white.png"), context);
+    precacheImage(const AssetImage("assets/images/can-logo.png"), context);
+    precacheImage(const AssetImage("assets/images/can-square.png"), context);
+    precacheImage(const AssetImage("assets/images/desert-oasis.jpg"), context);
+    precacheImage(const AssetImage("assets/images/desert-tins.jpg"), context);
+    precacheImage(const AssetImage("assets/images/dice-logo.png"), context);
+    precacheImage(const AssetImage("assets/images/garden-path.jpg"), context);
+
+  }
 }

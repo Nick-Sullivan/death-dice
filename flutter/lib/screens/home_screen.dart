@@ -6,7 +6,7 @@ import 'package:death_dice/model/game_state.dart';
 import 'package:death_dice/screens/account_screen.dart';
 import 'package:death_dice/screens/game_screen.dart';
 import 'package:death_dice/screens/log_in_screen.dart';
-import 'package:death_dice/screens/unity_screen.dart';
+import 'package:death_dice/screens/rule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 final getIt = GetIt.instance;
@@ -21,6 +21,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseInteractor database = getIt<DatabaseInteractor>();
   final WebsocketInteractor websocket = getIt<WebsocketInteractor>();
+  final AssetImage background = const AssetImage("assets/images/can-in-forest.jpg");
+  final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   late final TextEditingController nameController;
   late final TextEditingController gameCodeController;
   late final String username;
@@ -49,28 +51,40 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: Theme.of(context).backgroundColor,
       appBar: buildAppBar(),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.only(top: 30.0, bottom: 30.0),
-              child: buildLogo(),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 0, left: 15, right: 15, bottom: 30),
-              child: buildName(),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(bottom: 30),
-              child: buildNewGame(),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15),
-              child: buildJoinGame(),
-            ),
-          ],
+      body: Container(
+        constraints: const BoxConstraints.expand(),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            alignment: Alignment.bottomCenter,
+            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.dstATop),
+            fit: BoxFit.cover,
+            image: background,
+          )
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              // Padding(
+              //   padding: const EdgeInsets.only(top: 30.0, bottom: 30.0),
+              //   child: buildLogo(),
+              // ),
+              Padding(
+                padding: const EdgeInsets.only(top: 30, left: 15, right: 15, bottom: 30),
+                child: buildName(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 30),
+                child: buildNewGame(),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(left: 15, right: 15),
+                child: buildJoinGame(),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -90,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const PopupMenuItem(
                 value: 1,
-                child: Text("Unity test"),
+                child: Text("Rules"),
               ),
               const PopupMenuItem(
                 value: 2,
@@ -108,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (value == 1){
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => UnityScreen())
+                MaterialPageRoute(builder: (context) => RuleScreen())
               );
             }
             if (value == 2){
@@ -129,7 +143,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildLogo() {
     var image = isLoading
       ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : const Image(image: AssetImage('assets/can-logo.png'));
+      : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 150,
@@ -143,7 +157,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return TextField(
       controller: nameController,
       decoration: const InputDecoration(
+        labelStyle: TextStyle(color: Colors.black),
         labelText: 'Name',
+        fillColor: Color(0xaabebfc3),
+        filled: true,
       ),
       enabled: !isLoading,
     );
@@ -179,7 +196,10 @@ class _HomeScreenState extends State<HomeScreen> {
           controller: gameCodeController,
           decoration: const InputDecoration(
             border: OutlineInputBorder(),
+            labelStyle: TextStyle(color: Colors.black),
             labelText: 'Game code',
+            fillColor: Color(0xaabebfc3),
+            filled: true,
           ),
           enabled: !isLoading,
         )),

@@ -18,10 +18,11 @@ Rules:
    - Five 5's: Buy something from Wish.com, and give it to Mr Eleven.
    - Six 6's: Stop playing, jump into the nearest body of water you can find.
  - If a player has a final score of 11, they are known as Mr Eleven. They have always, and will always be known as Mr Eleven.
- - If Mr Eleven rolls an 11, they win. Any other players that rolled an 11 in that turn, don't lose.
+ - If Mr Eleven rolls an 11, Mr Eleven wins. Any other players that rolled an 11 in that turn, don't lose.
  - When a player wins 3 turns in a row, they get a 4-sided dice (the death dice).
  - The player with the death dice must always win, otherwise they lose the death dice.
  - If the player with the death dice wins two turns in a row, they upgrade their death dice (incrementing through the DnD dice set)
+ - If two players tie with an 8, they are affected by quantam cockring hands, pulling their wrist down as far as it goes until they finish their drink.
 
 
 # Setting up

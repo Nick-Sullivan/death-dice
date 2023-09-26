@@ -61,6 +61,6 @@ def group_results(rows):
 if __name__ == '__main__':
   os.environ['RESULT_CACHE_TABLE_NAME'] = "DeathDiceStageAnalytics"
   cache_result(
-    {'version': '0', 'id': 'ccceb78e-85ac-7155-c4e6-e628f55caa9b', 'detail-type': 'Athena Query State Change', 'source': 'aws.athena', 'account': '314077822992', 'time': '2023-01-06T23:41:19Z', 'region': 'ap-southeast-2', 'resources': [], 'detail': {'currentState': 'SUCCEEDED', 'previousState': 'RUNNING', 'queryExecutionId': '5a348467-bba0-44be-8e2d-9c877107b7ad', 'sequenceNumber': '3', 'statementType': 'DML', 'versionId': '0', 'workgroupName': 'DeathDiceStageAnalytics'}}
+    {'version': '0', 'id': 'ccceb78e-85ac-7155-c4e6-e628f55caa9b', 'detail-type': 'Athena Query State Change', 'source': 'aws.athena', 'account': '314077822992', 'time': '2023-01-06T23:41:19Z', 'region': 'ap-southeast-2', 'resources': [], 'detail': {'currentState': 'SUCCEEDED', 'previousState': 'RUNNING', 'queryExecutionId': '5a348467-bba0-44be-8e2d-9c877107b7ad', 'sequenceNumber': '3', 'statementType': 'DML', 'versionId': '0', 'workgroupName': 'DeathDiceStageAnalytics'}}  # noqa: E501
     ,None
   )

@@ -1,27 +1,6 @@
 # death_dice
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-
-https://pub.dev/packages/flutter_amplify_sdk/versions/0.0.1
-https://docs.amplify.aws/start/q/integration/flutter/
-
-flutter packages pub run flutter_launcher_icons:main
-flutter pub pub run flutter_native_splash:create
-
+This is just a bunch of notes.
 
 To upload to google play store
 - Install java JDK for access to keystore (https://www.oracle.com/java/technologies/downloads/#jdk19-windows)
@@ -46,15 +25,16 @@ Subsequent releases
 - in play.google.com/console, select internal testing, edit release
 
 
-
-
-
 CICD
 - edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
 - Codemagic for a new build, linked to github
 - (requires moving google console to closed testing)
 
 
-
 real device 7m30s til disconnect
 emulated 11m til disconnect
+
+Installing on IOS
+- Install ruby (https://rubyinstaller.org/downloads/)
+- Install curl
+- Install cocoapods (https://airtdave.medium.com/using-cocoapods-on-windows-dec471735f51)

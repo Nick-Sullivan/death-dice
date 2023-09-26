@@ -23,10 +23,11 @@ class _GameScreenState extends State<GameScreen> {
   
   @override
   void initState() {
-    gameId = websocket.cache.gameId!;
-    playerId = websocket.cache.playerId!;
+    playerId = websocket.cache.sessionId!;
+    gameId = websocket.cache.gameState!.gameId;
     onGameStateUpdated(websocket.cache.gameState!);
     websocket.listenToGameState(onGameStateUpdated);
+    websocket.listenToDisconnect(onDisconnected);
     super.initState();
   }
   
@@ -86,11 +87,7 @@ class _GameScreenState extends State<GameScreen> {
       ),
       child: TextButton(
         onPressed: () {
-          websocket.close();
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          );
+          disconnect();
         },
         child: const Text(
           'Disconnect',
@@ -200,4 +197,15 @@ class _GameScreenState extends State<GameScreen> {
     setState(() => isLoading = false);
   }
 
+  void disconnect() async {
+    await websocket.destroySession(playerId);
+    websocket.close();
+  }
+  
+  void onDisconnected() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
+  }
 }

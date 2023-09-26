@@ -62,13 +62,13 @@ def create_partition(database, table, date_id):
     )
     print(f'New partition created for table {table}, date_id {date_id}')
   
-  except glue.exceptions.AlreadyExistsException as e:
+  except glue.exceptions.AlreadyExistsException:
     print(f'Partition already exists for table {table}, date_id {date_id}')
 
 
 if __name__ == '__main__':
    os.environ['QUERY_ID'] = '15f03723-f30b-46bc-a526-0c7dabf88479'
    start_query(
-    {'version': '0', 'id': '0d8d2c02-c9d4-9f56-88a5-28c97def2ad2', 'detail-type': 'Transformation complete', 'source': 'death.dice', 'account': '314077822992', 'time': '2023-01-07T03:04:45Z', 'region': 'ap-southeast-2', 'resources': [], 'detail': {}}
+    {'version': '0', 'id': '0d8d2c02-c9d4-9f56-88a5-28c97def2ad2', 'detail-type': 'Transformation complete', 'source': 'death.dice', 'account': '314077822992', 'time': '2023-01-07T03:04:45Z', 'region': 'ap-southeast-2', 'resources': [], 'detail': {}}  # noqa: E501
     ,None
   )

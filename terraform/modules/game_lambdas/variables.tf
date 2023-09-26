@@ -13,6 +13,17 @@ variable "table_arn" {
   type        = string
 }
 
+variable "websocket_table_arn" {
+  description = "ARN of the websocket database this lambda will be interacting with"
+  type        = string
+}
+
+variable "websocket_table_name" {
+  description = "Name of the websocket database this lambda will be interacting with"
+  type        = string
+}
+
+
 variable "gateway_url" {
   description = "URL for invoking API Gateway."
   type        = string

@@ -1,0 +1,4 @@
+# Change directory into this folder, and run
+# pip install -r requirements.txt --target python
+mediatr == 1.3.2
+opyoid == 1.7.0

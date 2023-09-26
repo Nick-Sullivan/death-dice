@@ -9,11 +9,14 @@ var isSpectating = false;
 
 
 var callback_lookup = {
+  "getSession": getSessionCallback,
+  "setSession": setSessionCallback,
   "setNickname": setNicknameCallback,
   "createGame": joinGameCallback,
   "joinGame": joinGameCallback,
   "gameState": gameStateCallback,
 };
+
 
 document.addEventListener("DOMContentLoaded", function() {
   linkTextToButton("textSetNickname", "btnSetNickname");
@@ -50,7 +53,6 @@ function parseHeaders(headerString){
     const header = pair.split('=');
     headers[header[0]] = header[1];
   }
-  console.log(headers)
   return headers;
 }
 
@@ -58,22 +60,23 @@ function parseHeaders(headerString){
 
 function connect() {
   socket = new WebSocket(gatewayUrl);
-  setupWebsocket();
-}
-
-function disconnect() {
-  socket.close(1000, "Complete")
-}
-
-function setupWebsocket() {
   socket.onopen = onOpen;
   socket.onmessage = onMessage;
   socket.onclose = onClose;
   socket.onerror = onError;
 }
 
+function disconnect() {
+  socket.close(1000, "Complete")
+}
+
 function onOpen(event) {
-  document.getElementById("btnSetNickname").disabled = false;
+    let playerIdCookie = getCookie('playerId')
+    if (playerIdCookie === ''){
+        getSession();
+    } else {
+        setSession(playerIdCookie);
+    }
 }
 
 function onClose(event) {
@@ -90,17 +93,76 @@ function onError(event) {
 
 function onMessage(event) {
   response = JSON.parse(event.data);
-  console.log(response);
-
-  if (response.action in callback_lookup){
-    return callback_lookup[response.action](response);
-  } else {
-    alert(`[message] Data received from server: ${event.data}`);
-  }
+  
+    if (response.action in callback_lookup){
+        console.log(`Received message of type ${response.action}`)
+        return callback_lookup[response.action](response);
+    } else {
+        alert(`[message] Data received from server: ${event.data}`);
+    }
 }
 
+// Cookies
+
+function setCookie(name, value) {
+    const d = new Date();
+    d.setTime(d.getTime() + (1*24*60*60*1000));
+    let expires = "expires="+ d.toUTCString();
+    document.cookie = name + "=" + value + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+    let name = cname + "=";
+    let decodedCookie = decodeURIComponent(document.cookie);
+    let ca = decodedCookie.split(';');
+    for(let i = 0; i <ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) == ' ') {
+            c = c.substring(1);
+        }
+        if (c.indexOf(name) == 0) {
+            return c.substring(name.length, c.length);
+        }
+    }
+    return "";
+}
 
 // Setting up player
+
+function getSession() {
+    console.log('Requesting session ID')
+    var message = {
+        action: "getSession",
+    };
+
+    socket.send(JSON.stringify(message));
+}
+
+function getSessionCallback(response){
+    playerId = response['data'];
+    console.log(`Received session ID: ${playerId}`)
+    setCookie('playerId', playerId);
+    document.getElementById("btnSetNickname").disabled = false;
+}
+
+function setSession(sessionId) {
+    console.log(`Attempting to set session ID to ${sessionId}`)
+    var message = {
+      action: "setSession",
+      data: {
+        'sessionId': sessionId,
+      },
+    };
+  
+    socket.send(JSON.stringify(message));
+}
+
+function setSessionCallback(response){
+    if ("error" in response){
+        console.log('Failed to set session');
+        getSession();
+    }
+}
 
 function setNickname() {
 
@@ -108,6 +170,7 @@ function setNickname() {
     action: "setNickname",
     data: {
       'nickname': document.getElementById("textSetNickname").value,
+      'sessionId': playerId,
     },
   };
 
@@ -137,6 +200,9 @@ function createGame() {
 
   var message = {
     action: "createGame",
+    data: {
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -150,7 +216,10 @@ function joinGame() {
 
   var message = {
     action: "joinGame",
-    data: document.getElementById("textJoinGame").value,
+    data: {
+      'gameId': document.getElementById("textJoinGame").value,
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -161,7 +230,6 @@ function joinGame() {
 }
 
 function joinGameCallback(response){
-
   if ("error" in response){
     document.getElementById("btnCreateGame").disabled = false;
     document.getElementById("btnJoinGame").disabled = false;
@@ -181,6 +249,9 @@ function newRound() {
 
   var message = {
     action: "newRound",
+    data: {
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -270,6 +341,9 @@ function rollDice() {
 
   var message = {
     action: "rollDice",
+    data: {
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -303,6 +377,9 @@ function toggleSpectating() {
 function _startSpectating() {
   var message = {
     action: "startSpectating",
+    data: {
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -311,6 +388,9 @@ function _startSpectating() {
 function _stopSpectating() {
   var message = {
     action: "stopSpectating",
+    data: {
+      'sessionId': playerId,
+    },
   };
 
   socket.send(JSON.stringify(message));
@@ -364,8 +444,12 @@ function getBackgroundColor(rollResult){
 }
 
 function gameStateCallback(response){
-
   const state = response.data;
+  console.log(response)
+
+  $("#containerNickname").hide()
+  document.getElementById("textGameId").textContent = state.gameId;
+  $("#containerGame").show()
   
   // Remove players that have left the game
   for (const player of prevState.players){
@@ -477,6 +561,10 @@ function _createPlayerCard(player){
   if ('winCount' in player && player.winCount > 0){
     winCountHtml = `(${player.winCount})`;
   }
+  var pendingHtml = "";
+  if (player.connectionStatus == 'PENDING_TIMEOUT'){
+    pendingHtml = ' pending';
+  }
   
   var backgroundColor = getBackgroundColor(player.rollResult);
   
@@ -488,11 +576,11 @@ function _createPlayerCard(player){
     <div class="card rounded d-flex align-items-stretch" id="${cardId}Panel" style="background-color:${backgroundColor}">
       <div class="card-body px-3 py-2">
         <div class="card-title h4">
-          <span class="font-weight-bold">${player.nickname} ${winCountHtml}</span>
-          <span class="float-right">${resultHtml}</span>
+          <span class="font-weight-bold${pendingHtml}">${player.nickname} ${winCountHtml}</span>
+          <span class="float-right${pendingHtml}">${resultHtml}</span>
         </div>
         <div class="d-flex flex-row">
-          <div id="${cardId}DicePanel">
+          <div id="${cardId}DicePanel" class="${pendingHtml}">
             ${diceHtml}
           </div>
         </div>
@@ -507,6 +595,7 @@ function _cardShouldUpdate(prevPlayer, player, prevRound, round){
   return !(
     (prevPlayer.diceValue == player.diceValue)
     && (prevPlayer.turnFinished == player.turnFinished)
+    && (prevPlayer.connectionStatus == player.connectionStatus)
     && (prevRound.complete == round.complete)
   );
 }

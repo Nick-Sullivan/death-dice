@@ -19,3 +19,13 @@ resource "aws_dynamodb_table" "death_dice" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "websocket" {
+  name             = "${var.prefix}Websocket"
+  hash_key         = "connection_id"
+  billing_mode     = "PAY_PER_REQUEST"
+  attribute {
+    name = "connection_id"
+    type = "S"
+  }
+}

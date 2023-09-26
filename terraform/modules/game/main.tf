@@ -26,6 +26,8 @@ module "game_lambdas" {
   prefix         = var.prefix
   gateway_url    = module.game_api_gateway_shell.gateway_url
   table_arn      = module.game_database.table_arn
+  websocket_table_arn = module.game_database.websocket_table_arn
+  websocket_table_name = module.game_database.websocket_table_name
 }
 
 

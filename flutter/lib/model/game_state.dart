@@ -5,6 +5,9 @@ enum GameAction {
   setNickname,
   joinGame,
   gameState,
+  getSession,
+  setSession,
+  destroySession,
 }
 
 enum RollResult{
@@ -49,11 +52,12 @@ enum Dice {
 }
 
 class GameState {
+  String gameId;
   List<GamePlayer> players;
   List<GameSpectator> spectators;
   GameRound round;
 
-  GameState(this.players, this.spectators, this.round);
+  GameState(this.gameId, this.players, this.spectators, this.round);
 
   factory GameState.fromJson(Map<String, dynamic> map){
     var players = <GamePlayer>[];
@@ -65,6 +69,7 @@ class GameState {
       spectators.add(GameSpectator.fromJson(spectatorJson));
     }
     return GameState(
+      map['gameId'],
       players,
       spectators,
       GameRound.fromJson(map['round']),

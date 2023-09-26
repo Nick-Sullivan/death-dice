@@ -12,3 +12,5 @@
 .venv/*
 
 profile.prof
+
+lambda/game/libs/python/*

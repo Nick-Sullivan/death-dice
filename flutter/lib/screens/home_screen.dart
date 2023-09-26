@@ -27,8 +27,8 @@ class _HomeScreenState extends State<HomeScreen> {
   late final TextEditingController gameCodeController;
   late final String username;
   late final String accountId;
-  late bool isCreatingGame;
-  bool isLoading = false;
+  bool isLoading = true;
+  String playerId = "default";
 
   @override
   void dispose() {
@@ -42,10 +42,20 @@ class _HomeScreenState extends State<HomeScreen> {
     nameController = TextEditingController(text: createRandomName());
     gameCodeController = TextEditingController();
     database.init()
-      .then((_) => accountId = database.read(accountIdKey))
-      .then((_) => username = database.read(usernameKey));
-    websocket.init();
+      .then((_) => initVariablesFromDatabase())
+      .then((_) => websocket.init())
+      .then((_) => connect())
+      .then((_) => isLoading = false)
+      .then((_) => setState(() {}));
     super.initState();
+  }
+
+  void initVariablesFromDatabase() {
+    accountId = database.read(accountIdKey);
+    username = database.read(usernameKey);
+    if (database.containsKey(playerIdKey)){
+      playerId = database.read(playerIdKey);
+    }
   }
 
   @override
@@ -177,8 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: TextButton(
         onPressed: isLoading ? null : () async {
           setState(() => isLoading = true);
-          isCreatingGame = true;
-          connect();
+          createGame();
         },
         child: const Text(
           'New Game',
@@ -213,8 +222,7 @@ class _HomeScreenState extends State<HomeScreen> {
           child: TextButton(
             onPressed: isLoading ? null : () async {
               setState(() => isLoading = true);
-              isCreatingGame = false;
-              connect();
+              joinGame();
             },
             child: const Text(
               'Join',
@@ -226,45 +234,43 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void connect() {
-    websocket.connect();
-    websocket.listenToPlayerId(onPlayerCreated);
-    websocket.listenToPlayerError(onError);
-    websocket.listenToGameId(onGameJoined);
-    websocket.listenToGameError(onError);
-    websocket.listenToGameState(onGameStateUpdated);
-    websocket.createPlayer(nameController.text, accountId);
-  }
-  
-  void onPlayerCreated(String playerId) {
-    debugPrint('Player ID set');
-    if (isCreatingGame){
-      websocket.createGame();
-    } else {
-      websocket.joinGame(gameCodeController.text);
+  void connect() async {
+    websocket.connect(onError);
+    websocket.listenToGameState(onGameState);
+    var success = await websocket.setSession(playerId);
+    if (success) {
+      playerId = websocket.cache.sessionId!;
+      return;
     }
+
+    await websocket.getSession();
+    playerId = websocket.cache.sessionId!;
+    await database.write(playerIdKey, playerId);
   }
 
-  void onGameJoined(String gameId) {
-    debugPrint('Game joined');
+  void createGame() async {
+    await websocket.createPlayer(nameController.text, accountId);
+    await websocket.createGame();
   }
 
-  void onGameStateUpdated(GameState gamestate) {
-    debugPrint('Game updated');
-    websocket.clearListeners();
+  void joinGame() async {
+    await websocket.createPlayer(nameController.text, accountId);
+    await websocket.joinGame(gameCodeController.text);
+  }
+
+  void onGameState(GameState gamestate) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const GameScreen()),
     );
-
   }
-
+  
   void onError(String error) {
     debugPrint(error);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(error))
     );
-    websocket.close();
+    // websocket.close();
     setState(() => isLoading = false);
   }
 

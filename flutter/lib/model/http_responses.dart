@@ -14,6 +14,7 @@ class Statistics {
   final int outcomeHeadOnTable;
   final int outcomeWishPurchase;
   final int outcomePool;
+  final int outcomeCockringHands;
 
   const Statistics({
     required this.diceRolled,
@@ -29,6 +30,7 @@ class Statistics {
     required this.outcomeHeadOnTable,
     required this.outcomeWishPurchase,
     required this.outcomePool,
+    required this.outcomeCockringHands,
   });
 
   factory Statistics.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,7 @@ class Statistics {
       outcomeHeadOnTable: json['outcome_head_on_table'] ?? 0,
       outcomeWishPurchase: json['outcome_wish_purchase'] ?? 0,
       outcomePool: json['outcome_pool'] ?? 0,
+      outcomeCockringHands: json['outcome_cockring_hands'] ?? 0,
     );
   }
 }

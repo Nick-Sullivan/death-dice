@@ -83,7 +83,16 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/connect.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "connect"]
+    },
+    {
+      "name": "game - get session",
+      "type": "python",
+      "request": "launch",
+      "module": "cProfile",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "get_session"]
     },
     {
       "name": "game - set_nickname",
@@ -92,7 +101,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/set_nickname.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "set_nickname"]
     },
     {
       "name": "game - create_game",
@@ -101,7 +110,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/create_game.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "create_game"]
     },
     {
       "name": "game - disconnect",
@@ -110,8 +119,17 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/disconnect.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "disconnect"]
     },
+    {
+        "name": "game - set session",
+        "type": "python",
+        "request": "launch",
+        "module": "cProfile",
+        "console": "integratedTerminal",
+        "justMyCode": true,
+        "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "set_session"]
+      },
     {
       "name": "game - join_game",
       "type": "python",
@@ -119,7 +137,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/join_game.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "join_game"]
     },
     {
       "name": "game - new_round",
@@ -128,7 +146,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/new_round.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "new_round"]
     },
     {
       "name": "game - roll_dice",
@@ -137,7 +155,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/roll_dice.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "roll_dice"]
     },
     {
       "name": "game - start_spectating",
@@ -146,7 +164,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/start_spectating.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "start_spectating"]
     },
     {
       "name": "game - stop_spectating",
@@ -155,7 +173,7 @@
       "module": "cProfile",
       "console": "integratedTerminal",
       "justMyCode": true,
-      "args": ["-o", "profile.prof", "lambda/game/handler/stop_spectating.py"]
+      "args": ["-o", "profile.prof", "lambda/game/handler/handler.py", "stop_spectating"]
     },
   ]
 }

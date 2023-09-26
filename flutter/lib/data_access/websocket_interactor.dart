@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:death_dice/model/game_state.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:web_socket_channel/io.dart';
 
 class GameCache {
-  String? playerId;
+  String? sessionId;
   String? gameId;
   GameState? gameState;
 }
@@ -13,11 +14,15 @@ class GameCache {
 class WebsocketInteractor {
   bool isInitialised = false;
   bool isConnected = false;
-  late final String gatewayUrl;
-  late IOWebSocketChannel channel;
-  Map<GameAction, Function(Map)> actionDispatch = <GameAction, Function(Map)>{};
-  Map<GameAction, Function(Map)> errorDispatch = <GameAction, Function(Map)>{};
   GameCache cache = GameCache();
+  Function(GameState)? gameStateCallback;
+  Function()? disconnectCallback;
+  late final String gatewayUrl;
+  late Function(String) errorCallback;
+  late IOWebSocketChannel channel;
+  late Completer<bool> sessionCompleter;
+  late Completer<bool> nicknameCompleter;
+  late Completer<bool> gameCompleter;
 
   WebsocketInteractor();
 
@@ -30,110 +35,161 @@ class WebsocketInteractor {
     isInitialised = true;
   }
 
-  void connect() {
+  void connect(Function(String) func) {
+    debugPrint('connecting');
+    errorCallback = func;
     channel = IOWebSocketChannel.connect(Uri.parse(gatewayUrl));
-    channel.stream.listen(_listen);
+    channel.stream.listen(_onMessage, onDone: _onDone);
     isConnected = true;
   }
 
-  void _listen(dynamic message){
+  void _onMessage(dynamic message){
     Map map = json.decode(message);
+    if (map["message"] == "Internal server error"){
+      errorCallback(map["message"]);
+    }
+
     var action = GameAction.values.byName(map['action']);
+    debugPrint('action: $action');
+
+    if (action == GameAction.setSession) {
+      if (map.containsKey('error')) {
+        sessionCompleter.complete(false);
+        return;
+      }
+    } 
 
     if (map.containsKey('error')){
-      if (errorDispatch.containsKey(action)){
-        var func = errorDispatch[action]!;
-        func(map);
+      errorCallback(map['error']);
+      return;
+    } 
+
+    if (action == GameAction.getSession) {
+      cache.sessionId = map['data'];
+      sessionCompleter.complete(true);
+    } 
+    else if(action == GameAction.setNickname) {
+      nicknameCompleter.complete(true);
+    }
+    else if(action == GameAction.joinGame) {
+      cache.gameId = map['data'];
+      gameCompleter.complete(true);
+    }
+    else if (action == GameAction.gameState) {
+      cache.gameState = GameState.fromJson(map['data']);
+      if (gameStateCallback != null){
+        gameStateCallback!(cache.gameState!);
+      }
+    }
+    else if (action == GameAction.destroySession) {
+      cache.sessionId = null;
+      sessionCompleter.complete(true);
+    } 
+
+  }
+  
+  void _onDone() {
+    if (!isConnected){
+      if (disconnectCallback != null){
+        disconnectCallback!();
       }
       return;
     }
-
-    if (actionDispatch.containsKey(action)){
-      var func = actionDispatch[action]!;
-      func(map);
+    connect(errorCallback);
+    if (cache.sessionId != null){
+      setSession(cache.sessionId!);
     }
-  }
 
-  void clearListeners(){
-    actionDispatch = <GameAction, Function(Map)>{};
-    errorDispatch = <GameAction, Function(Map)>{};
-  }
-
-  void listenToPlayerId(Function(String) func){
-    actionDispatch[GameAction.setNickname] = (message) {
-      cache.playerId = message['data']['playerId'];
-      func(cache.playerId!);
-    };
-  }
-
-  void listenToPlayerError(Function(String) func){
-    errorDispatch[GameAction.setNickname] = (message) {
-      var error = message['error'];
-      func(error);
-    };
-  }
-
-  void listenToGameId(Function(String) func){
-    actionDispatch[GameAction.joinGame] = (message) {
-      cache.gameId = message['data'];
-      func(cache.gameId!);
-    };
-  }
-
-  void listenToGameError(Function(String) func){
-    errorDispatch[GameAction.joinGame] = (message) {
-      var error = message['error'];
-      func(error);
-    };
+    debugPrint('connection closed');
   }
 
   void listenToGameState(Function(GameState) func){
-    actionDispatch[GameAction.gameState] = (message) {
-      cache.gameState = GameState.fromJson(message['data']);
-      func(cache.gameState!);
-    };
+    gameStateCallback = func;
+  }
+
+  void listenToDisconnect(Function() func){
+    disconnectCallback = func;
   }
 
   void close() {
-    channel.sink.close();
+    debugPrint("Closing websocket");
     cache = GameCache();
     isConnected = false;
+    channel.sink.close();
   }
 
-  void createPlayer(String name, String accountId) {
-    var message = "{\"action\": \"setNickname\", \"data\": {\"nickname\": \"$name\", \"accountId\": \"$accountId\"}}";
+  Future<bool> setSession(String desiredSessionId) {
+    debugPrint("Setting session");
+    sessionCompleter = Completer();
+    var message = "{\"action\": \"setSession\", \"data\": {\"sessionId\": \"$desiredSessionId\"}}";
     channel.sink.add(message);
+    return sessionCompleter.future;
   }
 
-  void createGame() {
-    const message = "{\"action\": \"createGame\"}";
+  Future<bool> getSession() {
+    debugPrint("Getting session");
+    sessionCompleter = Completer();
+    var message = "{\"action\": \"getSession\"}";
     channel.sink.add(message);
+    return sessionCompleter.future;
   }
 
-  void joinGame(String code) {
-    var message = "{\"action\": \"joinGame\", \"data\": \"$code\"}";
+  Future<bool> createPlayer(String name, String accountId) {
+    debugPrint("Creating player");
+    nicknameCompleter = Completer();
+    var message = "{\"action\": \"setNickname\", \"data\": {\"sessionId\": \"${cache.sessionId}\", \"nickname\": \"$name\", \"accountId\": \"$accountId\"}}";
     channel.sink.add(message);
+    return nicknameCompleter.future;
+  }
+
+  Future<bool> createGame() {
+    debugPrint("Creating game");
+    gameCompleter = Completer();
+    var message = "{\"action\": \"createGame\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
+    channel.sink.add(message);
+    return gameCompleter.future;
+  }
+
+  Future<bool> joinGame(String code) {
+    debugPrint("Joining game");
+    gameCompleter = Completer();
+    var message = "{\"action\": \"joinGame\", \"data\": {\"sessionId\": \"${cache.sessionId}\", \"gameId\": \"$code\"}";
+    channel.sink.add(message);
+    return gameCompleter.future;
+  }
+
+  Future<bool> destroySession(String accountId){
+    debugPrint("Destroying player");
+    sessionCompleter = Completer();
+    var message = "{\"action\": \"destroySession\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
+    channel.sink.add(message);
+    return sessionCompleter.future;
   }
 
   void newRound() {
-    const message = "{\"action\": \"newRound\"}";
+    debugPrint("New round");
+    var message = "{\"action\": \"newRound\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
     channel.sink.add(message);
   }
 
   void rollDice() {
-    var message = "{\"action\": \"rollDice\"}";
+    debugPrint("Rolling dice");
+    var message = "{\"action\": \"rollDice\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
     channel.sink.add(message);
   }
 
   void startSpectating() {
-    const message = "{\"action\": \"startSpectating\"}";
+    debugPrint("Starting spectating");
+    var message = "{\"action\": \"startSpectating\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
     channel.sink.add(message);
   }
   
   void stopSpectating() {
-    const message = "{\"action\": \"stopSpectating\"}";
+    debugPrint("Stopping spectating");
+    var message = "{\"action\": \"stopSpectating\", \"data\": {\"sessionId\": \"${cache.sessionId}\"}}";
     channel.sink.add(message);
   }
+
 
 
 }

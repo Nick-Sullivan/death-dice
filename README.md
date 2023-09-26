@@ -28,33 +28,37 @@ Rules:
 # Setting up
 
 ```
+python3 -m venv .venv
+./.venv/Scripts/activate
+pip install pytest boto3 playwright pytest-playwright pytest-xdist snakeviz awswrangler mediatr opyoid
+playwright install
+```
+
+```
 cd terraform/environments/production
 terraform init
 terraform apply
 ```
 
-- Update the URL in `src/js/index.js`
-
-```
-terraform apply
-```
-
 # Developing locally
 
-To run locally, I use VSCode with extensions `Playwright Test`, `Live Server`, `Terraform`, and `Python`.
+To test locally, I use VSCode with extensions `Playwright Test`, `Live Server`, `Terraform`, and `Python`.
 
-Install required things
+ ## Python tests
 
-```
-python3 -m venv .venv
-./.venv/Scripts/activate
-pip install pytest boto3 playwright pytest-playwright pytest-xdist snakeviz awswrangler
-playwright install
-```
+ pytest
+
+ ## Browser tests
 
 Run tests (see https://playwright.dev/python/docs/test-runners#cli-arguments for Playwright CLI)
 (To use non-headless mode, uncomment "--headed" in settings.json)
 
+Just unit tests
+```
+python -m pytest tests/unit_tests
+```
+
+All tests
 ```
 pytest 
 pytest -n auto  // for parallel

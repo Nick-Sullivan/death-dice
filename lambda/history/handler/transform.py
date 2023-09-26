@@ -68,5 +68,5 @@ if __name__ == '__main__':
    os.environ['BUCKET_NAME'] = 'fake-bucket'
    os.environ['QUEUE_URL'] = 'https://sqs.ap-southeast-2.amazonaws.com/314077822992/DeathDiceStage-Extract'
    transform(
-      {'version': '0', 'id': 'bdab8054-fda8-3d4f-41df-eeaa317a95c5', 'detail-type': 'Scheduled Event', 'source': 'aws.events', 'account': '314077822992', 'time': '2023-01-05T07:57:14Z', 'region': 'ap-southeast-2', 'resources': ['arn:aws:events:ap-southeast-2:314077822992:rule/DeathDiceStage-Transform'], 'detail': {}}
+      {'version': '0', 'id': 'bdab8054-fda8-3d4f-41df-eeaa317a95c5', 'detail-type': 'Scheduled Event', 'source': 'aws.events', 'account': '314077822992', 'time': '2023-01-05T07:57:14Z', 'region': 'ap-southeast-2', 'resources': ['arn:aws:events:ap-southeast-2:314077822992:rule/DeathDiceStage-Transform'], 'detail': {}}  # noqa: E501
       , None)

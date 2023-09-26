@@ -12,63 +12,87 @@ locals {
   lambdas = {
     "Connect" = {
       name     = "${var.prefix}-Connect"
-      filename = "connect"
-      handler  = "connect.connect"
+      filename = "handler"
+      handler  = "handler.connect"
       route    = "$connect"
+    },
+    "GetSession" = {
+      name     = "${var.prefix}-GetSession"
+      filename = "handler"
+      handler  = "handler.get_session"
+      route    = "getSession"
+    },
+    "SetSession" = {
+      name     = "${var.prefix}-SetSession"
+      filename = "handler"
+      handler  = "handler.set_session"
+      route    = "setSession"
+    },
+    "DestroySession" = {
+      name     = "${var.prefix}-DestroySession"
+      filename = "handler"
+      handler  = "handler.destroy_session"
+      route    = "destroySession"
     },
     "Disconnect" = {
       name     = "${var.prefix}-Disconnect"
-      filename = "disconnect"
-      handler  = "disconnect.disconnect"
+      filename = "handler"
+      handler  = "handler.disconnect"
       route    = "$disconnect"
     },
     "CreateGame" = {
       name     = "${var.prefix}-CreateGame"
-      filename = "create_game"
-      handler  = "create_game.create_game"
+      filename = "handler"
+      handler  = "handler.create_game"
       route    = "createGame"
     },
     "Heartbeat" = {
       name     = "${var.prefix}-Heartbeat"
-      filename = "heartbeat"
-      handler  = "heartbeat.heartbeat"
+      filename = "handler"
+      handler  = "handler.heartbeat"
       route    = "heartbeat"
     },
     "JoinGame" = {
       name     = "${var.prefix}-JoinGame"
-      filename = "join_game"
-      handler  = "join_game.join_game"
+      filename = "handler"
+      handler  = "handler.join_game"
       route    = "joinGame"
     },
     "NewRound" = {
       name     = "${var.prefix}-NewRound"
-      filename = "new_round"
-      handler  = "new_round.new_round"
+      filename = "handler"
+      handler  = "handler.new_round"
       route    = "newRound"
     },
     "RollDice" = {
       name     = "${var.prefix}-RollDice"
-      filename = "roll_dice"
-      handler  = "roll_dice.roll_dice"
+      filename = "handler"
+      handler  = "handler.roll_dice"
       route    = "rollDice"
     },
     "SetNickname" = {
       name     = "${var.prefix}-SetNickname"
-      filename = "set_nickname"
-      handler  = "set_nickname.set_nickname"
+      filename = "handler"
+      handler  = "handler.set_nickname"
       route    = "setNickname"
     },
     "StartSpectating" = {
       name     = "${var.prefix}-StartSpectating"
-      filename = "start_spectating"
-      handler  = "start_spectating.start_spectating"
+      filename = "handler"
+      handler  = "handler.start_spectating"
       route    = "startSpectating"
     },
     "StopSpectating" = {
       name     = "${var.prefix}-StopSpectating"
-      filename = "stop_spectating"
-      handler  = "stop_spectating.stop_spectating"
+      filename = "handler"
+      handler  = "handler.stop_spectating"
       route    = "stopSpectating"
+    },
+    "CheckSessionTimeout" = {
+      name     = "${var.prefix}-CheckSessionTimeout"
+      filename = "handler"
+      handler  = "handler.check_session_timeout"
+      route    = "checkSessionTimeout"
     },
   }
 }
@@ -82,6 +106,13 @@ resource "aws_cloudwatch_log_group" "all" {
 }
 
 # Create the functions using the source code zips
+
+data "archive_file" "libs" {
+  type        = "zip"
+  source_dir  = "${var.lambda_folder}/libs"
+  excludes    = ["__pycache__.py"]
+  output_path = "${var.lambda_folder}/zip/libs.zip"
+}
 
 data "archive_file" "layer" {
   type        = "zip"
@@ -97,6 +128,13 @@ data "archive_file" "all" {
   output_path = "${var.lambda_folder}/zip/${each.value.filename}.zip"
 }
 
+resource "aws_lambda_layer_version" "libs" {
+  filename            = data.archive_file.libs.output_path
+  layer_name          = "${var.prefix}-Libs"
+  compatible_runtimes = ["python3.9"]
+  source_code_hash    = data.archive_file.libs.output_base64sha256
+}
+
 resource "aws_lambda_layer_version" "layer" {
   filename            = "${var.lambda_folder}/zip/layer.zip"
   layer_name          = "${var.prefix}-Logic"
@@ -109,7 +147,7 @@ resource "aws_lambda_function" "all" {
   filename         = "${var.lambda_folder}/zip/${each.value.filename}.zip"
   function_name    = each.value.name
   handler          = each.value.handler
-  layers           = [aws_lambda_layer_version.layer.arn]
+  layers           = [aws_lambda_layer_version.libs.arn, aws_lambda_layer_version.layer.arn]
   role             = aws_iam_role.role.arn
   runtime          = "python3.9"
   timeout          = 10
@@ -119,6 +157,7 @@ resource "aws_lambda_function" "all" {
     variables = {
       "PROJECT" : var.prefix,
       "GATEWAY_URL" : var.gateway_url,
+      "WEBSOCKET_TABLE_NAME": var.websocket_table_name,
     }
   }
 }
@@ -150,7 +189,7 @@ data "aws_iam_policy_document" "access_dynamodb" {
       "dynamodb:UpdateItem",
     ]
     effect    = "Allow"
-    resources = [var.table_arn]
+    resources = [var.table_arn, var.websocket_table_arn]
   }
 }
 
@@ -177,6 +216,20 @@ data "aws_iam_policy_document" "put_event" {
   }
 }
 
+data "aws_iam_policy_document" "read_sqs" {
+  statement {
+    actions = [
+      "sqs:ReceiveMessage",
+      "sqs:DeleteMessage",
+      "sqs:GetQueueAttributes",
+    ]
+    effect = "Allow"
+    resources = [
+      aws_sqs_queue.websocket_disconnected_queue.arn,
+    ]
+  }
+}
+
 resource "aws_iam_role" "role" {
   # Permissions for the Lambda
   name                = "${var.prefix}LamdbaRole"
@@ -194,6 +247,10 @@ resource "aws_iam_role" "role" {
   inline_policy {
     name   = "PutEvent"
     policy = data.aws_iam_policy_document.put_event.json
+  }
+  inline_policy {
+    name   = "ReadSqs"
+    policy = data.aws_iam_policy_document.read_sqs.json
   }
 }
 
@@ -223,4 +280,80 @@ resource "aws_cloudwatch_event_target" "game_created" {
 resource "aws_cloudwatch_log_group" "game_created" {
   name              = "/aws/events/${aws_cloudwatch_event_rule.game_created.name}"
   retention_in_days = 90
+}
+
+resource "aws_cloudwatch_event_rule" "websocket_disconnected" {
+  name          = "${var.prefix}-WebsocketDisconnected"
+  description   = "A player has disconnected from the websocket"
+  event_pattern = <<-EOF
+    {
+      "source": ["${var.prefix}.Websocket"],
+      "detail-type": ["Disconnected"]
+    }
+  EOF
+}
+
+resource "aws_cloudwatch_event_target" "websocket_disconnected" {
+  rule      = aws_cloudwatch_event_rule.websocket_disconnected.name
+  target_id = "SendToCloudWatch"
+  arn       = aws_cloudwatch_log_group.websocket_disconnected.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 24 * 60 * 60
+  }
+}
+
+resource "aws_cloudwatch_log_group" "websocket_disconnected" {
+  name              = "/aws/events/${aws_cloudwatch_event_rule.websocket_disconnected.name}"
+  retention_in_days = 90
+}
+
+# SQS queue to delay event invocation
+
+resource "aws_cloudwatch_event_target" "websocket_disconnected_queue" { 
+  rule      = aws_cloudwatch_event_rule.websocket_disconnected.name
+  target_id = "AddToSqs"
+  arn       = aws_sqs_queue.websocket_disconnected_queue.arn
+  retry_policy {
+    maximum_retry_attempts       = 0
+    maximum_event_age_in_seconds = 60
+  }
+}
+
+resource "aws_sqs_queue" "websocket_disconnected_queue" {
+  name                      = "${var.prefix}-WebsocketDisconnection"
+  delay_seconds = 120
+  message_retention_seconds = 6 * 60 * 60
+}
+
+resource "aws_sqs_queue_policy" "websocket_disconnected_queue" {
+  queue_url = aws_sqs_queue.websocket_disconnected_queue.id
+  policy    = data.aws_iam_policy_document.websocket_disconnected_queue.json
+}
+
+data "aws_iam_policy_document" "websocket_disconnected_queue" {
+  statement {
+    actions = [
+      "sqs:SendMessage",
+    ]
+    effect = "Allow"
+    resources = [
+      aws_sqs_queue.websocket_disconnected_queue.arn,
+    ]
+    principals {
+      type = "Service"
+      identifiers = ["events.amazonaws.com"]
+    }
+    condition {
+      test = "ArnEquals"
+      variable = "aws:SourceArn"
+      values = [aws_cloudwatch_event_rule.websocket_disconnected.arn]
+    }
+  }
+}
+
+resource "aws_lambda_event_source_mapping" "check_session_timeout" {
+  event_source_arn = aws_sqs_queue.websocket_disconnected_queue.arn
+  function_name    = local.lambdas["CheckSessionTimeout"]["name"]
+  batch_size       = 1
 }

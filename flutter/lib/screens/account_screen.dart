@@ -85,6 +85,7 @@ class _AccountScreenState extends State<AccountScreen> {
     var outcomeHeadOnTable = '-';
     var outcomeWishPurchase = '-';
     var outcomePool = '-';
+    var outcomeCockringHands = '-';
 
     var outcomeWinPercent= '-';
 
@@ -102,6 +103,7 @@ class _AccountScreenState extends State<AccountScreen> {
       outcomeHeadOnTable = statistics!.outcomeHeadOnTable.toString();
       outcomeWishPurchase = statistics!.outcomeWishPurchase.toString();
       outcomePool = statistics!.outcomePool.toString();
+      outcomeCockringHands = statistics!.outcomePool.toString();
 
       outcomeWinPercent = (100 * statistics!.outcomeWinner / statistics!.roundsPlayed).toStringAsFixed(1);
     }
@@ -121,8 +123,9 @@ class _AccountScreenState extends State<AccountScreen> {
       TextSpan(text: 'Head on table: $outcomeHeadOnTable\n'),
       TextSpan(text: 'Wish purchase: $outcomeWishPurchase\n'),
       TextSpan(text: 'Pool: $outcomePool\n'),
+      TextSpan(text: 'Cockring hands: $outcomeCockringHands\n'),
     ];
-    const scaling = 0.8;
+    const scaling = 0.85;
     const width = 326 * scaling;
     const height = 612 * scaling;
     return Stack(

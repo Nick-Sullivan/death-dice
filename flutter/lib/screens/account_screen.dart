@@ -3,9 +3,8 @@ import 'package:death_dice/data_access/cognito_interactor.dart';
 import 'package:death_dice/model/http_responses.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-final getIt = GetIt.instance;
 
-const analyticsUrl = 'https://3er3bwfcy1.execute-api.ap-southeast-2.amazonaws.com/v1/statistics';
+final getIt = GetIt.instance;
 
 class AccountScreen extends StatefulWidget {
   final String accountId;
@@ -24,23 +23,22 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final AnalyticsInteractor analytics = getIt<AnalyticsInteractor>();
-  final AssetImage background = const AssetImage("assets/images/desert-tins.jpg");
-  final AssetImage canLogo = const AssetImage("assets/images/can-logo-grey.png");
+  final AssetImage background =
+      const AssetImage("assets/images/desert-tins.jpg");
+  final AssetImage canLogo =
+      const AssetImage("assets/images/can-logo-grey.png");
   bool isLoading = false;
   Statistics? statistics;
 
   @override
   void initState() {
     isLoading = true;
-    analytics.init()
-      .then((_) => getStatistics())
-      .then((value) {
-        statistics = value;
-        setState(() => isLoading = false);
-      });
+    analytics.init().then((_) => getStatistics()).then((value) {
+      statistics = value;
+      setState(() => isLoading = false);
+    });
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -50,20 +48,19 @@ class _AccountScreenState extends State<AccountScreen> {
       body: Container(
         constraints: const BoxConstraints.expand(),
         decoration: BoxDecoration(
-          image: DecorationImage(
-            alignment: Alignment.center,
-            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.dstATop),
-            fit: BoxFit.cover,
-            image: background,
-          )
-        ),
+            image: DecorationImage(
+          alignment: Alignment.center,
+          colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.5), BlendMode.dstATop),
+          fit: BoxFit.cover,
+          image: background,
+        )),
         child: buildGameStatistics(),
-        
       ),
     );
   }
 
-  AppBar buildAppBar(){
+  AppBar buildAppBar() {
     return AppBar(
       title: const Text('Account'),
       backgroundColor: Theme.of(context).primaryColor,
@@ -71,7 +68,6 @@ class _AccountScreenState extends State<AccountScreen> {
   }
 
   Widget buildGameStatistics() {
-
     var gamesPlayed = '-';
     var diceRolled = '-';
     var roundsPlayed = '-';
@@ -87,9 +83,9 @@ class _AccountScreenState extends State<AccountScreen> {
     var outcomePool = '-';
     var outcomeCockringHands = '-';
 
-    var outcomeWinPercent= '-';
+    var outcomeWinPercent = '-';
 
-    if (statistics != null){
+    if (statistics != null) {
       gamesPlayed = statistics!.gamesPlayed.toString();
       diceRolled = statistics!.diceRolled.toString();
       roundsPlayed = statistics!.roundsPlayed.toString();
@@ -105,7 +101,9 @@ class _AccountScreenState extends State<AccountScreen> {
       outcomePool = statistics!.outcomePool.toString();
       outcomeCockringHands = statistics!.outcomePool.toString();
 
-      outcomeWinPercent = (100 * statistics!.outcomeWinner / statistics!.roundsPlayed).toStringAsFixed(1);
+      outcomeWinPercent =
+          (100 * statistics!.outcomeWinner / statistics!.roundsPlayed)
+              .toStringAsFixed(1);
     }
 
     var spans = <TextSpan>[
@@ -145,9 +143,7 @@ class _AccountScreenState extends State<AccountScreen> {
             child: RichText(
               text: TextSpan(
                 style: TextStyle(
-                  color: Color(0xffb7212a),
-                  fontFamily: 'Stanford Breath'
-                ),
+                    color: Color(0xffb7212a), fontFamily: 'Stanford Breath'),
                 children: spans,
               ),
               textAlign: TextAlign.left,
@@ -161,5 +157,4 @@ class _AccountScreenState extends State<AccountScreen> {
   Future<Statistics> getStatistics() async {
     return await analytics.getStatistics(widget.username, widget.accountId);
   }
-
 }

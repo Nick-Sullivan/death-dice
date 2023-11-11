@@ -36,4 +36,6 @@ module "analytics_api" {
   cognito_user_pool_arn = var.cognito_user_pool_arn
   dynamodb_table_arn    = module.analytics_cache.dynamodb_table_arn
   dynamodb_table_name   = module.analytics_cache.dynamodb_table_name
+  dynamodb_table_config_arn    = module.analytics_cache.dynamodb_table_config_arn
+  dynamodb_table_config_name   = module.analytics_cache.dynamodb_table_config_name
 }

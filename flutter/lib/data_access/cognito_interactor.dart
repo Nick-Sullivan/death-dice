@@ -1,6 +1,7 @@
 import 'dart:collection';
 
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
+import 'package:death_dice/model/account.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CognitoInteractor {
@@ -12,7 +13,7 @@ class CognitoInteractor {
   CognitoInteractor();
 
   Future init() async {
-    if (isInitialised){
+    if (isInitialised) {
       return;
     }
     await dotenv.load(fileName: ".env");
@@ -22,14 +23,14 @@ class CognitoInteractor {
     isInitialised = true;
   }
 
-  CognitoUser getUser(String username){
-    if (!userCache.containsKey(username)){
+  CognitoUser getUser(String username) {
+    if (!userCache.containsKey(username)) {
       userCache[username] = CognitoUser(username, userPool);
     }
     return userCache[username];
   }
 
-  CognitoUserSession getSession(String username){
+  CognitoUserSession getSession(String username) {
     return sessionCache[username];
   }
 
@@ -47,7 +48,7 @@ class CognitoInteractor {
     return cognitoUser.resendConfirmationCode();
   }
 
-  Future<String> authenticate(String username, String password) async {
+  Future<Account> authenticate(String username, String password) async {
     final cognitoUser = getUser(username);
     final authDetails = AuthenticationDetails(
       username: username,
@@ -60,9 +61,9 @@ class CognitoInteractor {
       sessionCache[username] = session;
 
       var attributes = await cognitoUser.getUserAttributes();
-      var attribute = attributes!.singleWhere((a) => a.name == 'sub');
-      var accountId = attribute.value!;
-      return accountId;
+      var accountId = attributes!.singleWhere((a) => a.name == 'sub').value!;
+      var email = attributes.singleWhere((a) => a.name == 'email').value!;
+      return Account(accountId, email);
     } on CognitoUserNewPasswordRequiredException catch (e) {
       // handle New Password challenge
       exception = e;
@@ -89,7 +90,6 @@ class CognitoInteractor {
       exception = CognitoUserException(e.message);
     }
     throw exception;
-
   }
 
   Future<dynamic> forgotPassword(String username) async {
@@ -97,12 +97,12 @@ class CognitoInteractor {
     return cognitoUser.forgotPassword();
   }
 
-  Future confirmPassword(String username, String password, String code){
+  Future confirmPassword(String username, String password, String code) {
     final cognitoUser = getUser(username);
     return cognitoUser.confirmPassword(code, password);
   }
 
-  Future<List<CognitoUserAttribute>?> getUserAttributes(String username){
+  Future<List<CognitoUserAttribute>?> getUserAttributes(String username) {
     final cognitoUser = getUser(username);
     return cognitoUser.getUserAttributes();
   }
@@ -111,5 +111,4 @@ class CognitoInteractor {
     final session = getSession(username);
     return session.idToken.getJwtToken()!;
   }
-
 }

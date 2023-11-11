@@ -3,8 +3,8 @@ import 'package:death_dice/screens/log_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:amazon_cognito_identity_dart_2/cognito.dart';
 import 'package:get_it/get_it.dart';
-final getIt = GetIt.instance;
 
+final getIt = GetIt.instance;
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
@@ -37,7 +37,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: buildLogo(),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15, right: 15, top: 0, bottom: 30),
+              padding: const EdgeInsets.only(
+                  left: 15, right: 15, top: 0, bottom: 30),
               child: buildEmail(),
             ),
             buildRequestPasswordChange(),
@@ -50,8 +51,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Widget buildLogo() {
     var image = isLoading
-      ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : Image(image: canLogo);
+        ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
+        : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,
@@ -83,19 +84,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         color: isLoading ? Colors.grey : Theme.of(context).primaryColor,
       ),
       child: TextButton(
-        onPressed: isLoading ? null : () async {
-          setState(() => isLoading = true);
-          var success = await requestPasswordChange();
-          setState(() => isLoading = false);
-          if (success && mounted){
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ResetPasswordConfirmationScreen(email: emailController.text)
-              )
-            );
-          }
-        },
+        onPressed: isLoading
+            ? null
+            : () async {
+                setState(() => isLoading = true);
+                var success = await requestPasswordChange();
+                setState(() => isLoading = false);
+                if (success && mounted) {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => ResetPasswordConfirmationScreen(
+                              email: emailController.text)));
+                }
+              },
         child: const Text(
           'Change password',
           style: TextStyle(color: Colors.white, fontSize: 25),
@@ -106,9 +108,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   Widget buildGoBack() {
     return TextButton(
-      onPressed: isLoading ? null : (){
-        Navigator.pop(context);
-      },
+      onPressed: isLoading
+          ? null
+          : () {
+              Navigator.pop(context);
+            },
       child: Text(
         'Go back',
         style: TextStyle(
@@ -123,16 +127,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     try {
       await cognito.forgotPassword(emailController.text);
       return true;
-    } on CognitoClientException catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? ""))
-      );
+    } on CognitoClientException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "")));
       return false;
     }
   }
-
 }
-
 
 class ResetPasswordConfirmationScreen extends StatefulWidget {
   final String email;
@@ -143,10 +144,12 @@ class ResetPasswordConfirmationScreen extends StatefulWidget {
   });
 
   @override
-  State<ResetPasswordConfirmationScreen> createState() => _ResetPasswordConfirmationScreenState();
+  State<ResetPasswordConfirmationScreen> createState() =>
+      _ResetPasswordConfirmationScreenState();
 }
 
-class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmationScreen> {
+class _ResetPasswordConfirmationScreenState
+    extends State<ResetPasswordConfirmationScreen> {
   final CognitoInteractor cognito = getIt<CognitoInteractor>();
   final codeController = TextEditingController();
   final passwordController = TextEditingController();
@@ -172,7 +175,8 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
               child: buildLogo(),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15, bottom: 15),
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 15),
               child: buildPassword(),
             ),
             Padding(
@@ -189,8 +193,8 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
 
   Widget buildLogo() {
     var image = isLoading
-      ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : Image(image: canLogo);
+        ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
+        : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,
@@ -212,7 +216,7 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
     );
   }
 
-  Widget buildCodeInput(){
+  Widget buildCodeInput() {
     return TextField(
       controller: codeController,
       decoration: const InputDecoration(
@@ -223,8 +227,8 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
       keyboardType: TextInputType.number,
     );
   }
-  
-  Widget buildConfirmButton(){
+
+  Widget buildConfirmButton() {
     return Container(
       height: 50,
       width: 250,
@@ -233,23 +237,23 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
         borderRadius: BorderRadius.circular(20),
       ),
       child: TextButton(
-        onPressed: isLoading ? null : () async {
-          setState(() => isLoading = true);
-          var success = await confirm();
-          setState(() => isLoading = false);
+        onPressed: isLoading
+            ? null
+            : () async {
+                setState(() => isLoading = true);
+                var success = await confirm();
+                setState(() => isLoading = false);
 
-          if (success && mounted){
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Password has been reset"))
-            );
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(
-                builder: (context) => LogInScreen(initialEmail: widget.email)
-              ), 
-              (Route<dynamic> route) => false
-            );
-          }
-        },
+                if (success && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Password has been reset")));
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) =>
+                              LogInScreen(initialEmail: widget.email)),
+                      (Route<dynamic> route) => false);
+                }
+              },
         child: const Text(
           'Set password',
           style: TextStyle(color: Colors.white, fontSize: 25),
@@ -273,12 +277,12 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
 
   Future<bool> confirm() async {
     try {
-      await cognito.confirmPassword(widget.email, passwordController.text, codeController.text);
+      await cognito.confirmPassword(
+          widget.email, passwordController.text, codeController.text);
       return true;
-    } on CognitoClientException catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? ""))
-      );
+    } on CognitoClientException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "")));
       return false;
     }
   }
@@ -286,11 +290,9 @@ class _ResetPasswordConfirmationScreenState extends State<ResetPasswordConfirmat
   void resendCode() async {
     try {
       await cognito.resendConfirmationCode(widget.email);
-    } on CognitoClientException catch(e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? ""))
-      );
+    } on CognitoClientException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "")));
     }
   }
-
 }

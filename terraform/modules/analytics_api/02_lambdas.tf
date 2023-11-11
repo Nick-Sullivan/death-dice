@@ -11,6 +11,26 @@ locals {
         "RESULT_CACHE_TABLE_NAME" : var.dynamodb_table_name,
       }
     },
+    "GetConfig" = {
+      name     = "${var.prefix}-GetConfig"
+      filename = "get_config"
+      handler  = "get_config.get_config"
+      route    = "$get_config"
+      role     = aws_iam_role.read_config.arn
+      variables = {
+        "RESULT_CONFIG_TABLE_NAME" : var.dynamodb_table_config_name,
+      }
+    },
+    "SetConfig" = {
+      name     = "${var.prefix}-SetConfig"
+      filename = "set_config"
+      handler  = "set_config.set_config"
+      route    = "$set_config"
+      role     = aws_iam_role.write_config.arn
+      variables = {
+        "RESULT_CONFIG_TABLE_NAME" : var.dynamodb_table_config_name,
+      }
+    },
   }
 }
 
@@ -63,6 +83,28 @@ data "aws_iam_policy_document" "read_cache" {
   }
 }
 
+data "aws_iam_policy_document" "read_config" {
+  statement {
+    actions = [
+      "dynamodb:Query",
+      "dynamodb:Scan",
+    ]
+    effect    = "Allow"
+    resources = [var.dynamodb_table_config_arn]
+  }
+}
+
+data "aws_iam_policy_document" "write_config" {
+  statement {
+    actions = [
+      "dynamodb:PutItem",
+      "dynamodb:UpdateItem",
+    ]
+    effect    = "Allow"
+    resources = [var.dynamodb_table_config_arn]
+  }
+}
+
 resource "aws_iam_role" "read_cache" {
   name                = "${var.prefix}-ReadCache"
   description         = "Allows Lambda to read cached results in DynamoDB"
@@ -74,6 +116,27 @@ resource "aws_iam_role" "read_cache" {
   }
 }
 
+resource "aws_iam_role" "read_config" {
+  name                = "${var.prefix}-ReadConfig"
+  description         = "Allows Lambda to read config in DynamoDB"
+  assume_role_policy  = data.aws_iam_policy_document.assume_role.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  inline_policy {
+    name   = "ReadConfig"
+    policy = data.aws_iam_policy_document.read_config.json
+  }
+}
+
+resource "aws_iam_role" "write_config" {
+  name                = "${var.prefix}-WriteConfig"
+  description         = "Allows Lambda to write config in DynamoDB"
+  assume_role_policy  = data.aws_iam_policy_document.assume_role.json
+  managed_policy_arns = ["arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"]
+  inline_policy {
+    name   = "WriteConfig"
+    policy = data.aws_iam_policy_document.write_config.json
+  }
+}
 
 # Lambda logging
 

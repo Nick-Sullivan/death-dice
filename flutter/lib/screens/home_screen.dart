@@ -1,14 +1,22 @@
+import 'package:death_dice/data_access/analytics_interactor.dart';
 import 'package:death_dice/data_access/database_interactor.dart';
 import 'package:death_dice/data_access/websocket_interactor.dart';
+import 'package:death_dice/model/admin_config.dart';
 import "dart:math";
 import 'package:death_dice/model/constants.dart';
 import 'package:death_dice/model/game_state.dart';
 import 'package:death_dice/screens/account_screen.dart';
+import 'package:death_dice/screens/admin_screen.dart';
 import 'package:death_dice/screens/game_screen.dart';
 import 'package:death_dice/screens/log_in_screen.dart';
+import 'package:death_dice/screens/quest_judging_screen.dart';
+import 'package:death_dice/screens/quest_screen.dart';
 import 'package:death_dice/screens/rule_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+
+import '../model/account.dart';
+
 final getIt = GetIt.instance;
 
 class HomeScreen extends StatefulWidget {
@@ -21,12 +29,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final DatabaseInteractor database = getIt<DatabaseInteractor>();
   final WebsocketInteractor websocket = getIt<WebsocketInteractor>();
-  final AssetImage background = const AssetImage("assets/images/can-in-forest.jpg");
+  final AnalyticsInteractor analytics = getIt<AnalyticsInteractor>();
+  final AssetImage background =
+      const AssetImage("assets/images/can-in-forest.jpg");
   final AssetImage canLogo = const AssetImage("assets/images/can-logo.png");
   late final TextEditingController nameController;
   late final TextEditingController gameCodeController;
   late final String username;
-  late final String accountId;
+  late final Account account;
+  AdminConfig? adminConfig;
   bool isLoading = true;
   String playerId = "default";
 
@@ -41,19 +52,27 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     nameController = TextEditingController(text: createRandomName());
     gameCodeController = TextEditingController();
-    database.init()
-      .then((_) => initVariablesFromDatabase())
-      .then((_) => websocket.init())
-      .then((_) => connect())
-      .then((_) => isLoading = false)
-      .then((_) => setState(() {}));
+    database
+        .init()
+        .then((_) => initVariablesFromDatabase())
+        .then((_) => websocket.init())
+        .then((_) => connect())
+        .then((_) => analytics.init())
+        .then((_) => analytics.getConfig(username))
+        .then((config) {
+          adminConfig = config;
+        })
+        .then((_) => isLoading = false)
+        .then((_) => setState(() {}));
     super.initState();
   }
 
   void initVariablesFromDatabase() {
-    accountId = database.read(accountIdKey);
+    var accountId = database.read(accountIdKey);
+    var accountEmail = database.read(accountEmailKey);
+    account = Account(accountId, accountEmail);
     username = database.read(usernameKey);
-    if (database.containsKey(playerIdKey)){
+    if (database.containsKey(playerIdKey)) {
       playerId = database.read(playerIdKey);
     }
   }
@@ -67,13 +86,13 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Container(
         constraints: const BoxConstraints.expand(),
         decoration: BoxDecoration(
-          image: DecorationImage(
-            alignment: Alignment.bottomCenter,
-            colorFilter: ColorFilter.mode(Colors.black.withOpacity(0.5), BlendMode.dstATop),
-            fit: BoxFit.cover,
-            image: background,
-          )
-        ),
+            image: DecorationImage(
+          alignment: Alignment.bottomCenter,
+          colorFilter: ColorFilter.mode(
+              Colors.black.withOpacity(0.5), BlendMode.dstATop),
+          fit: BoxFit.cover,
+          image: background,
+        )),
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
@@ -82,7 +101,8 @@ class _HomeScreenState extends State<HomeScreen> {
               //   child: buildLogo(),
               // ),
               Padding(
-                padding: const EdgeInsets.only(top: 30, left: 15, right: 15, bottom: 30),
+                padding: const EdgeInsets.only(
+                    top: 30, left: 15, right: 15, bottom: 30),
                 child: buildName(),
               ),
               Padding(
@@ -100,14 +120,14 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  AppBar buildAppBar(){
+  AppBar buildAppBar() {
     return AppBar(
       title: const Text('Death Dice'),
       backgroundColor: Theme.of(context).primaryColor,
       actions: [
         PopupMenuButton(
           itemBuilder: (_) {
-            return [
+            var popMenus = [
               const PopupMenuItem(
                 value: 0,
                 child: Text("Account"),
@@ -121,28 +141,81 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text("Log out"),
               ),
             ];
+            if (account.email == adminEmail) {
+              popMenus.add(const PopupMenuItem(
+                value: 3,
+                child: Text("Admin settings"),
+              ));
+            }
+            var isJudgingEnabled = (account.email == adminEmail &&
+                    adminConfig?.isNickQuestJudge == true) ||
+                (account.email == mattsEmail &&
+                    adminConfig?.isMattQuestJudge == true);
+            if (isJudgingEnabled) {
+              popMenus.add(PopupMenuItem(
+                value: 4,
+                child: Text("Quest judging",
+                    style: TextStyle(
+                        color: Colors.blue.shade400,
+                        fontWeight: FontWeight.bold)),
+              ));
+            }
+
+            var isQuestingEnabled = (account.email == adminEmail &&
+                    adminConfig?.isNickQuestTarget == true) ||
+                (account.email == mattsEmail &&
+                    adminConfig?.isMattQuestTarget == true);
+            if (isQuestingEnabled) {
+              popMenus.add(PopupMenuItem(
+                value: 5,
+                child: Text("Quests",
+                    style: TextStyle(
+                        color: Colors.red.shade400,
+                        fontWeight: FontWeight.bold)),
+              ));
+            }
+
+            return popMenus;
           },
           onSelected: ((value) {
-            if (value == 0){
+            if (value == 0) {
               Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => AccountScreen(accountId: accountId, username: username))
-              );
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AccountScreen(
+                          accountId: account.id, username: username)));
             }
-            if (value == 1){
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => RuleScreen())
-              );
+            if (value == 1) {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => RuleScreen()));
             }
-            if (value == 2){
+            if (value == 2) {
               database.delete(usernameKey);
               database.delete(passwordKey);
               database.delete(accountIdKey);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const LogInScreen())
-              );
+              Navigator.pushReplacement(context,
+                  MaterialPageRoute(builder: (context) => const LogInScreen()));
+            }
+            if (value == 3) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AdminScreen(
+                          accountId: account.id, username: username)));
+            }
+            if (value == 4) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => QuestJudgingScreen(
+                          accountId: account.id, username: username)));
+            }
+            if (value == 5) {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => QuestScreen(
+                          accountId: account.id, username: username)));
             }
           }),
         ),
@@ -152,8 +225,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget buildLogo() {
     var image = isLoading
-      ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : Image(image: canLogo);
+        ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
+        : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 150,
@@ -185,10 +258,12 @@ class _HomeScreenState extends State<HomeScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: TextButton(
-        onPressed: isLoading ? null : () async {
-          setState(() => isLoading = true);
-          createGame();
-        },
+        onPressed: isLoading
+            ? null
+            : () async {
+                setState(() => isLoading = true);
+                createGame();
+              },
         child: const Text(
           'New Game',
           style: TextStyle(color: Colors.white, fontSize: 25),
@@ -201,35 +276,41 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(flex: 1, child: TextField(
-          controller: gameCodeController,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            labelStyle: TextStyle(color: Colors.black),
-            labelText: 'Game code',
-            fillColor: Color(0xaabebfc3),
-            filled: true,
-          ),
-          enabled: !isLoading,
-        )),
-        Expanded(flex: 1, child: Container(
-          height: 50,
-          width: 250,
-          decoration: BoxDecoration(
-            color: isLoading ? Colors.grey : Theme.of(context).primaryColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: TextButton(
-            onPressed: isLoading ? null : () async {
-              setState(() => isLoading = true);
-              joinGame();
-            },
-            child: const Text(
-              'Join',
-              style: TextStyle(color: Colors.white, fontSize: 25),
-            ),
-          ),
-        ))
+        Expanded(
+            flex: 1,
+            child: TextField(
+              controller: gameCodeController,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                labelStyle: TextStyle(color: Colors.black),
+                labelText: 'Game code',
+                fillColor: Color(0xaabebfc3),
+                filled: true,
+              ),
+              enabled: !isLoading,
+            )),
+        Expanded(
+            flex: 1,
+            child: Container(
+              height: 50,
+              width: 250,
+              decoration: BoxDecoration(
+                color: isLoading ? Colors.grey : Theme.of(context).primaryColor,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        setState(() => isLoading = true);
+                        joinGame();
+                      },
+                child: const Text(
+                  'Join',
+                  style: TextStyle(color: Colors.white, fontSize: 25),
+                ),
+              ),
+            ))
       ],
     );
   }
@@ -249,12 +330,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void createGame() async {
-    await websocket.createPlayer(nameController.text, accountId);
+    await websocket.createPlayer(nameController.text, account.id);
     await websocket.createGame();
   }
 
   void joinGame() async {
-    await websocket.createPlayer(nameController.text, accountId);
+    await websocket.createPlayer(nameController.text, account.id);
     await websocket.joinGame(gameCodeController.text);
   }
 
@@ -264,12 +345,10 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(builder: (context) => const GameScreen()),
     );
   }
-  
+
   void onError(String error) {
     debugPrint(error);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(error))
-    );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
     // websocket.close();
     setState(() => isLoading = false);
   }

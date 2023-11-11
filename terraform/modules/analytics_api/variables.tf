@@ -19,6 +19,16 @@ variable "dynamodb_table_name" {
   type        = string
 }
 
+variable "dynamodb_table_config_arn" {
+  description = "ARN of the dynamoDB table storing analytics config"
+  type        = string
+}
+
+variable "dynamodb_table_config_name" {
+  description = "Name of the dynamoDB table storing analytics config"
+  type        = string
+}
+
 variable "lambda_folder" {
   description = "Location of the folder with lambda source code, expected to have a 'src' folder inside it"
   type        = string

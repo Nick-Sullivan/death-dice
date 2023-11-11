@@ -67,11 +67,105 @@ resource "aws_lambda_permission" "statistics" {
   source_arn = "arn:aws:execute-api:ap-southeast-2:${var.aws_account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.statistics.http_method}${aws_api_gateway_resource.statistics.path}"
 }
 
+# /config
+
+resource "aws_api_gateway_resource" "config" {
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "config"
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_method" "config" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.config.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "config_200" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.config.id
+  http_method = aws_api_gateway_method.config.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Content-Type"   = true
+    "method.response.header.Content-Length" = true
+    "method.response.header.Timestamp"      = true
+  }
+}
+
+resource "aws_api_gateway_integration" "config" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.config.id
+  http_method             = aws_api_gateway_method.config.http_method
+  content_handling        = "CONVERT_TO_TEXT"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.all["GetConfig"].invoke_arn
+}
+
+resource "aws_lambda_permission" "config" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.all["GetConfig"].function_name
+  principal     = "apigateway.amazonaws.com"
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  source_arn = "arn:aws:execute-api:ap-southeast-2:${var.aws_account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.config.http_method}${aws_api_gateway_resource.config.path}"
+}
+
+# /set_config
+
+resource "aws_api_gateway_resource" "set_config" {
+  parent_id   = aws_api_gateway_rest_api.api.root_resource_id
+  path_part   = "set_config"
+  rest_api_id = aws_api_gateway_rest_api.api.id
+}
+
+resource "aws_api_gateway_method" "set_config" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.set_config.id
+  http_method   = "POST"
+  authorization = "NONE"
+}
+
+resource "aws_api_gateway_method_response" "set_config_200" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.set_config.id
+  http_method = aws_api_gateway_method.set_config.http_method
+  status_code = "200"
+  response_parameters = {
+    "method.response.header.Content-Type"   = true
+    "method.response.header.Content-Length" = true
+    "method.response.header.Timestamp"      = true
+  }
+}
+
+resource "aws_api_gateway_integration" "set_config" {
+  rest_api_id             = aws_api_gateway_rest_api.api.id
+  resource_id             = aws_api_gateway_resource.set_config.id
+  http_method             = aws_api_gateway_method.set_config.http_method
+  content_handling        = "CONVERT_TO_TEXT"
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.all["SetConfig"].invoke_arn
+}
+
+resource "aws_lambda_permission" "set_config" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.all["SetConfig"].function_name
+  principal     = "apigateway.amazonaws.com"
+  # More: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-control-access-using-iam-policies-to-invoke-api.html
+  source_arn = "arn:aws:execute-api:ap-southeast-2:${var.aws_account_id}:${aws_api_gateway_rest_api.api.id}/*/${aws_api_gateway_method.set_config.http_method}${aws_api_gateway_resource.set_config.path}"
+}
+
 # Deploy
 
 resource "aws_api_gateway_deployment" "api" {
   depends_on = [
     aws_api_gateway_integration.statistics,
+    aws_api_gateway_integration.config,
+    aws_api_gateway_integration.set_config,
   ]
   rest_api_id = aws_api_gateway_rest_api.api.id
   description = "Terraform deployment"
@@ -92,6 +186,12 @@ resource "aws_api_gateway_deployment" "api" {
       aws_api_gateway_resource.statistics.id,
       aws_api_gateway_method.statistics.id,
       aws_api_gateway_integration.statistics.id,
+      aws_api_gateway_resource.config.id,
+      aws_api_gateway_method.config.id,
+      aws_api_gateway_integration.config.id,
+      aws_api_gateway_resource.set_config.id,
+      aws_api_gateway_method.set_config.id,
+      aws_api_gateway_integration.set_config.id,
     ]))
   }
 }

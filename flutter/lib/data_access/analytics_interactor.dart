@@ -1,10 +1,11 @@
-
 import 'dart:convert';
 import 'package:death_dice/data_access/cognito_interactor.dart';
+import 'package:death_dice/model/admin_config.dart';
 import 'package:death_dice/model/http_responses.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+
 final getIt = GetIt.instance;
 
 class AnalyticsInteractor {
@@ -15,7 +16,7 @@ class AnalyticsInteractor {
   AnalyticsInteractor();
 
   Future init() async {
-    if (isInitialised){
+    if (isInitialised) {
       return;
     }
     await dotenv.load(fileName: ".env");
@@ -25,7 +26,7 @@ class AnalyticsInteractor {
 
   Future<Statistics> getStatistics(String username, String accountId) async {
     final token = await cognito.getIdToken(username);
-    
+
     final response = await http.post(
       Uri.parse('$url/statistics'),
       headers: <String, String>{
@@ -37,8 +38,55 @@ class AnalyticsInteractor {
       }),
     );
 
-    if (response.statusCode == 200){
+    if (response.statusCode == 200) {
       return Statistics.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('uh oh');
+    }
+  }
+
+  Future<AdminConfig> getConfig(String username) async {
+    final token = await cognito.getIdToken(username);
+
+    final response = await http.post(
+      Uri.parse('$url/config'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': token,
+      },
+      body: jsonEncode(<String, String>{}),
+    );
+
+    if (response.statusCode == 200) {
+      return AdminConfig.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('uh oh');
+    }
+  }
+
+  Future<void> setConfig(String username, AdminConfig adminConfig) async {
+    final token = await cognito.getIdToken(username);
+
+    final response = await http.post(
+      Uri.parse('$url/set_config'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': token,
+      },
+      body: jsonEncode(<String, String>{
+        'isNickQuestJudge': adminConfig.isNickQuestJudge.toString(),
+        'isMattQuestJudge': adminConfig.isMattQuestJudge.toString(),
+        'isNickQuestTarget': adminConfig.isNickQuestTarget.toString(),
+        'isMattQuestTarget': adminConfig.isMattQuestTarget.toString(),
+        'isEggOneFound': adminConfig.isEggOneFound.toString(),
+        'isEggTwoFound': adminConfig.isEggTwoFound.toString(),
+        'isEggThreeFound': adminConfig.isEggThreeFound.toString(),
+        'isEggFourFound': adminConfig.isEggFourFound.toString(),
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return;
     } else {
       throw Exception('uh oh');
     }

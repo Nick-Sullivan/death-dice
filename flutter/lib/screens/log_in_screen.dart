@@ -7,8 +7,8 @@ import 'package:death_dice/screens/home_screen.dart';
 import 'package:death_dice/screens/sign_up_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
-final getIt = GetIt.instance;
 
+final getIt = GetIt.instance;
 
 class LoginLoadingScreen extends StatefulWidget {
   const LoginLoadingScreen({Key? key}) : super(key: key);
@@ -56,24 +56,24 @@ class _LoginLoadingScreenState extends State<LoginLoadingScreen> {
   }
 
   Future<bool> isLoggedIn() async {
-    if (!database.containsKey(usernameKey) || !database.containsKey(passwordKey)){
+    if (!database.containsKey(usernameKey) ||
+        !database.containsKey(passwordKey)) {
       return false;
     }
     debugPrint('Details already exist, logging in');
     var username = database.read(usernameKey);
     var password = database.read(passwordKey);
     try {
-      var accountId = await cognito.authenticate(username, password);
-      await database.write(accountIdKey, accountId);
+      var account = await cognito.authenticate(username, password);
+      await database.write(accountIdKey, account.id);
+      await database.write(accountEmailKey, account.email);
     } on CognitoUserException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? ""))
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "")));
       return false;
     }
     return true;
   }
-
 }
 
 class LogInScreen extends StatefulWidget {
@@ -127,7 +127,8 @@ class _LogInScreenState extends State<LogInScreen> {
               child: buildEmail(),
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 15.0, right: 15.0, top: 15, bottom: 0),
+              padding: const EdgeInsets.only(
+                  left: 15.0, right: 15.0, top: 15, bottom: 0),
               child: buildPassword(),
             ),
             buildForgotPassword(),
@@ -141,8 +142,8 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Widget buildLogo() {
     var image = isLoading
-      ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
-      : Image(image: canLogo);
+        ? CircularProgressIndicator(color: Theme.of(context).primaryColor)
+        : Image(image: canLogo);
     return Center(
       child: SizedBox(
         width: 200,
@@ -177,12 +178,15 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Widget buildForgotPassword() {
     return TextButton(
-      onPressed: isLoading ? null : (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ForgotPasswordScreen()),
-        );
-      },
+      onPressed: isLoading
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => const ForgotPasswordScreen()),
+              );
+            },
       child: Text(
         'Forgot Password',
         style: TextStyle(
@@ -202,17 +206,19 @@ class _LogInScreenState extends State<LogInScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: TextButton(
-        onPressed: isLoading ? null : () async {
-          setState(() => isLoading = true);
-          var success = await logIn();
-          setState(() => isLoading = false);
-          if (success && mounted){
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          }
-        },
+        onPressed: isLoading
+            ? null
+            : () async {
+                setState(() => isLoading = true);
+                var success = await logIn();
+                setState(() => isLoading = false);
+                if (success && mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                }
+              },
         child: const Text(
           'Log in',
           style: TextStyle(color: Colors.white, fontSize: 25),
@@ -223,12 +229,14 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Widget buildSignUp() {
     return TextButton(
-      onPressed: isLoading ? null : (){
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SignUpScreen()),
-        );
-      },
+      onPressed: isLoading
+          ? null
+          : () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const SignUpScreen()),
+              );
+            },
       child: Text(
         'New User? Create Account',
         style: TextStyle(
@@ -241,18 +249,17 @@ class _LogInScreenState extends State<LogInScreen> {
 
   Future<bool> logIn() async {
     try {
-      var accountId = await cognito.authenticate(emailController.text, passwordController.text);
+      var account = await cognito.authenticate(
+          emailController.text, passwordController.text);
       await database.write(usernameKey, emailController.text);
       await database.write(passwordKey, passwordController.text);
-      await database.write(accountIdKey, accountId);
+      await database.write(accountIdKey, account.id);
+      await database.write(accountEmailKey, account.email);
       return true;
-
     } on CognitoUserException catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.message ?? "Error"))
-      );
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.message ?? "Error")));
       return false;
     }
   }
-
 }

@@ -183,3 +183,13 @@ resource "aws_dynamodb_table" "cache" {
     type = "S"
   }
 }
+
+resource "aws_dynamodb_table" "config" {
+  name         = "${var.prefix}-Config"
+  hash_key     = "config_key"
+  billing_mode = "PAY_PER_REQUEST"
+  attribute {
+    name = "config_key"
+    type = "S"
+  }
+}

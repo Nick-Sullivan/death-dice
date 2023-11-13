@@ -37,6 +37,13 @@ locals {
   }
 }
 
+# Create a public S3 bucket to host the files.
+
+module "s3_bucket" {
+  source        = "./../../modules/website_s3_bucket"
+  name          = local.prefix_lower
+  source_folder = "${path.root}/../../../website"
+}
 
 # Users interact with an API URL
 

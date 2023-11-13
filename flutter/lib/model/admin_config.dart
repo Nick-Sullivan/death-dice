@@ -22,14 +22,14 @@ class AdminConfig {
 
   factory AdminConfig.fromJson(Map<String, dynamic> json) {
     return AdminConfig(
-      isNickQuestJudge: json['isNickQuestJudge'],
-      isMattQuestJudge: json['isMattQuestJudge'],
-      isNickQuestTarget: json['isNickQuestTarget'],
-      isMattQuestTarget: json['isMattQuestTarget'],
-      isEggOneFound: json['isEggOneFound'],
-      isEggTwoFound: json['isEggTwoFound'],
-      isEggThreeFound: json['isEggThreeFound'],
-      isEggFourFound: json['isEggFourFound'],
+      isNickQuestJudge: json['isNickQuestJudge'] ?? false,
+      isMattQuestJudge: json['isMattQuestJudge'] ?? false,
+      isNickQuestTarget: json['isNickQuestTarget'] ?? false,
+      isMattQuestTarget: json['isMattQuestTarget'] ?? false,
+      isEggOneFound: json['isEggOneFound'] ?? false,
+      isEggTwoFound: json['isEggTwoFound'] ?? false,
+      isEggThreeFound: json['isEggThreeFound'] ?? false,
+      isEggFourFound: json['isEggFourFound'] ?? false,
     );
   }
 }

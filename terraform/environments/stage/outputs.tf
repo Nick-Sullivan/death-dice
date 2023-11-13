@@ -13,6 +13,11 @@ output "analytics_gateway_url" {
   value       = module.analytics.gateway_url
 }
 
+output "public_url" {
+  description = "URL of the static website"
+  value       = module.s3_bucket.public_url
+}
+
 
 # Save output for using website/app
 

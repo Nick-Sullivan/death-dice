@@ -322,7 +322,7 @@ resource "aws_cloudwatch_event_target" "websocket_disconnected_queue" {
 
 resource "aws_sqs_queue" "websocket_disconnected_queue" {
   name                      = "${var.prefix}-WebsocketDisconnection"
-  delay_seconds = 120
+  delay_seconds = 60
   message_retention_seconds = 6 * 60 * 60
 }
 

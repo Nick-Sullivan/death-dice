@@ -1,11 +1,15 @@
-from playwright.sync_api import BrowserContext, Page
+from time import sleep
+
+from playwright.sync_api import BrowserContext
 
 
 class GameSession:
 
-  URL = "http://127.0.0.1:5500/website"
+#   URL = "http://127.0.0.1:5500/website"
+  URL = "http://death-dice-stage.s3-website-ap-southeast-2.amazonaws.com/"
   # URL = "http://100percentofthetimehotspaghetti.com/dice.html"
-  DEFAULT_TIMEOUT = 30_000  # milliseconds
+  DEFAULT_TIMEOUT = 180_000  # milliseconds, time before tests fail
+  DISCONNECT_TIMEOUT = 60_000  # milliseconds, time before a player is kicked if they disconnect
 
   def __init__(self, context: BrowserContext, cookies=None):
     context.clear_cookies()
@@ -121,6 +125,9 @@ class GameSession:
     result = self.page.locator(f"text={text}")
     assert result.is_enabled()
   
+  def wait_for_disconnect_timeout(self):
+    sleep(self.DISCONNECT_TIMEOUT/1000)
+
 
 def test_snake_eyes(context: BrowserContext):
   session = GameSession(context)
@@ -290,22 +297,24 @@ def test_two_player_tie(context: BrowserContext):
 
 def test_two_player_leave_early(context: BrowserContext):
 
-  session = GameSession(context)
-  session.assert_init()
-  session.set_name("ABOVE_AVERAGE_JOE")
-  session.create_game()
-  game_code = session.get_game_code()
+    session = GameSession(context)
+    session.assert_init()
+    session.set_name("ABOVE_AVERAGE_JOE")
+    session.create_game()
+    game_code = session.get_game_code()
 
-  session2 = GameSession(context)
-  session2.assert_init()
-  session2.set_name("AVERAGE_JOE")
-  session2.join_game(game_code)
-  session2.new_round()
+    session2 = GameSession(context)
+    session2.assert_init()
+    session2.set_name("AVERAGE_JOE")
+    session2.join_game(game_code)
+    session2.new_round()
 
-  session.roll_dice() # 5,4
-  session2.page.close()
+    session.roll_dice() # 5,4
+    session2.page.close()
 
-  session.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
+    session.wait_for_disconnect_timeout()
+
+    session.assert_result_text("ABOVE_AVERAGE_JOE (1) Winner")
 
 
 def test_two_player_leave_and_connect(context: BrowserContext):

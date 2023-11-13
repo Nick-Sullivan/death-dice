@@ -14,10 +14,10 @@ def test_it_is_not_in_the_database(case, websocket_store):
         websocket_store.get(case.connection_id)
 
 
-def test_it_publishes_an_event(case, event_publisher):
+def test_it_does_not_publish_an_event(case, event_publisher):
     events = [
-        e for e in event_publisher.events['Websocket']
+        e for e in event_publisher.events.get('Websocket', [])
         if e['connection_id'] == case.connection_id
     ]
-    assert len(events) == 1
+    assert len(events) == 0
     

@@ -99,7 +99,7 @@ class _AccountScreenState extends State<AccountScreen> {
       outcomeHeadOnTable = statistics!.outcomeHeadOnTable.toString();
       outcomeWishPurchase = statistics!.outcomeWishPurchase.toString();
       outcomePool = statistics!.outcomePool.toString();
-      outcomeCockringHands = statistics!.outcomePool.toString();
+      outcomeCockringHands = statistics!.outcomeCockringHands.toString();
 
       outcomeWinPercent =
           (100 * statistics!.outcomeWinner / statistics!.roundsPlayed)

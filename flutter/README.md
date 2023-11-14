@@ -24,7 +24,7 @@ keytool -genkey -v -keystore upload-keystore.jks -storetype JKS -keyalg RSA -key
 Subsequent releases
 
 - make sure terraform apply was performed first, so .env is populated
-- edit pubspec.yaml release version (bump the last 2 digits, the + is used by google)
+- edit pubspec.yaml release version (bump both numbers, the + is used by google)
 - flutter build appbundle
 - in play.google.com/console, select internal testing, edit release
 - make sure you terraform apply in 100percentofthetimehotspaghetti.com

@@ -64,6 +64,7 @@ class TestSessionStore:
     item = obj.get('test')
     assert isinstance(item, SessionItem)
     assert item.id == 'test'
+    assert item.modified_at.tzinfo == timezone.utc
     obj.client.get_item.assert_called_once_with(**{
       'TableName': 'MockTable',
       'Key': {'id': {'S': 'test'}},

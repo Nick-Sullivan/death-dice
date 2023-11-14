@@ -158,6 +158,7 @@ resource "aws_lambda_function" "all" {
       "PROJECT" : var.prefix,
       "GATEWAY_URL" : var.gateway_url,
       "WEBSOCKET_TABLE_NAME": var.websocket_table_name,
+      "DISCONNECT_TIMEOUT": aws_sqs_queue.websocket_disconnected_queue.delay_seconds,
     }
   }
 }

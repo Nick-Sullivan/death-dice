@@ -1,4 +1,5 @@
 
+import os
 import uuid
 
 import pytest
@@ -153,6 +154,7 @@ class Case:
         self.second_connection_id = None
         self.second_session_id = None
         self.second_nickname = None
+        os.environ['DISCONNECT_TIMEOUT'] = '0'
 
     def with_connection(self):
         self.connection_id = mediator.send(CreateConnectionCommand(uuid.uuid4())).connection_id

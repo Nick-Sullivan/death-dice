@@ -1,7 +1,7 @@
 """Models representing items stored in the Connection database"""
 
 from dataclasses import asdict, dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 from boto3.dynamodb.types import TypeDeserializer, TypeSerializer
@@ -50,6 +50,6 @@ class SessionItem:
     item_dict['modified_action'] = SessionAction(item_dict['modified_action'])
 
     # Datetimes
-    item_dict['modified_at'] = parser.parse(item_dict['modified_at'])
+    item_dict['modified_at'] = parser.parse(item_dict['modified_at']).replace(tzinfo=timezone.utc)
 
     return SessionItem(**item_dict)

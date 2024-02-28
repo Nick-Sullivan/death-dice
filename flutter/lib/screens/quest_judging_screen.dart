@@ -86,10 +86,10 @@ class _QuestJudgingScreenState extends State<QuestJudgingScreen> {
         createTile('isMagicGathered'),
         createTile('isHotSauceConsumed'),
         createTile('isArmpitFarted'),
+        createTile('isHotDogEaten'),
         createTile('isChronicRhinitusTreated'),
         createTile('isCatchupOrganised'),
         createTile('isMagicMikeRecreated'),
-        createTile('isHotDogEaten'),
         createTile('isKettMaherInvited'),
       ],
     );

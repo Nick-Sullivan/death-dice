@@ -78,10 +78,31 @@ class AnalyticsInteractor {
         'isMattQuestJudge': adminConfig.isMattQuestJudge.toString(),
         'isNickQuestTarget': adminConfig.isNickQuestTarget.toString(),
         'isMattQuestTarget': adminConfig.isMattQuestTarget.toString(),
-        'isEggOneFound': adminConfig.isEggOneFound.toString(),
-        'isEggTwoFound': adminConfig.isEggTwoFound.toString(),
-        'isEggThreeFound': adminConfig.isEggThreeFound.toString(),
-        'isEggFourFound': adminConfig.isEggFourFound.toString(),
+        'areEggsFound': adminConfig.areEggsFound.toString(),
+        'hasBulgarianBeenAsked': adminConfig.hasBulgarianBeenAsked.toString(),
+        'hasRandomBeenTongued': adminConfig.hasRandomBeenTongued.toString(),
+        'hasWestEndBeenOrdered': adminConfig.hasWestEndBeenOrdered.toString(),
+        'hasTantrumBeenThrown': adminConfig.hasTantrumBeenThrown.toString(),
+        'hasElectricityBillCalled':
+            adminConfig.hasElectricityBillCalled.toString(),
+        'isStrangerFoiledAgain': adminConfig.isStrangerFoiledAgain.toString(),
+        'hasBupBeenDowed': adminConfig.hasBupBeenDowed.toString(),
+        'hasVenuePlayedSteelPanther':
+            adminConfig.hasVenuePlayedSteelPanther.toString(),
+        'hasHalfTimeSpeechInspired':
+            adminConfig.hasHalfTimeSpeechInspired.toString(),
+        'isCrevatteWorn': adminConfig.isCrevatteWorn.toString(),
+        'isFingerRinged': adminConfig.isFingerRinged.toString(),
+        'areSexyClownsReal': adminConfig.areSexyClownsReal.toString(),
+        'isMagicGathered': adminConfig.isMagicGathered.toString(),
+        'isHotSauceConsumed': adminConfig.isHotSauceConsumed.toString(),
+        'isArmpitFarted': adminConfig.isArmpitFarted.toString(),
+        'isChronicRhinitusTreated':
+            adminConfig.isChronicRhinitusTreated.toString(),
+        'isCatchupOrganised': adminConfig.isCatchupOrganised.toString(),
+        'isMagicMikeRecreated': adminConfig.isMagicMikeRecreated.toString(),
+        'isHotDogEaten': adminConfig.isHotDogEaten.toString(),
+        'isKettMaherInvited': adminConfig.isKettMaherInvited.toString(),
       }),
     );
 

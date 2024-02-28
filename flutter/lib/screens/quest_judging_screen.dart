@@ -70,51 +70,43 @@ class _QuestJudgingScreenState extends State<QuestJudgingScreen> {
 
     return ListView(
       children: [
-        ListTile(
-          title: const Text("Egg #1 found"),
-          trailing: Checkbox(
-              activeColor: Colors.red.shade400,
-              value: adminConfig!.isEggOneFound,
-              onChanged: (value) {
-                adminConfig!.isEggOneFound = value!;
-                analytics.setConfig(widget.username, adminConfig!);
-                setState(() {});
-              }),
-        ),
-        ListTile(
-          title: const Text("Egg #2 found"),
-          trailing: Checkbox(
-              activeColor: Colors.red.shade400,
-              value: adminConfig!.isEggTwoFound,
-              onChanged: (value) {
-                adminConfig!.isEggTwoFound = value!;
-                analytics.setConfig(widget.username, adminConfig!);
-                setState(() {});
-              }),
-        ),
-        ListTile(
-          title: const Text("Egg #3 found"),
-          trailing: Checkbox(
-              activeColor: Colors.red.shade400,
-              value: adminConfig!.isEggThreeFound,
-              onChanged: (value) {
-                adminConfig!.isEggThreeFound = value!;
-                analytics.setConfig(widget.username, adminConfig!);
-                setState(() {});
-              }),
-        ),
-        ListTile(
-          title: const Text("Egg #4 found"),
-          trailing: Checkbox(
-              activeColor: Colors.red.shade400,
-              value: adminConfig!.isEggFourFound,
-              onChanged: (value) {
-                adminConfig!.isEggFourFound = value!;
-                analytics.setConfig(widget.username, adminConfig!);
-                setState(() {});
-              }),
-        )
+        createTile('isEggOneFound'),
+        createTile('areEggsFound'),
+        createTile('hasBulgarianBeenAsked'),
+        createTile('hasRandomBeenTongued'),
+        createTile('hasWestEndBeenOrdered'),
+        createTile('hasTantrumBeenThrown'),
+        createTile('hasElectricityBillCalled'),
+        createTile('isStrangerFoiledAgain'),
+        createTile('hasBupBeenDowed'),
+        createTile('hasVenuePlayedSteelPanther'),
+        createTile('hasHalfTimeSpeechInspired'),
+        createTile('isCrevatteWorn'),
+        createTile('isFingerRinged'),
+        createTile('areSexyClownsReal'),
+        createTile('isMagicGathered'),
+        createTile('isHotSauceConsumed'),
+        createTile('isArmpitFarted'),
+        createTile('isChronicRhinitusTreated'),
+        createTile('isCatchupOrganised'),
+        createTile('isMagicMikeRecreated'),
+        createTile('isHotDogEaten'),
+        createTile('isKettMaherInvited'),
       ],
+    );
+  }
+
+  ListTile createTile(String propertyName) {
+    return ListTile(
+      title: Text(propertyName),
+      trailing: Checkbox(
+          activeColor: Colors.red.shade400,
+          value: adminConfig!.getProperty(propertyName),
+          onChanged: (value) {
+            adminConfig!.setProperty(propertyName, value!);
+            analytics.setConfig(widget.username, adminConfig!);
+            setState(() {});
+          }),
     );
   }
 }

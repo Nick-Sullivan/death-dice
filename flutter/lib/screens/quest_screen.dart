@@ -44,10 +44,27 @@ class _QuestScreenState extends State<QuestScreen> {
   }
 
   int countCompletedQuests(AdminConfig adminConfig) {
-    return (adminConfig.isEggOneFound ? 1 : 0) +
-        (adminConfig.isEggTwoFound ? 1 : 0) +
-        (adminConfig.isEggThreeFound ? 1 : 0) +
-        (adminConfig.isEggFourFound ? 1 : 0);
+    return (adminConfig.areEggsFound ? 1 : 0) +
+        (adminConfig.hasBulgarianBeenAsked ? 1 : 0) +
+        (adminConfig.hasRandomBeenTongued ? 1 : 0) +
+        (adminConfig.hasWestEndBeenOrdered ? 1 : 0) +
+        (adminConfig.hasTantrumBeenThrown ? 1 : 0) +
+        (adminConfig.hasElectricityBillCalled ? 1 : 0) +
+        (adminConfig.isStrangerFoiledAgain ? 1 : 0) +
+        (adminConfig.hasBupBeenDowed ? 1 : 0) +
+        (adminConfig.hasVenuePlayedSteelPanther ? 1 : 0) +
+        (adminConfig.hasHalfTimeSpeechInspired ? 1 : 0) +
+        (adminConfig.isCrevatteWorn ? 1 : 0) +
+        (adminConfig.isFingerRinged ? 1 : 0) +
+        (adminConfig.areSexyClownsReal ? 1 : 0) +
+        (adminConfig.isMagicGathered ? 1 : 0) +
+        (adminConfig.isHotSauceConsumed ? 1 : 0) +
+        (adminConfig.isArmpitFarted ? 1 : 0) +
+        (adminConfig.isChronicRhinitusTreated ? 1 : 0) +
+        (adminConfig.isCatchupOrganised ? 1 : 0) +
+        (adminConfig.isMagicMikeRecreated ? 1 : 0) +
+        (adminConfig.isHotDogEaten ? 1 : 0) +
+        (adminConfig.isKettMaherInvited ? 1 : 0);
   }
 
   @override
@@ -79,10 +96,70 @@ class _QuestScreenState extends State<QuestScreen> {
     }
 
     var listTiles = <ListTile>[];
-    listTiles.add(createTile("Find Egg #1", 0, adminConfig!.isEggOneFound));
-    listTiles.add(createTile("Find Egg #2", 0, adminConfig!.isEggTwoFound));
-    listTiles.add(createTile("Find Egg #3", 2, adminConfig!.isEggThreeFound));
-    listTiles.add(createTile("Find Egg #4", 3, adminConfig!.isEggFourFound));
+    listTiles.add(
+        createTile("Find all the hidden eggs", 0, adminConfig!.areEggsFound));
+    listTiles.add(createTile("Talk to a Bulgarian about DJ Juice", 0,
+        adminConfig!.hasBulgarianBeenAsked));
+    listTiles.add(createTile(
+        "Get a random person to put a fake tongue in their mouth",
+        0,
+        adminConfig!.hasRandomBeenTongued));
+    listTiles.add(createTile(
+        "When you order food/drink, order a West End first (x5)",
+        0,
+        adminConfig!.hasWestEndBeenOrdered));
+    listTiles.add(createTile(
+        "If a bartender doesn't serve West End, throw a tantrum",
+        0,
+        adminConfig!.hasTantrumBeenThrown));
+    listTiles.add(createTile(
+        "Prank call someone at the bucks without them knowing, for 1 minute",
+        0,
+        adminConfig!.hasElectricityBillCalled));
+    listTiles.add(createTile(
+        "Get a stranger to say 'foiled', and when they do, say 'foiled again' and walk away",
+        0,
+        adminConfig!.isStrangerFoiledAgain));
+    listTiles.add(createTile("Get a stranger to Dow your Bup (x5)", 0,
+        adminConfig!.hasBupBeenDowed));
+    listTiles.add(createTile("Get a venue to play Steel Panther", 0,
+        adminConfig!.hasVenuePlayedSteelPanther));
+    listTiles.add(createTile("Give a 2 minute rambling half-time speech", 1,
+        adminConfig!.hasHalfTimeSpeechInspired));
+    listTiles.add(createTile(
+        "Put a crevatte on a stranger, but take a really long time. No laughing",
+        2,
+        adminConfig!.isCrevatteWorn));
+    listTiles.add(createTile(
+        "Get someone with an unsuspecting finger ring (x5)",
+        3,
+        adminConfig!.isFingerRinged));
+    listTiles.add(createTile(
+        "Debate a stranger that sexy clowns exist, your are arguing that they do",
+        4,
+        adminConfig!.areSexyClownsReal));
+    listTiles.add(createTile("Beat 5 people at Magic the Gathering", 5,
+        adminConfig!.isMagicGathered));
+    listTiles.add(createTile("Consume a dab of extremely hot sauce", 6,
+        adminConfig!.isHotSauceConsumed));
+    listTiles.add(createTile(
+        "Do a 10 second long armpit fart, or 30 in 30 seconds",
+        7,
+        adminConfig!.isArmpitFarted));
+    listTiles.add(createTile(
+        "Eat a hot dog from your sleeve while having a conversation",
+        8,
+        adminConfig!.isHotDogEaten));
+    listTiles.add(createTile("Treat your chronic rhinitus (1 jar)", 9,
+        adminConfig!.isChronicRhinitusTreated));
+    listTiles.add(createTile(
+        "Organise a catchup with someone you hate from your old job",
+        10,
+        adminConfig!.isCatchupOrganised));
+    listTiles.add(createTile("Recreate Magic Mike's photoshoot", 11,
+        adminConfig!.isMagicMikeRecreated));
+    listTiles.add(createTile("Invite Kett Maher to your wedding", 12,
+        adminConfig!.isKettMaherInvited));
 
     return ListView(children: listTiles);
   }

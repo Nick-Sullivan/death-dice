@@ -3,6 +3,7 @@ class AdminConfig {
   bool isMattQuestJudge;
   bool isNickQuestTarget;
   bool isMattQuestTarget;
+  bool isAngusQuestTarget;
   // Quest details
   bool areEggsFound;
   bool hasBulgarianBeenAsked;
@@ -31,6 +32,7 @@ class AdminConfig {
     required this.isMattQuestJudge,
     required this.isNickQuestTarget,
     required this.isMattQuestTarget,
+    required this.isAngusQuestTarget,
     required this.areEggsFound,
     required this.hasBulgarianBeenAsked,
     required this.hasRandomBeenTongued,
@@ -60,6 +62,7 @@ class AdminConfig {
       isMattQuestJudge: json['isMattQuestJudge'] ?? false,
       isNickQuestTarget: json['isNickQuestTarget'] ?? false,
       isMattQuestTarget: json['isMattQuestTarget'] ?? false,
+      isAngusQuestTarget: json['isAngusQuestTarget'] ?? false,
       areEggsFound: json['areEggsFound'] ?? false,
       hasBulgarianBeenAsked: json['hasBulgarianBeenAsked'] ?? false,
       hasRandomBeenTongued: json['hasRandomBeenTongued'] ?? false,

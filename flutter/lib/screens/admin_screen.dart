@@ -114,6 +114,17 @@ class _AdminScreenState extends State<AdminScreen> {
                 setState(() {});
               }),
         ),
+        ListTile(
+          title: const Text("Angus - Quest Target"),
+          trailing: Checkbox(
+              activeColor: Colors.red.shade400,
+              value: adminConfig!.isAngusQuestTarget,
+              onChanged: (value) {
+                adminConfig!.isAngusQuestTarget = value!;
+                analytics.setConfig(widget.username, adminConfig!);
+                setState(() {});
+              }),
+        ),
       ],
     );
   }

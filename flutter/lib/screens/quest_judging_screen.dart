@@ -70,7 +70,6 @@ class _QuestJudgingScreenState extends State<QuestJudgingScreen> {
 
     return ListView(
       children: [
-        createTile('isEggOneFound'),
         createTile('areEggsFound'),
         createTile('hasBulgarianBeenAsked'),
         createTile('hasRandomBeenTongued'),

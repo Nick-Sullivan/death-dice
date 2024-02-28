@@ -164,7 +164,9 @@ class _HomeScreenState extends State<HomeScreen> {
             var isQuestingEnabled = (account.email == adminEmail &&
                     adminConfig?.isNickQuestTarget == true) ||
                 (account.email == mattsEmail &&
-                    adminConfig?.isMattQuestTarget == true);
+                    adminConfig?.isMattQuestTarget == true) ||
+                (account.email == angusesEmail &&
+                    adminConfig?.isAngusQuestTarget == true);
             if (isQuestingEnabled) {
               popMenus.add(PopupMenuItem(
                 value: 5,

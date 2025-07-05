@@ -46,10 +46,10 @@ resource "aws_lambda_function" "start_query" {
   function_name    = local.lambda_name
   handler          = "start_query.start_query"
   role             = aws_iam_role.start_query.arn
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   timeout          = 10
   source_code_hash = data.archive_file.start_query.output_base64sha256
-  layers           = ["arn:aws:lambda:ap-southeast-2:770693421928:layer:Klayers-p39-boto3:10"] # newer boto3
+  layers           = ["arn:aws:lambda:ap-southeast-2:770693421928:layer:Klayers-p312-boto3:20"] # newer boto3
   depends_on       = [aws_cloudwatch_log_group.start_query]
   environment {
     variables = {

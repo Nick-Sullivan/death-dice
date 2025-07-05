@@ -50,7 +50,7 @@ resource "aws_lambda_function" "all" {
   function_name    = each.value.name
   handler          = each.value.handler
   role             = each.value.role
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   timeout          = 10
   source_code_hash = data.archive_file.all[each.key].output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]

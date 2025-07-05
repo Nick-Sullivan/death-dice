@@ -84,7 +84,7 @@ resource "aws_lambda_function" "cache" {
   function_name    = local.lambda_name
   handler          = "cache_result.cache_result"
   role             = aws_iam_role.cache_result.arn
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   timeout          = 10
   source_code_hash = data.archive_file.cache.output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.cache]

@@ -41,7 +41,7 @@ data "archive_file" "extract" {
 resource "aws_lambda_layer_version" "layer" {
   filename            = "${var.lambda_folder}/zip/layer.zip"
   layer_name          = "${local.extract_name}Layer"
-  compatible_runtimes = ["python3.9"]
+  compatible_runtimes = ["python3.12"]
   source_code_hash    = data.archive_file.layer.output_base64sha256
 }
 
@@ -50,7 +50,7 @@ resource "aws_lambda_function" "extract" {
   function_name                  = local.extract_name
   handler                        = "extract.extract"
   role                           = aws_iam_role.extract.arn
-  runtime                        = "python3.9"
+  runtime                        = "python3.12"
   memory_size                    = 128 # MB
   timeout                        = 10
   reserved_concurrent_executions = 1

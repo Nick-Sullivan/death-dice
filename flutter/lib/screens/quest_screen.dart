@@ -135,7 +135,7 @@ class _QuestScreenState extends State<QuestScreen> {
         3,
         adminConfig!.isFingerRinged));
     listTiles.add(createTile(
-        "Debate a stranger that sexy clowns exist, your are arguing that they do",
+        "Debate a stranger that sexy clowns exist, you are arguing that they do",
         4,
         adminConfig!.areSexyClownsReal));
     listTiles.add(createTile("Beat 5 people at Magic the Gathering", 5,

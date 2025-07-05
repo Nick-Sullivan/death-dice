@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from typing import Dict, List
 
 from domain_models import RollResult, RollResultNote, RollResultType
-from domain_models.commands import CalculateGroupResultCommand, CalculateIndividualResultCommand
+from domain_models.commands import (
+    CalculateGroupResultCommand,
+    CalculateIndividualResultCommand,
+)
 
 from ...interfaces import IMediator
 

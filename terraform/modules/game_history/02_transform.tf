@@ -47,7 +47,7 @@ resource "aws_lambda_function" "transform" {
   function_name                  = local.transform_name
   handler                        = "transform.transform"
   role                           = aws_iam_role.transform.arn
-  runtime                        = "python3.9"
+  runtime                        = "python3.12"
   memory_size                    = 512 # MB
   timeout                        = 30
   reserved_concurrent_executions = 1

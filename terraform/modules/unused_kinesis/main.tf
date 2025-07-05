@@ -41,7 +41,7 @@ resource "aws_lambda_function" "transform" {
   function_name    = "${var.prefix}-Extract"
   handler          = "extract.extract"
   role             = aws_iam_role.lambda_role.arn
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   timeout          = 10
   source_code_hash = data.archive_file.transform.output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.transform]

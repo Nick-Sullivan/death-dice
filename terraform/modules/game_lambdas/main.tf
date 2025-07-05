@@ -131,14 +131,14 @@ data "archive_file" "all" {
 resource "aws_lambda_layer_version" "libs" {
   filename            = data.archive_file.libs.output_path
   layer_name          = "${var.prefix}-Libs"
-  compatible_runtimes = ["python3.9"]
+  compatible_runtimes = ["python3.12"]
   source_code_hash    = data.archive_file.libs.output_base64sha256
 }
 
 resource "aws_lambda_layer_version" "layer" {
   filename            = "${var.lambda_folder}/zip/layer.zip"
   layer_name          = "${var.prefix}-Logic"
-  compatible_runtimes = ["python3.9"]
+  compatible_runtimes = ["python3.12"]
   source_code_hash    = data.archive_file.layer.output_base64sha256
 }
 
@@ -149,7 +149,7 @@ resource "aws_lambda_function" "all" {
   handler          = each.value.handler
   layers           = [aws_lambda_layer_version.libs.arn, aws_lambda_layer_version.layer.arn]
   role             = aws_iam_role.role.arn
-  runtime          = "python3.9"
+  runtime          = "python3.12"
   timeout          = 10
   source_code_hash = data.archive_file.all[each.key].output_base64sha256
   depends_on       = [aws_cloudwatch_log_group.all]
